@@ -1,5 +1,5 @@
 param(
-    [string]$RepoName = "Aibuildercup",
+    [string]$RepoName = "CoThread",
     [string]$CollaboratorUsername = "hasnain-kk",
     [string]$CollaboratorEmail = "hasnainrashi@gmail.com"
 )
@@ -48,16 +48,24 @@ try {
     $RepoExists = $false
 }
 
+$RepoDescription = "CoThread - Enterprise Collaborative AI Platform with Host-Sponsored Token Quota and Sublink Sharing (Original Idea by Muhammad Hasnain / hasnain-kk - Google Cloud AI Builder Cup 2026)"
+
 if (-not $RepoExists) {
     $CreateBody = @{
         name        = $RepoName
-        description = "CoThread - Enterprise Collaborative AI Platform with Host-Sponsored Token Quota and Sublink Sharing (Google Cloud AI Builder Cup 2026)"
+        description = $RepoDescription
         private     = $false
         auto_init   = $true
     } | ConvertTo-Json
     $Repo = Invoke-RestMethod -Uri "https://api.github.com/user/repos" -Method Post -Headers $Headers -Body $CreateBody -ContentType "application/json"
     Write-Host "   Created public repository: $($Repo.html_url)" -ForegroundColor Green
     Start-Sleep -Seconds 2
+} else {
+    $PatchBody = @{
+        description = $RepoDescription
+    } | ConvertTo-Json
+    $Repo = Invoke-RestMethod -Uri "https://api.github.com/repos/$Owner/$RepoName" -Method Patch -Headers $Headers -Body $PatchBody -ContentType "application/json"
+    Write-Host "   Updated repository description with Idea Credit for Muhammad Hasnain" -ForegroundColor Green
 }
 
 # 4. Upload all project files via GitHub Contents API (Zero git.exe dependency!)
