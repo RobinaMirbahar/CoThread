@@ -11,7 +11,8 @@ This guide contains:
 ## Slide 1 — Title & Executive Vision
 - **Project Name**: **CoThread** — *Enterprise Collaborative AI Platform*
 - **Tagline**: *Multiplayer Gemini Sublinks with Host-Sponsored Token Quotas & Instant Personal Continuation*
-- **Team**: You (Host / Lead Builder) & Hasnain (Collaborator / Co-Builder)
+- **Original Idea & Concept Credit**: **Muhammad Hasnain** ([@hasnain-kk](https://github.com/hasnain-kk) • `hasnainrashi@gmail.com`)
+- **Team**: **Robina Mirbahar** ([@RobinaMirbahar](https://github.com/RobinaMirbahar) — Host / Lead Builder) & **Muhammad Hasnain** ([@hasnain-kk](https://github.com/hasnain-kk) — Original Idea Creator / Co-Builder)
 - **Event**: Google Cloud AI Builder Cup 2026
 - **Core Stack**: Google Cloud Run • `@google/genai` SDK • `gemini-3.8-flash` • `gemini-4-argon` • `gemini-3.5-flash-lite`
 
