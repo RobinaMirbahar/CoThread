@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120" fill="none">
+  <!-- Hard 3D Offset Black Shadow -->
+  <circle cx="65" cy="65" r="50" fill="#000000" />
+  <!-- Main Pink Coin Body -->
+  <circle cx="57" cy="57" r="50" fill="#FF90E8" stroke="#000000" stroke-width="6" />
+  <!-- Inner Dashed Ring -->
+  <circle cx="57" cy="57" r="41" fill="none" stroke="#000000" stroke-width="2.5" stroke-dasharray="6 5" />
+  <!-- Left Interlocking Thread Loop ("C" in Safety Yellow) -->
+  <path d="M56 35C43.8 35 34 44.8 34 57C34 69.2 43.8 79 56 79C61.5 79 66.5 77 70.3 73.6" stroke="#000000" stroke-width="14" stroke-linecap="round" />
+  <path d="M56 35C43.8 35 34 44.8 34 57C34 69.2 43.8 79 56 79C61.5 79 66.5 77 70.3 73.6" stroke="#FFC900" stroke-width="7.5" stroke-linecap="round" />
+  <!-- Right Interlocking Thread & "T" Crossbar (Crisp White + Teal Node) -->
+  <path d="M52 44H80M66 44V79" stroke="#000000" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M52 44H80M66 44V79" stroke="#FFFFFF" stroke-width="7.5" stroke-linecap="round" stroke-linejoin="round" />
+  <!-- Center Multiplayer Connection Node -->
+  <circle cx="66" cy="59" r="6.5" fill="#23A094" stroke="#000000" stroke-width="3.5" />
+  <!-- Top-Right Sparkle Star Sticker -->
+  <path d="M88 16L91.5 25.5L101 29L91.5 32.5L88 42L84.5 32.5L75 29L84.5 25.5L88 16Z" fill="#FFC900" stroke="#000000" stroke-width="3.5" stroke-linejoin="round" />
+</svg>
