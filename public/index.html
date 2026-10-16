@@ -7,20 +7,25 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="./styles.css?v=cothread6" />
+  <link rel="stylesheet" href="./styles.css?v=ct7" />
 </head>
 <body>
-  <!-- SHARED NEO-BRUTALIST SVG DEFS: COTHREAD COIN LOGO -->
+  <!-- COTHREAD NEO-BRUTALIST 3D COIN LOGO (INTERLOCKING "C" + "T" THREADS) -->
   <svg width="0" height="0" style="position:absolute;pointer-events:none;" aria-hidden="true">
     <defs>
       <g id="cothreadLogoMark">
+        <!-- 3D Offset Black Coin Shadow -->
         <circle cx="22.5" cy="22.5" r="17" fill="#000000" />
+        <!-- Pink Coin Body -->
         <circle cx="19" cy="19" r="17" fill="#FF90E8" stroke="#000000" stroke-width="2.6" />
-        <path d="M25.5 13.5C23.8 11.3 21.1 10 18 10C13 10 9 14 9 19C9 24 13 28 18 28C22.4 28 26 25.1 26.8 21H18.5" fill="none" stroke="#000000" stroke-width="5.2" stroke-linecap="round" stroke-linejoin="round" />
-        <path d="M25.5 13.5C23.8 11.3 21.1 10 18 10C13 10 9 14 9 19C9 24 13 28 18 28C22.4 28 26 25.1 26.8 21H18.5" fill="none" stroke="#FFC900" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" />
-        <path d="M18.5 17.5H28.5V25.5" fill="none" stroke="#000000" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round" />
-        <path d="M18.5 17.5H28.5V25.5" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
-        <path d="M29 5.5L30.5 9.2L34.2 10.7L30.5 12.2L29 15.9L27.5 12.2L23.8 10.7L27.5 9.2L29 5.5Z" fill="#FFC900" stroke="#000000" stroke-width="1.8" stroke-linejoin="round" />
+        <!-- Bold Open "C" Thread (Left Arc in Safety Yellow — Strictly a "C", NOT a "G") -->
+        <path d="M21.5 11.5C19.8 10.3 17.6 9.8 15.3 10.2C11.2 10.9 8.5 14.6 8.5 19C8.5 23.4 11.2 27.1 15.3 27.8C17.6 28.2 19.8 27.7 21.5 26.5" fill="none" stroke="#000000" stroke-width="5.4" stroke-linecap="round" />
+        <path d="M21.5 11.5C19.8 10.3 17.6 9.8 15.3 10.2C11.2 10.9 8.5 14.6 8.5 19C8.5 23.4 11.2 27.1 15.3 27.8C17.6 28.2 19.8 27.7 21.5 26.5" fill="none" stroke="#FFC900" stroke-width="2.8" stroke-linecap="round" />
+        <!-- Interlocking Bold "T" for Thread (Right Monogram in Crisp White) -->
+        <path d="M18.5 13.5H29.5M24 13.5V27.5" fill="none" stroke="#000000" stroke-width="5.4" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M18.5 13.5H29.5M24 13.5V27.5" fill="none" stroke="#FFFFFF" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" />
+        <!-- Interlocking Loop Node Dot -->
+        <circle cx="24" cy="20.5" r="2.6" fill="#23A094" stroke="#000000" stroke-width="1.6" />
       </g>
     </defs>
   </svg>
@@ -63,9 +68,8 @@
       </nav>
 
       <div class="gumroad-nav-EdgeActions">
-        <button type="button" class="gumroad-edge-btn theme-edge" id="websiteThemeToggleBtn" title="Toggle Light / Dark Mode">
+        <button type="button" class="gumroad-edge-btn theme-edge" id="websiteThemeToggleBtn" title="Toggle Theme">
           <span id="websiteThemeIcon">☀️</span>
-          <span id="websiteThemeLabel">Light</span>
         </button>
         <button type="button" class="gumroad-edge-btn login-edge" id="navOpenGoogleBtn">
           Log in
@@ -710,9 +714,9 @@
 
   <div class="toast-container" id="toastContainer" aria-live="polite"></div>
 
-  <script src="../src/core/quota-engine.js?v=cothread6"></script>
-  <script src="../src/ai/gemini-service.js?v=cothread6"></script>
-  <script src="./app.js?v=cothread6"></script>
+  <script src="../src/core/quota-engine.js?v=ct7"></script>
+  <script src="../src/ai/gemini-service.js?v=ct7"></script>
+  <script src="./app.js?v=ct7"></script>
 
   <script>
     (function initCoinParallax() {
