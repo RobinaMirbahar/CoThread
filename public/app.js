@@ -12,9 +12,9 @@
 (function () {
   'use strict';
 
-  const STORAGE_KEY = 'cothread_state_ct7';
-  const TAB_AUTH_KEY = 'cothread_tab_user_ct7';
-  const THEME_KEY = 'cothread_theme_ct7';
+  const STORAGE_KEY = 'cothread_state_ct8';
+  const TAB_AUTH_KEY = 'cothread_tab_user_ct8';
+  const THEME_KEY = 'cothread_theme_ct8';
   const CHANNEL_NAME = 'cothread_realtime';
 
   const PLAN_TIERS = {
