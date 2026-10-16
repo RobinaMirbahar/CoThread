@@ -12,9 +12,9 @@
 (function () {
   'use strict';
 
-  const STORAGE_KEY = 'cothread_gumroad_state_v5';
-  const TAB_AUTH_KEY = 'cothread_gumroad_tab_user_v5';
-  const THEME_KEY = 'cothread_gumroad_theme_v5';
+  const STORAGE_KEY = 'cothread_state_v6';
+  const TAB_AUTH_KEY = 'cothread_tab_user_v6';
+  const THEME_KEY = 'cothread_theme_v6';
   const CHANNEL_NAME = 'cothread_realtime';
 
   const PLAN_TIERS = {
@@ -375,7 +375,7 @@ const parseSublink = (path: string) => path.match(/\\/s\\/(cothread-[a-z0-9-]+)/
     const webLbl = document.getElementById('websiteThemeLabel');
     const appIcon = document.getElementById('appThemeIcon');
     if (webIcon) webIcon.textContent = clean === 'light' ? '☀️' : '🌙';
-    if (webLbl) webLbl.textContent = clean === 'light' ? 'Gumroad Light' : 'Dark Mode';
+    if (webLbl) webLbl.textContent = clean === 'light' ? 'Light' : 'Dark';
     if (appIcon) appIcon.textContent = clean === 'light' ? '☀️' : '🌙';
   }
 
@@ -2285,19 +2285,18 @@ export async function executeCoThreadTurn() {
       if (e.target.id === 'accountQuotaModalBackdrop') closeAccountQuotaModal();
     });
 
-    // Gumroad Hero Search / Sublink Jump Bar
-    document.getElementById('gumroadHeroSublinkForm')?.addEventListener('submit', (e) => {
+    // Hero Sublink Jump Bar
+    document.getElementById('heroSublinkForm')?.addEventListener('submit', (e) => {
       e.preventDefault();
-      const rawVal = (document.getElementById('gumroadHeroSublinkInput')?.value || '').trim();
+      const rawVal = (document.getElementById('heroSublinkInput')?.value || '').trim();
       if (rawVal.includes('@')) {
         registerOrSignInWithDetails(rawVal.split('@')[0], rawVal, 'pro');
         return;
       }
-      // Join as Hasnain (Colleague) if entering a sublink, or Alex (Host)
       completeLoginAsUser(rawVal.includes('cothread') ? 'hasnain' : 'alex', false);
     });
 
-    // Interactive Gumroad Parallax Coins in Hero
+    // Interactive Parallax Coins in Hero
     const heroParallax = document.querySelector('[data-hero-parallax-container]');
     const coins = document.querySelectorAll('.hero-coin');
     if (heroParallax && coins.length > 0) {
