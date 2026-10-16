@@ -12,9 +12,9 @@
 (function () {
   'use strict';
 
-  const STORAGE_KEY = 'cothread_state_v6';
-  const TAB_AUTH_KEY = 'cothread_tab_user_v6';
-  const THEME_KEY = 'cothread_theme_v6';
+  const STORAGE_KEY = 'cothread_state_ct7';
+  const TAB_AUTH_KEY = 'cothread_tab_user_ct7';
+  const THEME_KEY = 'cothread_theme_ct7';
   const CHANNEL_NAME = 'cothread_realtime';
 
   const PLAN_TIERS = {
@@ -372,10 +372,8 @@ const parseSublink = (path: string) => path.match(/\\/s\\/(cothread-[a-z0-9-]+)/
       // ignore
     }
     const webIcon = document.getElementById('websiteThemeIcon');
-    const webLbl = document.getElementById('websiteThemeLabel');
     const appIcon = document.getElementById('appThemeIcon');
     if (webIcon) webIcon.textContent = clean === 'light' ? '☀️' : '🌙';
-    if (webLbl) webLbl.textContent = clean === 'light' ? 'Light' : 'Dark';
     if (appIcon) appIcon.textContent = clean === 'light' ? '☀️' : '🌙';
   }
 
