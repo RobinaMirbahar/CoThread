@@ -3,56 +3,48 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CoThread — Go from Solo Prompts to Multiplayer AI | Host-Sponsored Gemini Sublinks</title>
+  <title>CoThread — Go from Solo to Team AI</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="./styles.css?v=gumroad5" />
+  <link rel="stylesheet" href="./styles.css?v=cothread6" />
 </head>
 <body>
-  <!-- SHARED NEO-BRUTALIST SVG DEFS: COTHREAD GUMROAD-STYLE BADGE & STICKER ART -->
+  <!-- SHARED NEO-BRUTALIST SVG DEFS: COTHREAD COIN LOGO -->
   <svg width="0" height="0" style="position:absolute;pointer-events:none;" aria-hidden="true">
     <defs>
-      <!-- Gumroad-inspired CoThread Logo Mark Symbol -->
-      <g id="cothreadGumroadLogoMark">
-        <!-- Hard 3D Offset Black Coin Shadow -->
+      <g id="cothreadLogoMark">
         <circle cx="22.5" cy="22.5" r="17" fill="#000000" />
-        <!-- Signature Gumroad Pink Coin Body -->
         <circle cx="19" cy="19" r="17" fill="#FF90E8" stroke="#000000" stroke-width="2.6" />
-        <!-- Inner Bold Black + Yellow "C" + Thread Loop (Gumroad G-Coin Homage) -->
         <path d="M25.5 13.5C23.8 11.3 21.1 10 18 10C13 10 9 14 9 19C9 24 13 28 18 28C22.4 28 26 25.1 26.8 21H18.5" fill="none" stroke="#000000" stroke-width="5.2" stroke-linecap="round" stroke-linejoin="round" />
         <path d="M25.5 13.5C23.8 11.3 21.1 10 18 10C13 10 9 14 9 19C9 24 13 28 18 28C22.4 28 26 25.1 26.8 21H18.5" fill="none" stroke="#FFC900" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" />
-        <!-- Interlocking Co-Thread Bar -->
         <path d="M18.5 17.5H28.5V25.5" fill="none" stroke="#000000" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round" />
         <path d="M18.5 17.5H28.5V25.5" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
-        <!-- Neo-Brutalist Sparkle Star Sticker -->
         <path d="M29 5.5L30.5 9.2L34.2 10.7L30.5 12.2L29 15.9L27.5 12.2L23.8 10.7L27.5 9.2L29 5.5Z" fill="#FFC900" stroke="#000000" stroke-width="1.8" stroke-linejoin="round" />
       </g>
     </defs>
   </svg>
 
   <!-- =========================================================================
-       1. GUMROAD-STYLE NEO-BRUTALIST COMPANY WEBSITE AT /
+       1. COMPANY WEBSITE AT /
        ========================================================================= -->
   <div class="website-root" id="websiteRoot">
-    <!-- Sticky Full-Width Neo-Brutalist Navbar (Modeled directly on gumroad.com) -->
+    <!-- Top Sticky Navbar -->
     <header class="gumroad-navbar">
       <div class="gumroad-nav-left">
         <a href="#" class="gumroad-brand-link" id="navBrandLogo" aria-label="CoThread Home">
           <svg class="cothread-logo-coin" width="42" height="42" viewBox="0 0 40 40" fill="none" aria-hidden="true">
-            <use href="#cothreadGumroadLogoMark" />
+            <use href="#cothreadLogoMark" />
           </svg>
           <span class="gumroad-wordmark">CoThread</span>
-          <span class="gumroad-beta-sticker">GUMROAD EDITION</span>
         </a>
 
-        <!-- Gumroad-style GitHub Star / Repo Pill -->
         <a
           href="https://github.com/RobinaMirbahar/CoThread"
           target="_blank"
           rel="noopener noreferrer"
           class="gumroad-github-pill"
-          title="View CoThread on GitHub (Original Idea by @hasnain-kk)"
+          title="View CoThread on GitHub"
         >
           <svg width="16" height="16" viewBox="0 0 98 96" fill="currentColor" aria-hidden="true">
             <path fill-rule="evenodd" clip-rule="evenodd" d="M48.854 0C21.839 0 0 22 0 49.217c0 21.756 13.993 40.172 33.405 46.69 2.427.49 3.316-1.059 3.316-2.362 0-1.141-.08-5.052-.08-9.127-13.59 2.934-16.42-5.867-16.42-5.867-2.184-5.704-5.42-7.17-5.42-7.17-4.448-3.015.324-3.015.324-3.015 4.934.326 7.523 5.052 7.523 5.052 4.367 7.496 11.404 5.378 14.235 4.074.404-3.178 1.699-5.378 3.074-6.6-10.839-1.141-22.243-5.378-22.243-24.283 0-5.378 1.94-9.778 5.014-13.2-.485-1.222-2.184-6.275.486-13.038 0 0 4.125-1.304 13.426 5.052a46.97 46.97 0 0 1 12.214-1.63c4.125 0 8.33.571 12.213 1.63 9.302-6.356 13.427-5.052 13.427-5.052 2.67 6.763.97 11.816.485 13.038 3.155 3.422 5.015 7.822 5.015 13.2 0 18.905-11.404 23.06-22.324 24.283 1.78 1.548 3.316 4.481 3.316 9.126 0 6.6-.08 11.897-.08 13.526 0 1.304.89 2.853 3.316 2.364 19.412-6.52 33.405-24.935 33.405-46.691C97.707 22 75.788 0 48.854 0z"/>
@@ -63,18 +55,17 @@
       </div>
 
       <nav class="gumroad-nav-links" aria-label="Primary Navigation">
-        <a href="#capabilitiesSection" class="gumroad-nav-pill active">Discover</a>
+        <a href="#capabilitiesSection" class="gumroad-nav-pill active">Features</a>
         <a href="#liveStudioSection" class="gumroad-nav-pill">Live Studio</a>
-        <a href="#cothreadWaySection" class="gumroad-nav-pill">The CoThread Way</a>
+        <a href="#cothreadWaySection" class="gumroad-nav-pill">How It Works</a>
         <a href="#pricingSection" class="gumroad-nav-pill">Pricing</a>
-        <a href="https://github.com/hasnain-kk" target="_blank" rel="noopener noreferrer" class="gumroad-nav-pill idea-pill">💡 Idea: @hasnain-kk</a>
+        <a href="https://github.com/hasnain-kk" target="_blank" rel="noopener noreferrer" class="gumroad-nav-pill idea-pill">💡 @hasnain-kk</a>
       </nav>
 
-      <!-- Full-Height Edge-to-Edge Action Blocks (Exact Gumroad Top-Right Pattern) -->
       <div class="gumroad-nav-EdgeActions">
-        <button type="button" class="gumroad-edge-btn theme-edge" id="websiteThemeToggleBtn" title="Toggle Neo-Brutalist Daylight / Dark Mode">
+        <button type="button" class="gumroad-edge-btn theme-edge" id="websiteThemeToggleBtn" title="Toggle Light / Dark Mode">
           <span id="websiteThemeIcon">☀️</span>
-          <span id="websiteThemeLabel">Gumroad Light</span>
+          <span id="websiteThemeLabel">Light</span>
         </button>
         <button type="button" class="gumroad-edge-btn login-edge" id="navOpenGoogleBtn">
           Log in
@@ -86,83 +77,67 @@
     </header>
 
     <!-- =========================================================================
-         AUTHENTIC GUMROAD CENTERED HERO STAGE (Modeled 1:1 on gumroad.com)
+         CENTERED HERO STAGE (Minimal Copy + Floating Parallax Coins)
          ========================================================================= -->
     <section class="gumroad-hero-section" id="heroSection" data-hero-parallax-container>
-      <!-- 5 Floating Neo-Brutalist Parallax Sticker Coins (Modeled on Gumroad's coin-1..5) -->
       <div class="hero-coins-layer" aria-hidden="true">
-        <!-- Coin 1: Top Left Pink Sticker Coin -->
         <div class="hero-coin coin-pos-1" data-parallax-intensity="-0.03" data-scroll-intensity="-0.15">
-          <svg viewBox="0 0 140 140" width="136" height="136">
-            <circle cx="74" cy="74" r="58" fill="#000000" />
-            <circle cx="68" cy="68" r="58" fill="#FF90E8" stroke="#000000" stroke-width="3.5" />
-            <circle cx="68" cy="68" r="46" fill="none" stroke="#000000" stroke-width="2" stroke-dasharray="6 5" />
-            <text x="68" y="62" text-anchor="middle" fill="#000" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="16">250K PRO</text>
-            <text x="68" y="82" text-anchor="middle" fill="#000" font-family="JetBrains Mono, monospace" font-weight="700" font-size="12">HOST QUOTA</text>
+          <svg viewBox="0 0 140 140" width="132" height="132">
+            <circle cx="74" cy="74" r="56" fill="#000000" />
+            <circle cx="68" cy="68" r="56" fill="#FF90E8" stroke="#000000" stroke-width="3.5" />
+            <circle cx="68" cy="68" r="44" fill="none" stroke="#000000" stroke-width="2" stroke-dasharray="6 5" />
+            <text x="68" y="64" text-anchor="middle" fill="#000" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="18">250K</text>
+            <text x="68" y="83" text-anchor="middle" fill="#000" font-family="JetBrains Mono, monospace" font-weight="700" font-size="11">HOST QUOTA</text>
           </svg>
         </div>
 
-        <!-- Coin 2: Top Right Yellow Sublink Badge -->
         <div class="hero-coin coin-pos-2" data-parallax-intensity="0.04" data-scroll-intensity="-0.18">
-          <svg viewBox="0 0 156 112" width="148" height="106">
+          <svg viewBox="0 0 156 112" width="142" height="102">
             <rect x="12" y="14" width="132" height="84" rx="42" fill="#000000" />
             <rect x="6" y="8" width="132" height="84" rx="42" fill="#FFC900" stroke="#000000" stroke-width="3.5" />
-            <text x="72" y="46" text-anchor="middle" fill="#000" font-family="JetBrains Mono, monospace" font-weight="700" font-size="13">/s/cothread</text>
-            <text x="72" y="68" text-anchor="middle" fill="#000" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="14">LIVE SUBLINK</text>
+            <text x="72" y="48" text-anchor="middle" fill="#000" font-family="JetBrains Mono, monospace" font-weight="700" font-size="14">/s/sublink</text>
+            <text x="72" y="68" text-anchor="middle" fill="#000" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="13">LIVE ROOM</text>
           </svg>
         </div>
 
-        <!-- Coin 3: Mid-Left Teal Starburst Coin -->
         <div class="hero-coin coin-pos-3" data-parallax-intensity="0.035" data-scroll-intensity="-0.12">
-          <svg viewBox="0 0 140 140" width="130" height="130">
+          <svg viewBox="0 0 140 140" width="126" height="126">
             <rect x="18" y="18" width="104" height="104" rx="24" transform="rotate(-8 70 70)" fill="#000000" />
             <rect x="12" y="12" width="104" height="104" rx="24" transform="rotate(-8 64 64)" fill="#23A094" stroke="#000000" stroke-width="3.5" />
-            <text x="64" y="58" text-anchor="middle" fill="#FFF" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="14">GEMINI 4</text>
-            <text x="64" y="78" text-anchor="middle" fill="#FFC900" font-family="JetBrains Mono, monospace" font-weight="700" font-size="13">ARGON + 3.8</text>
+            <text x="64" y="60" text-anchor="middle" fill="#FFF" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="15">GEMINI 4</text>
+            <text x="64" y="79" text-anchor="middle" fill="#FFC900" font-family="JetBrains Mono, monospace" font-weight="700" font-size="12">MULTIPLAYER</text>
           </svg>
         </div>
 
-        <!-- Coin 4: Bottom Right Orange Fork Sticker -->
         <div class="hero-coin coin-pos-4" data-parallax-intensity="-0.04" data-scroll-intensity="-0.16">
-          <svg viewBox="0 0 156 124" width="144" height="114">
+          <svg viewBox="0 0 156 124" width="138" height="110">
             <rect x="14" y="16" width="128" height="88" rx="20" transform="rotate(6 78 60)" fill="#000000" />
             <rect x="8" y="10" width="128" height="88" rx="20" transform="rotate(6 72 54)" fill="#FF6B00" stroke="#000000" stroke-width="3.5" />
-            <text x="72" y="49" text-anchor="middle" fill="#FFF" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="13">1-CLICK FORK</text>
-            <text x="72" y="69" text-anchor="middle" fill="#FFC900" font-family="JetBrains Mono, monospace" font-weight="700" font-size="12">MY CHATS →</text>
+            <text x="72" y="50" text-anchor="middle" fill="#FFF" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="14">1-CLICK FORK</text>
+            <text x="72" y="70" text-anchor="middle" fill="#FFC900" font-family="JetBrains Mono, monospace" font-weight="700" font-size="12">MY CHATS →</text>
           </svg>
         </div>
 
-        <!-- Coin 5: Bottom Center-Left Gumroad Coin Emblem -->
         <div class="hero-coin coin-pos-5" data-parallax-intensity="0.025" data-scroll-intensity="-0.10">
-          <svg viewBox="0 0 130 130" width="114" height="114">
-            <circle cx="68" cy="68" r="50" fill="#000000" />
-            <circle cx="62" cy="62" r="50" fill="#90A8ED" stroke="#000000" stroke-width="3.5" />
-            <text x="62" y="57" text-anchor="middle" fill="#000" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="13">ZERO API</text>
-            <text x="62" y="75" text-anchor="middle" fill="#000" font-family="JetBrains Mono, monospace" font-weight="700" font-size="12">KEYS IN UI</text>
+          <svg viewBox="0 0 130 130" width="110" height="110">
+            <circle cx="68" cy="68" r="48" fill="#000000" />
+            <circle cx="62" cy="62" r="48" fill="#90A8ED" stroke="#000000" stroke-width="3.5" />
+            <text x="62" y="58" text-anchor="middle" fill="#000" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="13">ZERO API</text>
+            <text x="62" y="75" text-anchor="middle" fill="#000" font-family="JetBrains Mono, monospace" font-weight="700" font-size="12">KEYS</text>
           </svg>
         </div>
       </div>
 
-      <!-- Center Gumroad Hero Content (Pure Centered Typography + Action Bar like gumroad.com) -->
       <div class="gumroad-hero-center">
-        <!-- Custom Gumroad-Style CoThread Emblem Showcase Pill -->
-        <div class="gumroad-logo-showcase-pill">
-          <svg width="34" height="34" viewBox="0 0 40 40" fill="none" aria-hidden="true">
-            <use href="#cothreadGumroadLogoMark" />
-          </svg>
-          <span><strong>CoThread</strong> • Multiplayer AI on Host-Sponsored Sublinks • Idea by <strong>@hasnain-kk</strong></span>
-        </div>
-
         <h1 class="gumroad-hero-title">
-          Go from <span class="gumroad-underline-yellow">solo prompts</span><br />
-          to <span class="gumroad-highlight-pink">team flow.</span>
+          Go from <span class="gumroad-underline-yellow">solo</span><br />
+          to <span class="gumroad-highlight-pink">team AI.</span>
         </h1>
 
         <p class="gumroad-hero-subtitle">
-          Anyone can host their first shared Gemini room online. Just start with a <code>/s/cothread-...</code> sublink sponsored by your Host Quota, see what sticks, and click <strong>Copy to My Chats</strong> to branch independently anytime.
+          Share a live <code>/s/</code> room on your Host Quota—or click <strong>Copy to My Chats</strong> anytime.
         </p>
 
-        <!-- Exact Gumroad Hero Action Row: Triple-Layer Stacked Button + Bordered Search/Sublink Input -->
         <div class="gumroad-hero-cta-row">
           <div class="gumroad-layered-btn-wrap">
             <div class="gumroad-layer-red" aria-hidden="true"></div>
@@ -172,12 +147,12 @@
             </button>
           </div>
 
-          <form class="gumroad-hero-search-form" id="gumroadHeroSublinkForm">
+          <form class="gumroad-hero-search-form" id="heroSublinkForm">
             <input
               type="text"
-              id="gumroadHeroSublinkInput"
+              id="heroSublinkInput"
               class="gumroad-hero-search-input"
-              placeholder="Paste /s/cothread-q4-launch or email..."
+              placeholder="Paste /s/ link or email..."
               aria-label="Paste shared sublink or enter email"
             />
             <button type="submit" class="gumroad-hero-search-btn" title="Join Room or Sign In">
@@ -186,43 +161,40 @@
           </form>
         </div>
 
-        <!-- Neo-Brutalist 1-Click Judge & Demo Switcher Stickers -->
         <div class="gumroad-hero-quick-stickers">
           <button type="button" class="gumroad-mini-sticker yellow" data-quick-login="alex">
-            ⚡ Enter as <strong>Alex Rivera</strong> (Host • 250k Pro)
+            ⚡ Alex (Host • 250k)
           </button>
           <button type="button" class="gumroad-mini-sticker teal" data-quick-login="hasnain">
-            🔗 Join as <strong>Hasnain Khan</strong> (Guest via <code>/s/</code> Sublink)
+            🔗 Hasnain (Guest)
           </button>
           <button type="button" class="gumroad-mini-sticker pink" id="heroLaunchSplitBtn">
-            ◫ Launch <strong>Side-by-Side Split Demo</strong>
+            ◫ Split View
           </button>
         </div>
       </div>
     </section>
 
     <!-- =========================================================================
-         SECTION 2: GUMROAD BENTO SHOWCASE ("Share any AI thread / Make your own branch")
+         SECTION 2: BENTO SHOWCASE (Minimal Copy + Visual Stickers)
          ========================================================================= -->
     <section class="editorial-bento-section" id="capabilitiesSection">
       <div class="section-container">
         <div class="gumroad-bento-pair">
-          <!-- Left 2/3 Bento Card -->
           <article class="gumroad-bento-card wide-card bg-white-card">
             <div class="gbc-content">
-              <span class="gbc-pill-tag pink">01 • MULTIPLAYER SUBLINKS</span>
               <h2>Share any AI thread</h2>
               <p>
-                Architecture reviews. Live debugging. Product specs. Whatever! CoThread turns single-player AI prompts into a live multiplayer room (<code>/s/cothread-...</code>) with Google-Docs-style presence and WhatsApp speed.
+                One <code>/s/</code> link turns solo prompts into a live multiplayer room.
               </p>
               <div class="gumroad-checklist">
                 <div class="gc-row">
                   <span class="gc-pink-check">✓</span>
-                  <span>Live participant avatars &amp; synchronized token streaming.</span>
+                  <span>Live team presence &amp; streaming</span>
                 </div>
                 <div class="gc-row">
                   <span class="gc-pink-check">✓</span>
-                  <span>Toggle between <strong>Ask Gemini AI</strong> and <strong>Team Chat Only (0 Tokens)</strong>.</span>
+                  <span>Ask AI or Team Chat (0 tokens)</span>
                 </div>
               </div>
             </div>
@@ -232,48 +204,43 @@
                 <div class="nsw-body">
                   <div class="nsw-chip pink">Alex (Host • 250k)</div>
                   <div class="nsw-chip yellow">Hasnain (Can Prompt)</div>
-                  <div class="nsw-chip teal">Sarah (Co-Editing Canvas)</div>
+                  <div class="nsw-chip teal">Sarah (Canvas)</div>
                 </div>
               </div>
             </div>
           </article>
 
-          <!-- Right 1/3 Bento Card -->
           <article class="gumroad-bento-card narrow-card bg-yellow-card">
-            <span class="gbc-pill-tag black">02 • HOST SPONSORSHIP</span>
             <h2>Sponsor the room</h2>
             <p>
-              Colleagues never hit a paywall or paste an API key. All AI prompts inside your shared sublink count against your configurable <strong>Host Session Cap</strong>.
+              Guests prompt for free using your configurable Host Cap.
             </p>
             <div class="neo-meter-sticker">
-              <div class="nms-label"><span>Host Session Cap</span> <strong>4,820 / 25,000</strong></div>
+              <div class="nms-label"><span>Host Cap</span> <strong>4,820 / 25,000</strong></div>
               <div class="nms-bar"><div class="nms-fill" style="width:34%"></div></div>
-              <div class="nms-sub">✦ 1,940 tokens saved by Gemini 3.5 Flash-Lite</div>
+              <div class="nms-sub">✦ Zero API keys required</div>
             </div>
           </article>
         </div>
 
-        <!-- Gumroad "Instead of... start..." Split Comparison Cards (Lines 221-242 of gumroad.com) -->
         <div class="gumroad-comparison-duo">
           <div class="gumroad-comp-card">
             <div class="floating-speech-tag">
-              Instead of pasting screenshots of AI chats into Slack...
+              Instead of screenshots in Slack...
             </div>
             <div class="comp-illustration sad-box">
               <div class="sad-pill">❌ Dead static snapshots</div>
-              <div class="sad-pill">❌ "Which prompt did you use?"</div>
-              <div class="sad-pill">❌ Every teammate needs their own API key</div>
+              <div class="sad-pill">❌ Every user needs an API key</div>
             </div>
           </div>
 
           <div class="gumroad-comp-card highlight-teal">
             <div class="floating-speech-tag bottom-tag pink-tag">
-              ...co-prompt live on one Host Quota or fork to My Chats!
+              ...co-prompt live on one link!
             </div>
             <div class="comp-illustration happy-box">
-              <div class="happy-pill">⚡ Live `/s/` sublink sponsored by Host Quota</div>
-              <div class="happy-pill">🔀 1-Click <strong>Copy to My Chats</strong> (Personal Quota)</div>
-              <div class="happy-pill">🔒 Zero user API keys — 100% SaaS managed</div>
+              <div class="happy-pill">⚡ Shared `/s/` room on Host Quota</div>
+              <div class="happy-pill">🔀 1-Click <strong>Copy to My Chats</strong></div>
             </div>
           </div>
         </div>
@@ -281,37 +248,30 @@
     </section>
 
     <!-- =========================================================================
-         SECTION 2B: GUMROAD PINK INTERACTIVE LIVE STUDIO & INSTANT SIGN-IN
+         SECTION 2B: INTERACTIVE LIVE STUDIO & SIGN-IN
          ========================================================================= -->
     <section class="gumroad-live-studio-section" id="liveStudioSection">
       <div class="section-container">
         <div class="section-header-editorial center">
-          <span class="gbc-pill-tag black">INTERACTIVE MULTIPLAYER STUDIO</span>
-          <h2 class="gumroad-center-heading" style="margin-top:12px;">Sign in or jump straight into a live room</h2>
-          <p class="section-lead" style="color:#000000; font-weight:600;">
-            Test the full Host-Sponsored Sublink flow and 1-Click <strong>Copy to My Chats</strong> right now.
-          </p>
+          <h2 class="gumroad-center-heading">Jump into a live room</h2>
         </div>
 
         <div class="hero-container">
-          <!-- Left Column: Neo-Brutalist Sign-In & Instant Account Provisioner -->
           <div class="hero-left-col">
             <div class="claude-style-auth-card" id="heroAuthCard">
               <div class="auth-card-sticker-header">
-                <span class="sticker-badge-yellow">INSTANT SAAS SIGN-IN</span>
-                <span class="sticker-badge-mono">NO API KEY REQUIRED</span>
+                <span class="sticker-badge-yellow">INSTANT SIGN-IN</span>
+                <span class="sticker-badge-mono">ZERO API KEYS</span>
               </div>
 
-              <!-- Dynamic Shared Sublink Invite Banner -->
               <div class="invite-banner-editorial hidden" id="inviteAuthBanner">
                 <div class="invite-pulse-orb"></div>
                 <div class="invite-banner-copy">
-                  <strong id="inviteBannerTitle">Invited to a live CoThread Shared Session</strong>
-                  <p id="inviteBannerDesc">Sponsored by Alex Rivera's Host Quota. Sign in with Google or email to join the room.</p>
+                  <strong id="inviteBannerTitle">Invited to Shared Session</strong>
+                  <p id="inviteBannerDesc">Sponsored by Alex's Host Quota.</p>
                 </div>
               </div>
 
-              <!-- Continue with Google Button -->
               <button type="button" class="btn-continue-google" id="openGoogleChooserBtn">
                 <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true">
                   <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
@@ -322,67 +282,62 @@
                 <span>Continue with Google</span>
               </button>
 
-              <div class="editorial-or-divider"><span>OR USE WORK EMAIL</span></div>
+              <div class="editorial-or-divider"><span>OR EMAIL</span></div>
 
-              <!-- Inline Work Email Onboarding Form -->
               <form class="hero-email-form" id="heroEmailAuthForm">
                 <div class="email-input-group">
                   <input
                     type="email"
                     id="heroEmailInput"
                     class="editorial-email-input"
-                    placeholder="Enter your work or personal email..."
+                    placeholder="you@company.com"
                     value="alex@company.com"
                     required
                   />
                 </div>
 
-                <!-- Expandable Account Provisioning Drawer for New Sign-Ups -->
                 <div class="signup-drawer hidden" id="heroSignupDrawer">
                   <div class="drawer-row">
                     <input
                       type="text"
                       id="heroNameInput"
                       class="editorial-email-input sm"
-                      placeholder="Your Full Name (e.g., Hasnain Khan)"
+                      placeholder="Full Name"
                     />
-                    <select id="heroPlanSelect" class="editorial-email-input sm" aria-label="Select Software Quota Tier">
-                      <option value="starter">Starter • 25,000 Software Tokens ($0)</option>
-                      <option value="pro" selected>Pro • 250,000 Software Tokens ($20/mo)</option>
-                      <option value="enterprise">Enterprise • 1,000,000 Software Tokens</option>
+                    <select id="heroPlanSelect" class="editorial-email-input sm" aria-label="Select Tier">
+                      <option value="starter">Starter • 25k ($0)</option>
+                      <option value="pro" selected>Pro • 250k ($20)</option>
+                      <option value="enterprise">Enterprise • 1M</option>
                     </select>
                   </div>
                 </div>
 
                 <button type="submit" class="btn-continue-obsidian">
-                  Enter Workspace with Email →
+                  Enter Workspace →
                 </button>
               </form>
 
               <div class="auth-card-bottom-row">
                 <button type="button" class="link-toggle-signup" id="toggleSignupDrawerBtn">
-                  + Create a new account &amp; pick software quota tier
+                  + Pick software quota tier
                 </button>
               </div>
 
-              <!-- Instant 1-Click Demo Launch Pills for Judges & Live Testing -->
               <div class="instant-demo-strip">
-                <span class="demo-strip-label">⚡ 1-Click Judge &amp; Team Switcher:</span>
                 <div class="demo-strip-pills">
                   <button type="button" class="demo-launch-pill" data-quick-login="alex">
                     <span class="avatar-dot alex">AR</span>
-                    <span><strong>Alex Rivera</strong> (Host • 250k)</span>
+                    <span><strong>Alex</strong> (Host)</span>
                   </button>
                   <button type="button" class="demo-launch-pill" data-quick-login="hasnain">
                     <span class="avatar-dot hasnain">HK</span>
-                    <span><strong>Hasnain Khan</strong> (Guest • 25k)</span>
+                    <span><strong>Hasnain</strong> (Guest)</span>
                   </button>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Right Column: Neo-Brutalist Live Multiplayer Room Preview Window -->
           <div class="hero-right-stage">
             <div class="interactive-showcase-window">
               <div class="showcase-window-bar">
@@ -394,19 +349,19 @@
                   <span>cothread.ai/s/cothread-arch-9x2k</span>
                 </div>
                 <div class="window-avatars">
-                  <span class="mini-av alex" title="Alex Rivera (Host)">AR</span>
-                  <span class="mini-av hasnain" title="Hasnain Khan (Colleague)">HK</span>
-                  <span class="mini-av sarah" title="Sarah Chen (Colleague)">SC</span>
+                  <span class="mini-av alex">AR</span>
+                  <span class="mini-av hasnain">HK</span>
+                  <span class="mini-av sarah">SC</span>
                 </div>
               </div>
 
               <div class="showcase-quota-strip">
                 <div class="sq-left">
-                  <span class="sq-badge">HOST-SPONSORED ROOM</span>
-                  <span class="sq-text">Sponsored by <strong>Alex Rivera's 250k Pro Quota</strong></span>
+                  <span class="sq-badge">HOST QUOTA</span>
+                  <span class="sq-text">Sponsored by <strong>Alex (250k Pro)</strong></span>
                 </div>
                 <div class="sq-right">
-                  <span class="sq-mono">4,820 / 25,000 tokens</span>
+                  <span class="sq-mono">4,820 / 25k</span>
                   <div class="sq-bar"><div class="sq-fill" style="width: 24%"></div></div>
                 </div>
               </div>
@@ -415,16 +370,16 @@
                 <div class="sc-msg host-msg">
                   <div class="sc-av alex">AR</div>
                   <div class="sc-bubble">
-                    <div class="sc-meta"><strong>Alex Rivera</strong> <span class="sc-tag">Session Host</span></div>
-                    <p>I shared <code>/s/cothread-arch-9x2k</code> with a 25,000 token allowance from my Pro plan. @Hasnain, prompt Gemini right in here!</p>
+                    <div class="sc-meta"><strong>Alex</strong> <span class="sc-tag">Host</span></div>
+                    <p>Shared <code>/s/cothread-arch-9x2k</code> on my Pro quota. @Hasnain, prompt Gemini here!</p>
                   </div>
                 </div>
 
                 <div class="sc-msg guest-msg">
                   <div class="sc-av hasnain">HK</div>
                   <div class="sc-bubble">
-                    <div class="sc-meta"><strong>Hasnain Khan</strong> <span class="sc-tag guest">Colleague via Sublink</span></div>
-                    <p><span class="mention">@Gemini</span> Design our quota router so shared room prompts debit Alex's Host Quota while personal forks debit my own quota.</p>
+                    <div class="sc-meta"><strong>Hasnain</strong> <span class="sc-tag guest">Guest</span></div>
+                    <p><span class="mention">@Gemini</span> Route shared prompts to Alex's quota and personal forks to mine.</p>
                   </div>
                 </div>
 
@@ -432,21 +387,18 @@
                   <div class="sc-av ai">✦</div>
                   <div class="sc-bubble ai-surface">
                     <div class="sc-meta">
-                      <strong>CoThread • Gemini 3.8 Flash</strong>
-                      <span class="sc-quota-pill">⚡ 410 tokens charged to Host (Alex)</span>
+                      <strong>Gemini 3.8 Flash</strong>
+                      <span class="sc-quota-pill">⚡ 410 tokens → Host</span>
                     </div>
-                    <p>Shared sublink requests debit the Host's session cap, while clicking <strong>Copy to My Chats</strong> switches billing to your personal software token pool.</p>
+                    <p>Done! Click <strong>Copy to My Chats</strong> anytime to continue privately on your own quota.</p>
                   </div>
                 </div>
               </div>
 
               <div class="showcase-bottom-bar">
-                <div class="sc-branch-hint">
-                  <span>Want to explore privately on your own quota?</span>
-                </div>
                 <div class="sc-actions">
                   <button type="button" class="sc-copy-btn" data-quick-login="hasnain">
-                    <span>🔀 Copy to My Chats (My Quota)</span>
+                    <span>🔀 Copy to My Chats</span>
                   </button>
                   <button type="button" class="sc-enter-btn" data-quick-login="alex">
                     <span>Open Live Room ↗</span>
@@ -460,175 +412,135 @@
     </section>
 
     <!-- =========================================================================
-         SECTION 3: "THE COTHREAD WAY" ORANGE LOOP PILL (EXACT GUMROAD LOOP DESIGN)
+         SECTION 3: THE COTHREAD LOOP & MARQUEE
          ========================================================================= -->
     <section class="cothread-way-section" id="cothreadWaySection">
       <div class="section-container">
         <h2 class="gumroad-center-heading">
-          You know all those great ideas your team has?
+          How CoThread works
         </h2>
 
-        <!-- Gumroad's Iconic Orange Rounded-Full Loop Track -->
         <div class="gumroad-orange-pill-loop">
           <div class="loop-inner-track">
             <div class="loop-top-labels">
-              <span class="loop-step-badge">➜ The CoThread Way</span>
-              <span class="loop-step-badge">➜ Share `/s/` Sublink (Host Quota)</span>
+              <span class="loop-step-badge">➜ 1. Host `/s/` Link</span>
+              <span class="loop-step-badge">➜ 2. Sponsor Team Quota</span>
             </div>
 
             <div class="loop-center-mascot">
-              <svg width="110" height="110" viewBox="0 0 40 40" fill="none">
-                <use href="#cothreadGumroadLogoMark" />
+              <svg width="104" height="104" viewBox="0 0 40 40" fill="none">
+                <use href="#cothreadLogoMark" />
               </svg>
             </div>
 
             <div class="loop-bottom-labels">
-              <span class="loop-step-badge">Fork to My Chats (Personal Quota) ⬅</span>
-              <span class="loop-step-badge">Co-Prompt Gemini Together ⬅</span>
+              <span class="loop-step-badge">4. Copy to My Chats ⬅</span>
+              <span class="loop-step-badge">3. Co-Prompt Live ⬅</span>
             </div>
-          </div>
-        </div>
-
-        <div class="gumroad-way-subcopy">
-          <h3>Try multiplayer prompts, branch freely, and ship faster.</h3>
-          <p>
-            Start together in a Host-sponsored room. Whenever a colleague wants to explore a private tangent without spending the Host's tokens, one click on <strong>Continue Independently (Copy to My Chats)</strong> clones the full history into their personal workspace.
-          </p>
-          <div class="gumroad-layered-btn-wrap" style="margin-top: 16px;">
-            <div class="gumroad-layer-red" aria-hidden="true"></div>
-            <div class="gumroad-layer-yellow" aria-hidden="true"></div>
-            <button type="button" class="gumroad-layer-main" data-quick-login="hasnain">
-              Try "Copy to My Chats" as Hasnain →
-            </button>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- =========================================================================
-         SECTION 4: GIANT GUMROAD STAT COUNTER & NEO-BRUTALIST MARQUEE PILLS
-         ========================================================================= -->
     <section class="gumroad-stat-marquee-section" id="quotaFlowSection">
-      <div class="gumroad-giant-stat">
-        <div class="giant-stat-number">1,250,000</div>
-        <p class="giant-stat-caption">
-          Software tokens provisioned automatically across CoThread Starter, Pro, and Enterprise tiers — with <strong>zero raw API keys</strong> ever entered by users.
-        </p>
-      </div>
-
-      <!-- Gumroad Marquee Tag Pills (Hover lifts -4px with 4px 4px 0 #000 shadow) -->
       <div class="gumroad-marquee-wrap" aria-label="CoThread Capabilities Ticker">
         <div class="gumroad-marquee-track">
           <span class="gumroad-tag-pill pink">⚡ Gemini 3.8 Flash</span>
           <span class="gumroad-tag-pill yellow">🧠 Gemini 4 Argon</span>
-          <span class="gumroad-tag-pill teal">🗜️ Gemini 3.5 Flash-Lite Compression</span>
+          <span class="gumroad-tag-pill teal">🗜️ Flash-Lite Compression</span>
           <span class="gumroad-tag-pill">🔗 /s/cothread-arch-9x2k</span>
-          <span class="gumroad-tag-pill pink">🛡️ Host-Sponsored Quota Cap</span>
-          <span class="gumroad-tag-pill yellow">🔀 Copy to My Chats (Personal Quota)</span>
-          <span class="gumroad-tag-pill teal">📝 Live Shared Spec Canvas</span>
-          <span class="gumroad-tag-pill">☁️ Google Cloud Run Deployed</span>
-          <span class="gumroad-tag-pill pink">💡 Original Idea by @hasnain-kk</span>
-          <!-- Duplicate for seamless loop -->
+          <span class="gumroad-tag-pill pink">🛡️ Host Quota Cap</span>
+          <span class="gumroad-tag-pill yellow">🔀 Copy to My Chats</span>
+          <span class="gumroad-tag-pill teal">📝 Shared Canvas</span>
+          <span class="gumroad-tag-pill pink">💡 Idea: @hasnain-kk</span>
           <span class="gumroad-tag-pill pink">⚡ Gemini 3.8 Flash</span>
           <span class="gumroad-tag-pill yellow">🧠 Gemini 4 Argon</span>
-          <span class="gumroad-tag-pill teal">🗜️ Gemini 3.5 Flash-Lite Compression</span>
+          <span class="gumroad-tag-pill teal">🗜️ Flash-Lite Compression</span>
           <span class="gumroad-tag-pill">🔗 /s/cothread-arch-9x2k</span>
-          <span class="gumroad-tag-pill pink">🛡️ Host-Sponsored Quota Cap</span>
-          <span class="gumroad-tag-pill yellow">🔀 Copy to My Chats (Personal Quota)</span>
+          <span class="gumroad-tag-pill pink">🛡️ Host Quota Cap</span>
+          <span class="gumroad-tag-pill yellow">🔀 Copy to My Chats</span>
         </div>
       </div>
     </section>
 
     <!-- =========================================================================
-         SECTION 5: GUMROAD-STYLE PRICING & SOFTWARE QUOTA PLANS
+         SECTION 5: SIMPLE TOKEN PLANS
          ========================================================================= -->
     <section class="pricing-section" id="pricingSection">
       <div class="section-container">
         <div class="section-header-editorial center">
-          <span class="gbc-pill-tag pink">MANAGED SOFTWARE TOKEN QUOTA PLANS</span>
-          <h2 class="gumroad-center-heading" style="margin-top:14px;">Pick your software quota tier</h2>
-          <p class="section-lead">
-            CoThread assigns tokens directly to your account via software. Click any tier below to provision and launch immediately.
-          </p>
+          <h2 class="gumroad-center-heading">Simple token plans</h2>
         </div>
 
         <div class="pricing-cards-grid">
-          <!-- Starter Plan -->
           <div class="pricing-card">
             <div class="pricing-card-top">
               <div class="pricing-Header-row">
                 <h3>Starter</h3>
                 <span class="tier-coin-badge yellow">FREE</span>
               </div>
-              <div class="pricing-price">$0 <span>/ month</span></div>
-              <div class="pricing-quota-highlight">25,000 Software Tokens / mo</div>
-              <p class="pricing-desc">For colleagues joining shared sublinks and running personal forks.</p>
+              <div class="pricing-price">$0 <span>/ mo</span></div>
+              <div class="pricing-quota-highlight">25,000 Tokens</div>
             </div>
             <ul class="pricing-features">
-              <li>✓ Join unlimited Host-Sponsored Shared Sessions (<code>/s/:code</code>) at $0 to your quota</li>
-              <li>✓ 1-Click <strong>Copy to My Chats</strong> to continue independently</li>
-              <li>✓ 25,000 personal software tokens with <code>Gemini 3.8 Flash</code></li>
+              <li>✓ Join shared `/s/` rooms free</li>
+              <li>✓ 1-Click Copy to My Chats</li>
+              <li>✓ Gemini 3.8 Flash</li>
             </ul>
             <button type="button" class="pricing-cta-btn secondary" data-provision-tier="starter">
-              Start with Starter (25k Quota) →
+              Start Free (25k) →
             </button>
           </div>
 
-          <!-- Pro Plan -->
           <div class="pricing-card featured-pro">
-            <div class="pro-popular-pill">★ MOST POPULAR FOR HOSTS</div>
+            <div class="pro-popular-pill">★ POPULAR</div>
             <div class="pricing-card-top">
               <div class="pricing-Header-row">
                 <h3>Pro Host</h3>
                 <span class="tier-coin-badge black">250K</span>
               </div>
-              <div class="pricing-price">$20 <span>/ month</span></div>
-              <div class="pricing-quota-highlight pro-color">250,000 Software Tokens / mo</div>
-              <p class="pricing-desc">For tech leads &amp; builders hosting live multiplayer AI sessions.</p>
+              <div class="pricing-price">$20 <span>/ mo</span></div>
+              <div class="pricing-quota-highlight pro-color">250,000 Tokens</div>
             </div>
             <ul class="pricing-features">
-              <li>✓ Everything in Starter, plus <strong>250,000 monthly software tokens</strong></li>
-              <li>✓ Host unlimited Shared Sessions (<code>/s/:code</code>) &amp; sponsor guests</li>
-              <li>✓ Custom Session Token Cap slider &amp; <code>Can Prompt</code> / <code>View Only</code> controls</li>
-              <li>✓ Full access to <strong>Gemini 4 Argon</strong> &amp; <strong>3.8 Flash</strong></li>
+              <li>✓ Host `/s/` rooms &amp; sponsor guests</li>
+              <li>✓ Session token cap controls</li>
+              <li>✓ Gemini 4 Argon + 3.8 Flash</li>
             </ul>
             <button type="button" class="pricing-cta-btn primary" data-provision-tier="pro">
-              Launch Pro Workspace (250k Quota) →
+              Launch Pro (250k) →
             </button>
           </div>
 
-          <!-- Enterprise Plan -->
           <div class="pricing-card">
             <div class="pricing-card-top">
               <div class="pricing-Header-row">
                 <h3>Enterprise</h3>
                 <span class="tier-coin-badge teal">1M+</span>
               </div>
-              <div class="pricing-price">Custom <span>/ org</span></div>
-              <div class="pricing-quota-highlight">1,000,000+ Software Tokens / mo</div>
-              <p class="pricing-desc">For engineering organizations scaling multiplayer AI across squads.</p>
+              <div class="pricing-price">Custom</div>
+              <div class="pricing-quota-highlight">1,000,000+ Tokens</div>
             </div>
             <ul class="pricing-features">
-              <li>✓ 1,000,000+ pooled software token quota per seat</li>
-              <li>✓ Google Workspace &amp; SAML 2.0 Enterprise SSO</li>
-              <li>✓ Domain-restricted `/s/` sublinks &amp; token audit logs</li>
+              <li>✓ 1M+ pooled org tokens</li>
+              <li>✓ Google Workspace SSO</li>
+              <li>✓ Domain-locked sublinks</li>
             </ul>
             <button type="button" class="pricing-cta-btn secondary" data-provision-tier="enterprise">
-              Launch Enterprise Demo (1M Quota) →
+              Launch Enterprise (1M) →
             </button>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Gumroad-Style Closing Callout Banner + Stark Black Footer -->
     <section class="gumroad-closing-banner">
-      <h2>Share your AI thread.<br />Your teammates are waiting.</h2>
+      <h2>Share your AI thread.</h2>
       <div class="gumroad-layered-btn-wrap">
         <div class="gumroad-layer-red" aria-hidden="true"></div>
         <div class="gumroad-layer-yellow" aria-hidden="true"></div>
         <button type="button" class="gumroad-layer-main" data-quick-login="alex">
-          Launch CoThread Workspace Now →
+          Launch CoThread →
         </button>
       </div>
     </section>
@@ -638,50 +550,46 @@
         <div class="footer-brand-col">
           <div class="brand-wordmark-link">
             <svg width="32" height="32" viewBox="0 0 40 40" fill="none" aria-hidden="true">
-              <use href="#cothreadGumroadLogoMark" />
+              <use href="#cothreadLogoMark" />
             </svg>
             <span class="wordmark-serif">CoThread</span>
           </div>
           <p class="footer-copy">
-            Ⓒ 2026 CoThread AI Inc. Built on Google Cloud Run for AI Builder Cup 2026.<br />
-            💡 <strong>Original Idea &amp; Concept by <a href="https://github.com/hasnain-kk" target="_blank" rel="noopener noreferrer" style="color: #FF90E8; text-decoration: underline;">Muhammad Hasnain (@hasnain-kk)</a></strong> • Built with <strong><a href="https://github.com/RobinaMirbahar" target="_blank" rel="noopener noreferrer" style="color: #FFC900; text-decoration: underline;">Robina Mirbahar (@RobinaMirbahar)</a></strong>.
+            Ⓒ 2026 CoThread AI • Idea by <a href="https://github.com/hasnain-kk" target="_blank" rel="noopener noreferrer" style="color: #FF90E8; text-decoration: underline;">Muhammad Hasnain (@hasnain-kk)</a> • Built with <a href="https://github.com/RobinaMirbahar" target="_blank" rel="noopener noreferrer" style="color: #FFC900; text-decoration: underline;">Robina Mirbahar (@RobinaMirbahar)</a>
           </p>
         </div>
         <div class="footer-links-col">
-          <button type="button" class="footer-link-btn" data-quick-login="alex">Enter as Alex (Host)</button>
-          <button type="button" class="footer-link-btn" data-quick-login="hasnain">Enter as Hasnain (Colleague)</button>
-          <button type="button" class="footer-link-btn" id="footerResetBtn">Reset Demo State</button>
+          <button type="button" class="footer-link-btn" data-quick-login="alex">Alex (Host)</button>
+          <button type="button" class="footer-link-btn" data-quick-login="hasnain">Hasnain (Guest)</button>
+          <button type="button" class="footer-link-btn" id="footerResetBtn">Reset</button>
         </div>
       </div>
     </footer>
   </div>
 
   <!-- =========================================================================
-       2. PRODUCTION COTHREAD WORKSPACE (/app & /s/:shareCode — NEO-BRUTALIST STUDIO)
+       2. PRODUCTION COTHREAD WORKSPACE (/app & /s/:shareCode)
        ========================================================================= -->
   <div class="app-shell hidden" id="appShell">
-    <!-- Top Neo-Brutalist Workspace Header -->
     <header class="workspace-top-header">
       <div class="top-header-left">
-        <button type="button" class="back-to-site-brand" id="backToWebsiteBtn" title="Return to CoThread Company Website (/)">
+        <button type="button" class="back-to-site-brand" id="backToWebsiteBtn" title="Return to CoThread Home">
           <svg width="28" height="28" viewBox="0 0 40 40" fill="none" aria-hidden="true">
-            <use href="#cothreadGumroadLogoMark" />
+            <use href="#cothreadLogoMark" />
           </svg>
           <span class="wordmark-serif sm">CoThread</span>
         </button>
 
-        <!-- Neo-Brutalist Model Selector -->
         <div class="model-selector-pill">
           <span class="sparkle-icon">✦</span>
           <select id="headerModelSelect" class="header-model-select" aria-label="Select CoThread AI Model">
             <option value="gemini-3.8-flash">Gemini 3.8 Flash</option>
             <option value="gemini-4-argon">Gemini 4 Argon</option>
           </select>
-          <span class="flash-lite-tag" title="Automatic context compression via Gemini 3.5 Flash-Lite">Flash-Lite</span>
+          <span class="flash-lite-tag">Flash-Lite</span>
         </div>
       </div>
 
-      <!-- Center Sublink Route Pill (cothread.ai/s/... vs cothread.ai/app) -->
       <div class="route-sublink-bar" id="routeSublinkBar">
         <span class="route-lock-icon" id="routeIcon">🟢</span>
         <span class="route-domain">cothread.ai</span>
@@ -691,46 +599,27 @@
         </button>
       </div>
 
-      <!-- Right Controls: Live Sync, Split Colleague Preview, Simulate, Theme Toggle -->
       <div class="top-header-right">
-        <div class="sync-status-pill" title="Real-time BroadcastChannel synchronization active">
+        <div class="sync-status-pill">
           <span class="live-pulse-dot"></span>
           <span id="syncStatusText">Live Sync</span>
         </div>
 
-        <button
-          type="button"
-          class="header-utility-btn"
-          id="toggleSideBySideBtn"
-          title="View Host (Alex) and Colleague (Hasnain) side-by-side on one screen"
-        >
-          <span>◫ Side-by-Side Preview</span>
+        <button type="button" class="header-utility-btn" id="toggleSideBySideBtn">
+          <span>◫ Split View</span>
         </button>
 
-        <button
-          type="button"
-          class="header-utility-btn demo-sim-btn"
-          id="simulateColleagueBtn"
-          title="Simulate a live colleague message & AI prompt in the shared room"
-        >
-          <span>▶ Simulate Colleague</span>
+        <button type="button" class="header-utility-btn demo-sim-btn" id="simulateColleagueBtn">
+          <span>▶ Simulate</span>
         </button>
 
-        <button
-          type="button"
-          class="header-utility-btn"
-          id="appThemeToggleBtn"
-          title="Toggle Daylight / Dark Theme"
-        >
+        <button type="button" class="header-utility-btn" id="appThemeToggleBtn">
           <span id="appThemeIcon">☀️</span>
         </button>
       </div>
     </header>
 
-    <!-- MAIN WORKSPACE STAGE (SINGLE OR SIDE-BY-SIDE COLLEAGUE PREVIEW) -->
-    <main class="workspace-stage" id="workspaceStage">
-      <!-- Populated dynamically by app.js -->
-    </main>
+    <main class="workspace-stage" id="workspaceStage"></main>
   </div>
 
   <!-- =========================================================================
@@ -753,9 +642,7 @@
         <h3 id="googleChooserTitle">Choose an account</h3>
         <p class="google-modal-sub">to continue to <strong>CoThread</strong></p>
 
-        <div class="google-account-list" id="googleAccountList">
-          <!-- Populated dynamically by app.js -->
-        </div>
+        <div class="google-account-list" id="googleAccountList"></div>
 
         <form class="google-custom-form hidden" id="googleCustomAccountForm">
           <div class="form-field">
@@ -763,20 +650,20 @@
             <input type="text" id="googleCustomName" class="editorial-input" placeholder="e.g., Hasnain Khan" required />
           </div>
           <div class="form-field">
-            <label for="googleCustomEmail">Google Account Email</label>
+            <label for="googleCustomEmail">Email</label>
             <input type="email" id="googleCustomEmail" class="editorial-input" placeholder="you@company.com" required />
           </div>
           <div class="form-field">
-            <label for="googleCustomTier">Software Token Quota Plan</label>
+            <label for="googleCustomTier">Token Quota Plan</label>
             <select id="googleCustomTier" class="editorial-input">
-              <option value="starter">Starter Plan (25,000 Software Tokens)</option>
-              <option value="pro" selected>Pro Plan (250,000 Software Tokens • Host Shared Rooms)</option>
-              <option value="enterprise">Enterprise Plan (1,000,000 Software Tokens)</option>
+              <option value="starter">Starter (25,000 Tokens)</option>
+              <option value="pro" selected>Pro (250,000 Tokens)</option>
+              <option value="enterprise">Enterprise (1,000,000 Tokens)</option>
             </select>
           </div>
           <div class="modal-footer-actions">
             <button type="button" class="btn-secondary" id="cancelCustomGoogleBtn">Back</button>
-            <button type="submit" class="btn-primary">Continue with Google →</button>
+            <button type="submit" class="btn-primary">Continue →</button>
           </div>
         </form>
       </div>
@@ -792,21 +679,18 @@
         <div class="modal-title-group">
           <div class="modal-icon-badge">🔗</div>
           <div>
-            <h2 id="shareModalTitle">Share CoThread Sublink &amp; Host Quota Controls</h2>
-            <p class="modal-subtitle">Anyone with this sublink joins the live session • AI prompts use the Host's sponsored session allowance</p>
+            <h2 id="shareModalTitle">Share Sublink &amp; Host Quota</h2>
+            <p class="modal-subtitle">Guests prompt using your Host session allowance</p>
           </div>
         </div>
         <button type="button" class="modal-close-btn" id="closeShareModalBtn" aria-label="Close modal">✕</button>
       </div>
-
-      <div class="modal-body" id="shareModalBody">
-        <!-- Populated dynamically by app.js -->
-      </div>
+      <div class="modal-body" id="shareModalBody"></div>
     </div>
   </div>
 
   <!-- =========================================================================
-       5. ACCOUNT & SOFTWARE TOKEN QUOTA SETTINGS MODAL (ZERO API KEYS!)
+       5. ACCOUNT & SOFTWARE TOKEN QUOTA SETTINGS MODAL
        ========================================================================= -->
   <div class="modal-backdrop hidden" id="accountQuotaModalBackdrop" role="dialog" aria-modal="true" aria-labelledby="accountQuotaModalTitle">
     <div class="modal-card account-quota-modal">
@@ -814,29 +698,24 @@
         <div class="modal-title-group">
           <div class="modal-icon-badge">✦</div>
           <div>
-            <h2 id="accountQuotaModalTitle">CoThread Account &amp; Software Token Quota</h2>
-            <p class="modal-subtitle">Managed enterprise AI quota provisioned automatically to your CoThread account</p>
+            <h2 id="accountQuotaModalTitle">Account &amp; Token Quota</h2>
+            <p class="modal-subtitle">Software-assigned token quota</p>
           </div>
         </div>
         <button type="button" class="modal-close-btn" id="closeAccountQuotaModalBtn" aria-label="Close modal">✕</button>
       </div>
-
-      <div class="modal-body" id="accountQuotaModalBody">
-        <!-- Populated dynamically by app.js -->
-      </div>
+      <div class="modal-body" id="accountQuotaModalBody"></div>
     </div>
   </div>
 
-  <!-- TOAST NOTIFICATION CONTAINER -->
   <div class="toast-container" id="toastContainer" aria-live="polite"></div>
 
-  <script src="../src/core/quota-engine.js?v=gumroad5"></script>
-  <script src="../src/ai/gemini-service.js?v=gumroad5"></script>
-  <script src="./app.js?v=gumroad5"></script>
+  <script src="../src/core/quota-engine.js?v=cothread6"></script>
+  <script src="../src/ai/gemini-service.js?v=cothread6"></script>
+  <script src="./app.js?v=cothread6"></script>
 
-  <!-- Gumroad-Style Hero Coin Parallax Script (Ported from gumroad.com) -->
   <script>
-    (function initGumroadCoinParallax() {
+    (function initCoinParallax() {
       const container = document.querySelector("[data-hero-parallax-container]");
       if (!container) return;
       const coins = Array.from(container.querySelectorAll(".hero-coin"));
