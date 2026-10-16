@@ -333,9 +333,14 @@ html[data-theme="dark"] .gumroad-edge-btn.cta-edge {
    ============================================================================ */
 .gumroad-hero-section {
   position: relative;
-  padding: 64px 28px 72px;
-  border-bottom: 2px solid var(--border-strong);
+  padding: 96px 28px 112px;
+  min-height: 560px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 2.5px solid var(--border-strong);
   overflow: hidden;
+  background: var(--bg-page);
 }
 
 .hero-coins-layer {
@@ -350,51 +355,55 @@ html[data-theme="dark"] .gumroad-edge-btn.cta-edge {
   will-change: transform;
 }
 
-.coin-pos-1 { top: 38px; left: 3%; }
-.coin-pos-2 { top: 44px; right: 3.5%; }
-.coin-pos-3 { top: 310px; left: 1.5%; }
-.coin-pos-4 { top: 300px; right: 2%; }
+.coin-pos-1 { top: 44px; left: 4%; }
+.coin-pos-2 { top: 48px; right: 4.5%; }
+.coin-pos-3 { bottom: 60px; left: 2.5%; }
+.coin-pos-4 { bottom: 52px; right: 3.5%; }
+.coin-pos-5 { bottom: 26px; left: 24%; }
 
 .gumroad-hero-center {
   position: relative;
   z-index: 2;
   max-width: 900px;
-  margin: 0 auto 48px;
+  margin: 0 auto;
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
+  gap: 24px;
 }
 
-.gumroad-eyebrow-pill {
+.gumroad-logo-showcase-pill {
   display: inline-flex;
   align-items: center;
-  gap: 9px;
-  padding: 7px 16px;
+  gap: 10px;
+  padding: 6px 18px 6px 10px;
   border-radius: 999px;
   background: var(--bg-elevated);
-  border: 2px solid var(--border-strong);
-  box-shadow: 3px 3px 0px #000000;
-  font-size: 13px;
+  border: 2.5px solid var(--border-strong);
+  box-shadow: 4px 4px 0px #000000;
+  font-size: 13.5px;
   font-weight: 600;
-}
-
-.gumroad-dot-pink {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--gum-pink);
-  border: 1.5px solid #000000;
 }
 
 .gumroad-hero-title {
   font-family: var(--font-serif);
-  font-size: clamp(3.1rem, 6.2vw, 5.4rem);
+  font-size: clamp(3.3rem, 6.6vw, 5.8rem);
   font-weight: 700;
   line-height: 0.98;
   letter-spacing: -0.04em;
   color: var(--ink-primary);
+}
+
+.gumroad-underline-yellow {
+  display: inline-block;
+  background: var(--gum-yellow);
+  color: #000000;
+  padding: 0 14px 4px;
+  border: 2.5px solid #000000;
+  border-radius: 14px;
+  box-shadow: 4px 4px 0px #000000;
+  transform: rotate(1deg);
 }
 
 .gumroad-highlight-pink {
@@ -410,7 +419,7 @@ html[data-theme="dark"] .gumroad-edge-btn.cta-edge {
 
 .gumroad-hero-subtitle {
   max-width: 720px;
-  font-size: clamp(1.05rem, 1.5vw, 1.3rem);
+  font-size: clamp(1.1rem, 1.55vw, 1.35rem);
   font-weight: 500;
   color: var(--ink-secondary);
   line-height: 1.55;
@@ -427,13 +436,14 @@ html[data-theme="dark"] .gumroad-edge-btn.cta-edge {
   font-weight: 700;
 }
 
+/* Exact Gumroad Action Row: Triple-Layer Stacked Button + Search/Sublink Input Box */
 .gumroad-hero-cta-row {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 20px;
+  gap: 18px;
   flex-wrap: wrap;
-  margin-top: 6px;
+  margin-top: 8px;
 }
 
 .gumroad-layered-btn-wrap {
@@ -446,7 +456,7 @@ html[data-theme="dark"] .gumroad-edge-btn.cta-edge {
   inset: 0;
   background: var(--gum-red);
   border: 2px solid #000000;
-  border-radius: 8px;
+  border-radius: 10px;
   z-index: 1;
   transition: transform 0.15s ease;
 }
@@ -456,7 +466,7 @@ html[data-theme="dark"] .gumroad-edge-btn.cta-edge {
   inset: 0;
   background: var(--gum-yellow);
   border: 2px solid #000000;
-  border-radius: 8px;
+  border-radius: 10px;
   z-index: 2;
   transition: transform 0.15s ease;
 }
@@ -464,14 +474,14 @@ html[data-theme="dark"] .gumroad-edge-btn.cta-edge {
 .gumroad-layer-main {
   position: relative;
   z-index: 3;
-  height: 56px;
-  padding: 0 28px;
-  border-radius: 8px;
+  height: 62px;
+  padding: 0 32px;
+  border-radius: 10px;
   background: #000000;
   color: #FFFFFF;
   border: 2px solid #000000;
   font-family: var(--font-serif);
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 700;
   cursor: pointer;
   display: inline-flex;
@@ -481,19 +491,94 @@ html[data-theme="dark"] .gumroad-edge-btn.cta-edge {
   transition: transform 0.15s ease, background-color 0.15s ease, color 0.15s ease;
 }
 
-.gumroad-layer-main.pink-face {
+.gumroad-layered-btn-wrap:hover .gumroad-layer-red {
+  transform: translate(8px, 8px);
+}
+.gumroad-layered-btn-wrap:hover .gumroad-layer-yellow {
+  transform: translate(4px, 4px);
+}
+.gumroad-layered-btn-wrap:hover .gumroad-layer-main {
+  transform: translate(-4px, -4px);
   background: var(--gum-pink);
   color: #000000;
 }
 
-.gumroad-layered-btn-wrap:hover .gumroad-layer-red {
-  transform: translate(7px, 7px);
+.gumroad-hero-search-form {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 350px;
+  max-width: 100%;
+  height: 62px;
+  background: #FFFFFF;
+  border: 2.5px solid #000000;
+  border-radius: 10px;
+  box-shadow: 4px 4px 0px #000000;
+  padding: 0 8px 0 16px;
 }
-.gumroad-layered-btn-wrap:hover .gumroad-layer-yellow {
-  transform: translate(2px, 2px);
+
+.gumroad-hero-search-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 600;
+  color: #000000;
+  outline: none;
 }
-.gumroad-layered-btn-wrap:hover .gumroad-layer-main {
-  transform: translate(-4px, -4px);
+
+.gumroad-hero-search-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  border: 2px solid #000000;
+  background: var(--gum-pink);
+  color: #000000;
+  font-size: 20px;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.12s ease, background 0.12s ease;
+}
+.gumroad-hero-search-btn:hover {
+  background: var(--gum-yellow);
+  transform: translate(-1px, -1px);
+}
+
+.gumroad-hero-quick-stickers {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.gumroad-mini-sticker {
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 2px solid #000000;
+  box-shadow: 3px 3px 0px #000000;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.gumroad-mini-sticker.yellow { background: var(--gum-yellow); color: #000000; }
+.gumroad-mini-sticker.teal { background: var(--gum-teal); color: #FFFFFF; }
+.gumroad-mini-sticker.pink { background: var(--gum-pink); color: #000000; }
+.gumroad-mini-sticker:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 5px 5px 0px #000000;
+}
+
+.gumroad-live-studio-section {
+  padding: 68px 28px;
+  background: var(--gum-pink);
+  border-bottom: 2.5px solid #000000;
 }
 
 .hero-container {
@@ -2946,60 +3031,159 @@ html[data-theme="dark"] .gumroad-edge-btn.cta-edge {
    6. GUMROAD NEO-BRUTALIST WORKSPACE ENHANCEMENTS (/app & /s/:shareCode)
    ============================================================================ */
 .workspace-top-header {
-  height: 60px;
-  background: var(--bg-elevated);
-  border-bottom: 2px solid var(--border-strong);
+  height: 62px !important;
+  background: var(--bg-elevated) !important;
+  border-bottom: 2.5px solid #000000 !important;
+}
+
+.wordmark-serif.sm {
+  font-family: var(--font-serif) !important;
+  font-weight: 700 !important;
+  font-size: 20px !important;
+  letter-spacing: -0.03em;
 }
 
 .model-selector-pill,
 .route-sublink-bar,
 .sync-status-pill,
 .header-utility-btn {
-  border: 2px solid var(--border-strong) !important;
-  box-shadow: 2px 2px 0px #000000;
+  border: 2px solid #000000 !important;
+  box-shadow: 3px 3px 0px #000000 !important;
   font-weight: 700 !important;
+  background: var(--bg-elevated) !important;
+  color: var(--ink-primary) !important;
+}
+
+.sync-status-pill {
+  background: var(--gum-yellow) !important;
+  color: #000000 !important;
 }
 
 .header-utility-btn:hover,
 .route-copy-btn:hover,
 .hdr-btn:hover,
-.new-session-btn:hover {
+.new-chat-primary-btn:hover,
+.new-shared-btn:hover,
+.acct-btn:hover {
   background: var(--gum-pink) !important;
   color: #000000 !important;
-  transform: translate(-1px, -1px);
-  box-shadow: 3px 3px 0px #000000;
-}
-
-.new-session-btn,
-.hdr-btn.btn-share-session,
-.composer-send-btn {
-  background: var(--gum-pink) !important;
-  color: #000000 !important;
-  border: 2px solid #000000 !important;
-  box-shadow: 3px 3px 0px #000000;
-  font-weight: 800 !important;
-}
-
-.hdr-btn.btn-copy-independent {
-  background: var(--gum-yellow) !important;
-  color: #000000 !important;
-  border: 2px solid #000000 !important;
-  box-shadow: 3px 3px 0px #000000;
-  font-weight: 800 !important;
-}
-
-.session-item.active {
-  background: var(--gum-yellow) !important;
-  color: #000000 !important;
-  border: 2px solid #000000 !important;
-  box-shadow: 3px 3px 0px #000000;
-}
-
-.msg-card,
-.composer-card,
-.modal-card,
-.account-quota-card {
-  border: 2px solid var(--border-strong) !important;
+  transform: translate(-2px, -2px);
   box-shadow: 4px 4px 0px #000000 !important;
+}
+
+.pane-sidebar {
+  background: var(--bg-page) !important;
+  border-right: 2.5px solid #000000 !important;
+}
+
+.new-chat-primary-btn {
+  background: var(--gum-pink) !important;
+  color: #000000 !important;
+  border: 2px solid #000000 !important;
+  box-shadow: 3px 3px 0px #000000 !important;
+  font-weight: 800 !important;
+}
+
+.new-shared-btn {
+  background: var(--gum-yellow) !important;
+  color: #000000 !important;
+  border: 2px solid #000000 !important;
+  box-shadow: 3px 3px 0px #000000 !important;
+  font-weight: 800 !important;
+}
+
+.session-nav-item {
+  border: 2px solid transparent !important;
+  border-radius: 12px !important;
+}
+
+.session-nav-item.active-shared {
+  background: var(--gum-pink) !important;
+  color: #000000 !important;
+  border: 2px solid #000000 !important;
+  box-shadow: 4px 4px 0px #000000 !important;
+}
+
+.session-nav-item.active-personal {
+  background: var(--gum-yellow) !important;
+  color: #000000 !important;
+  border: 2px solid #000000 !important;
+  box-shadow: 4px 4px 0px #000000 !important;
+}
+
+.sidebar-account-footer {
+  border: 2px solid #000000 !important;
+  box-shadow: 4px 4px 0px #000000 !important;
+  border-radius: 14px !important;
+}
+
+.session-docs-header {
+  background: var(--bg-elevated) !important;
+  border-bottom: 2.5px solid #000000 !important;
+}
+
+.session-mode-badge.shared-mode {
+  background: var(--gum-pink) !important;
+  color: #000000 !important;
+  border: 1.5px solid #000000 !important;
+  box-shadow: 2px 2px 0px #000000;
+}
+
+.session-mode-badge.personal-mode {
+  background: var(--gum-yellow) !important;
+  color: #000000 !important;
+  border: 1.5px solid #000000 !important;
+  box-shadow: 2px 2px 0px #000000;
+}
+
+.hdr-btn {
+  border: 2px solid #000000 !important;
+  box-shadow: 3px 3px 0px #000000 !important;
+  font-weight: 700 !important;
+}
+
+.hdr-btn.continue-independently-btn {
+  background: var(--gum-yellow) !important;
+  color: #000000 !important;
+  border: 2px solid #000000 !important;
+  box-shadow: 3px 3px 0px #000000 !important;
+  font-weight: 800 !important;
+}
+
+.session-quota-bar-row {
+  background: var(--bg-page) !important;
+  border: 2px solid #000000 !important;
+  box-shadow: 3px 3px 0px #000000 !important;
+}
+
+.msg-bubble {
+  border: 2px solid #000000 !important;
+  box-shadow: 4px 4px 0px #000000 !important;
+  border-radius: 16px !important;
+}
+
+.msg-row.own-message .msg-bubble {
+  background: var(--gum-yellow) !important;
+  color: #000000 !important;
+}
+
+.composer-dock {
+  border: 2.5px solid #000000 !important;
+  box-shadow: 6px 6px 0px #000000 !important;
+  border-radius: 18px !important;
+}
+
+.composer-send-btn,
+.mode-pill-btn.active-ai-mode {
+  background: var(--gum-pink) !important;
+  color: #000000 !important;
+  border: 2px solid #000000 !important;
+  box-shadow: 3px 3px 0px #000000 !important;
+  font-weight: 800 !important;
+}
+
+.modal-card {
+  border: 2.5px solid #000000 !important;
+  box-shadow: 8px 8px 0px #000000 !important;
 }
 
