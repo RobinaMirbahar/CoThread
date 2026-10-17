@@ -4,11 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>CoThread — Go from Solo to Team AI</title>
-  <link rel="icon" type="image/svg+xml" href="./logo.svg?v=ct13" />
+  <link rel="icon" type="image/svg+xml" href="./logo.svg?v=ct14" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="./styles.css?v=ct13" />
+  <link rel="stylesheet" href="./styles.css?v=ct14" />
 </head>
 <body>
   <!-- =========================================================================
@@ -19,7 +19,7 @@
     <header class="cothread-navbar">
       <div class="cothread-nav-left">
         <a href="#" class="cothread-brand-link" id="navBrandLogo" aria-label="CoThread Home">
-          <img src="./logo.svg?v=ct13" class="cothread-logo-coin" width="44" height="44" alt="CoThread Logo" />
+          <img src="./logo.svg?v=ct14" class="cothread-logo-coin" width="44" height="44" alt="CoThread Logo" />
           <span class="cothread-wordmark">CoThread</span>
         </a>
 
@@ -39,11 +39,11 @@
       </div>
 
       <nav class="cothread-nav-links" aria-label="Primary Navigation">
-        <a href="#capabilitiesSection" class="cothread-nav-pill active">Features</a>
+        <a href="#capabilitiesSection" class="cothread-nav-pill active">Platform</a>
         <a href="#liveStudioSection" class="cothread-nav-pill">Live Studio</a>
-        <a href="#cothreadWaySection" class="cothread-nav-pill">How It Works</a>
-        <a href="#pricingSection" class="cothread-nav-pill">Pricing</a>
-        <a href="https://github.com/hasnain-kk" target="_blank" rel="noopener noreferrer" class="cothread-nav-pill idea-pill">💡 @hasnain-kk</a>
+        <a href="#cothreadWaySection" class="cothread-nav-pill">Architecture</a>
+        <a href="#pricingSection" class="cothread-nav-pill">Enterprise Plans</a>
+        <button type="button" class="cothread-nav-pill" data-open-stack-tab="firestore">Cloud Stack &amp; IAM</button>
       </nav>
 
       <div class="cothread-nav-EdgeActions">
@@ -196,9 +196,9 @@
               <div class="neo-sticker-window">
                 <div class="nsw-top"><code>/s/cothread-arch-9x2k</code> <span class="nsw-live">● 3 LIVE</span></div>
                 <div class="nsw-body">
-                  <div class="nsw-chip pink">Alex (Host • 250k)</div>
-                  <div class="nsw-chip yellow">Hasnain (Can Prompt)</div>
-                  <div class="nsw-chip teal">Sarah (Canvas)</div>
+                  <div class="nsw-chip pink">Principal Architect (Host • 250k)</div>
+                  <div class="nsw-chip yellow">Staff Engineer (Can Prompt)</div>
+                  <div class="nsw-chip teal">Security Lead (Artifact Canvas)</div>
                 </div>
               </div>
             </div>
@@ -439,7 +439,7 @@
           <span class="cothread-tag-pill teal" data-open-stack-tab="adk">🗜️ Flash-Lite Compression</span>
           <span class="cothread-tag-pill pink" data-open-stack-tab="firestore">🛡️ Host Quota Cap</span>
           <span class="cothread-tag-pill yellow" data-launch-workspace="starter">🔀 Copy to My Chats</span>
-          <a href="https://github.com/hasnain-kk" target="_blank" rel="noopener noreferrer" class="cothread-tag-pill pink">💡 Idea: @hasnain-kk</a>
+          <span class="cothread-tag-pill teal" data-open-stack-tab="firestore">🔒 Firestore IAM Security Rules</span>
           <span class="cothread-tag-pill pink" data-open-stack-tab="firestore">☁️ Cloud Firestore DB</span>
           <span class="cothread-tag-pill yellow" data-open-stack-tab="adk">🤖 Google ADK Orchestrator</span>
           <span class="cothread-tag-pill teal" data-open-stack-tab="mcp">🔌 Model Context Protocol (MCP)</span>
@@ -534,11 +534,11 @@
       <div class="footer-inner">
         <div class="footer-brand-col">
           <div class="brand-wordmark-link" style="display:flex;align-items:center;gap:10px;">
-            <img src="./logo.svg?v=ct13" width="36" height="36" alt="CoThread Logo" />
+            <img src="./logo.svg?v=ct14" width="36" height="36" alt="CoThread Logo" />
             <span class="wordmark-serif">CoThread</span>
           </div>
           <p class="footer-copy">
-            Ⓒ 2026 CoThread AI • Idea by <a href="https://github.com/hasnain-kk" target="_blank" rel="noopener noreferrer" style="color: #FF90E8; text-decoration: underline;">Muhammad Hasnain (@hasnain-kk)</a> • Built with <a href="https://github.com/RobinaMirbahar" target="_blank" rel="noopener noreferrer" style="color: #FFC900; text-decoration: underline;">Robina Mirbahar (@RobinaMirbahar)</a>
+            Ⓒ 2026 CoThread Enterprise AI • Powered by Google Cloud Run, Cloud Firestore, Google ADK &amp; Model Context Protocol (MCP)
           </p>
         </div>
         <div class="footer-links-col">
@@ -558,7 +558,7 @@
     <header class="workspace-top-header">
       <div class="top-header-left">
         <button type="button" class="back-to-site-brand" id="backToWebsiteBtn" title="Return to CoThread Home">
-          <img src="./logo.svg?v=ct13" width="32" height="32" alt="CoThread Logo" />
+          <img src="./logo.svg?v=ct14" width="32" height="32" alt="CoThread Logo" />
           <span class="wordmark-serif sm">CoThread</span>
         </button>
 
@@ -710,9 +710,9 @@
 
   <div class="toast-container" id="toastContainer" aria-live="polite"></div>
 
-  <script src="../src/core/quota-engine.js?v=ct13"></script>
-  <script src="../src/ai/gemini-service.js?v=ct13"></script>
-  <script src="./app.js?v=ct13"></script>
+  <script src="../src/core/quota-engine.js?v=ct14"></script>
+  <script src="../src/ai/gemini-service.js?v=ct14"></script>
+  <script src="./app.js?v=ct14"></script>
 
   <script>
     (function initCoinParallax() {
