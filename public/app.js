@@ -1,9 +1,9 @@
 /**
- * CoThread — Collaborative AI Platform (Claude.com + Gemini.google + OpenAI.com Fusion)
+ * CoThread - Collaborative AI Platform (Claude.com + Gemini.google + OpenAI.com Fusion)
  * Features:
  * 1. Flagship Editorial Company Website at `/` with Claude.com-style Hero Onboarding + Gemini Aurora Stage + Pricing Plans
  * 2. Warm Editorial Daylight Theme (default) + 1-Click Obsidian Dark Mode Toggle
- * 3. Managed Software Token Quotas per Account Tier (Starter: 25k, Pro: 250k, Enterprise: 1M) — Zero API keys in UI
+ * 3. Managed Software Token Quotas per Account Tier (Starter: 25k, Pro: 250k, Enterprise: 1M) - Zero API keys in UI
  * 4. Sublink Routing (`/`, `/app`, `/s/:shareCode`, `?s=cothread-...`)
  * 5. Host-Sponsored Shared Sessions + 1-Click "Continue Independently (Copy to My Chats)" (Strictly no merge-back UI)
  * 6. Cross-Tab Real-Time Sync via BroadcastChannel + Optional Side-by-Side Colleague Preview
@@ -12,10 +12,14 @@
 (function () {
   'use strict';
 
-  const STORAGE_KEY = 'cothread_firestore_state_v12';
-  const TAB_AUTH_KEY = 'cothread_tab_user_v12';
+  const STORAGE_KEY = 'cothread_firestore_state_v16';
+  const TAB_AUTH_KEY = 'cothread_tab_user_v16';
   const THEME_KEY = 'cothread_theme_ct8';
   const CHANNEL_NAME = 'cothread_realtime';
+  try {
+    localStorage.removeItem('cothread_firestore_state_v12');
+    sessionStorage.removeItem('cothread_tab_user_v12');
+  } catch (e) {}
 
   const PLAN_TIERS = {
     starter: {
@@ -23,21 +27,21 @@
       name: 'CoThread Starter',
       badge: 'STARTER',
       quota: 25000,
-      desc: '25,000 monthly software tokens • Join unlimited Shared Sessions'
+      desc: '25,000 monthly software tokens \u2022 Join unlimited Shared Sessions'
     },
     pro: {
       id: 'pro',
       name: 'CoThread Pro',
       badge: 'PRO',
       quota: 250000,
-      desc: '250,000 monthly software tokens • Host Shared Sessions up to 100k cap'
+      desc: '250,000 monthly software tokens \u2022 Host Shared Sessions up to 100k cap'
     },
     enterprise: {
       id: 'enterprise',
       name: 'CoThread Enterprise',
       badge: 'ENTERPRISE',
       quota: 1000000,
-      desc: '1,000,000 monthly software tokens • Unlimited Shared Rooms & Org Governance'
+      desc: '1,000,000 monthly software tokens \u2022 Unlimited Shared Rooms & Org Governance'
     }
   };
 
@@ -81,8 +85,8 @@
     }
     const webIcon = document.getElementById('websiteThemeIcon');
     const appIcon = document.getElementById('appThemeIcon');
-    if (webIcon) webIcon.textContent = clean === 'light' ? '☀️' : '🌙';
-    if (appIcon) appIcon.textContent = clean === 'light' ? '☀️' : '🌙';
+    if (webIcon) webIcon.textContent = clean === 'light' ? '\u2600\uFE0F' : '\uD83C\uDF19';
+    if (appIcon) appIcon.textContent = clean === 'light' ? '\u2600\uFE0F' : '\uD83C\uDF19';
   }
 
   function toggleTheme() {
@@ -294,7 +298,7 @@
       showToast(
         isNewSignup
           ? `Welcome to CoThread, ${account.name}! Provisioned ${fmtNum(account.quotaTotal)} software tokens (${PLAN_TIERS[account.planTier]?.name}).`
-          : `Signed in as ${account.name} (${account.email}) • ${fmtNum(account.quotaTotal - account.quotaUsed)} software tokens available.`,
+          : `Signed in as ${account.name} (${account.email}) \u2022 ${fmtNum(account.quotaTotal - account.quotaUsed)} software tokens available.`,
         'shared'
       );
     }
@@ -397,22 +401,22 @@
         participants: [newId],
         canvasTitle: 'cothread_architecture.ts',
         canvasLastEditedBy: `${shortName} & Google ADK`,
-        canvasContent: `// Cloud Firestore Document: sessions/${newSharedRoomId}\n// Sublink: /s/${userShareCode} • Host: ${cleanName} (${cleanEmail})\n// Orchestrated by CoThreadADKOrchestrator (Gemini 3.8 Flash + 3.5 Flash-Lite)\n`,
+        canvasContent: `// Cloud Firestore Document: sessions/${newSharedRoomId}\n// Sublink: /s/${userShareCode} \u2022 Host: ${cleanName} (${cleanEmail})\n// Orchestrated by CoThreadADKOrchestrator (Gemini 3.8 Flash + 3.5 Flash-Lite)\n`,
         messages: [
           {
             id: 'm_host_init_' + Date.now(),
             senderId: 'gemini',
-            senderName: 'Google ADK • Gemini 3.8 Flash',
+            senderName: 'Google ADK \u2022 Gemini 3.8 Flash',
             senderRole: 'CoThread AI',
             kind: 'ai',
             modelUsed: 'gemini-3.8-flash',
             timestamp: nowTimeLabel(),
             triggeredBy: shortName,
-            quotaChargedTo: `Host (${cleanName} • ${tier.badge} Quota)`,
+            quotaChargedTo: `Host (${cleanName} \u2022 ${tier.badge} Quota)`,
             quotaType: 'host',
             tokensCharged: 0,
             tokensSaved: 0,
-            text: `**Cloud Firestore & Google ADK Session Ready (\`/s/${userShareCode}\`)**\n\nWelcome, **${cleanName}** (\`${cleanEmail}\`)! Your account is persisted in the **Firestore \`users/${newId}\`** collection with **${fmtNum(tier.quota)} tokens**.\n\n• Click **🔗 Share & Quota** above to copy your \`/s/${userShareCode}\` sublink and sponsor teammates.\n• Or click **🔀 Continue Independently (Copy to My Chats)** to fork any shared thread into your private \`/app\` workspace.`
+            text: `**Cloud Firestore & Google ADK Session Ready (\`/s/${userShareCode}\`)**\n\nWelcome, **${cleanName}** (\`${cleanEmail}\`)! Your account is persisted in the **Firestore \`users/${newId}\`** collection with **${fmtNum(tier.quota)} tokens**.\n\n\u2022 Click **\uD83D\uDD17 Share & Quota** above to copy your \`/s/${userShareCode}\` sublink and sponsor teammates.\n\u2022 Or click **\uD83D\uDD00 Continue Independently (Copy to My Chats)** to fork any shared thread into your private \`/app\` workspace.`
           }
         ]
       });
@@ -434,7 +438,7 @@
         {
           id: 'm_w_' + Date.now(),
           senderId: 'gemini',
-          senderName: 'Google ADK • Gemini 3.8 Flash',
+          senderName: 'Google ADK \u2022 Gemini 3.8 Flash',
           senderRole: 'CoThread AI',
           kind: 'ai',
           modelUsed: 'gemini-3.8-flash',
@@ -481,7 +485,7 @@
       senderRole: 'Personal Account',
       kind: 'chat',
       timestamp: nowTimeLabel(),
-      text: `🔀 Copied from Shared Session "${sourceSession.title}" (/s/${sourceSession.shareCode}) into ${account.shortName}'s Personal Chats (/app). All new @Gemini prompts here deduct from ${account.shortName}'s software-assigned token quota (${fmtNum(account.quotaTotal)} plan), leaving ${sourceSession.hostShortName}'s Host Quota untouched.`
+      text: `\uD83D\uDD00 Copied from Shared Session "${sourceSession.title}" (/s/${sourceSession.shareCode}) into ${account.shortName}'s Personal Chats (/app). All new @Gemini prompts here deduct from ${account.shortName}'s software-assigned token quota (${fmtNum(account.quotaTotal)} plan), leaving ${sourceSession.hostShortName}'s Host Quota untouched.`
     });
 
     const newPersonalSession = {
@@ -497,7 +501,7 @@
       canvasTitle: sourceSession.canvasTitle.replace(/\.([a-z]+)$/i, `.${account.shortName.toLowerCase()}.$1`),
       canvasLastEditedBy: `${account.shortName} (Personal Copy)`,
       canvasContent:
-        `// 🔀 INDEPENDENT PERSONAL COPY (/app) — Owned by ${account.name} (${account.email})\n` +
+        `// \uD83D\uDD00 INDEPENDENT PERSONAL COPY (/app) \u2014 Owned by ${account.name} (${account.email})\n` +
         `// Copied from Shared Session: /s/${sourceSession.shareCode}\n\n` +
         sourceSession.canvasContent,
       messages: copiedMessages
@@ -622,7 +626,7 @@
       triggeredBy: account.shortName,
       quotaChargedTo:
         session.type === 'shared'
-          ? `Host (${hostAccount.name} • ${PLAN_TIERS[hostAccount.planTier]?.badge || 'PRO'} Quota)`
+          ? `Host (${hostAccount.name} \u2022 ${PLAN_TIERS[hostAccount.planTier]?.badge || 'PRO'} Quota)`
           : `${account.name} (My ${PLAN_TIERS[account.planTier]?.badge || 'PERSONAL'} Quota)`,
       quotaType: session.type === 'shared' ? 'host' : 'personal',
       tokensCharged,
@@ -860,13 +864,13 @@
     if (activeSession && routePathText && routeIcon) {
       if (activeSession.type === 'shared') {
         const sublinkPath = `/s/${activeSession.shareCode}`;
-        routeIcon.textContent = '🟢';
+        routeIcon.textContent = '\uD83D\uDFE2';
         routePathText.textContent = sublinkPath;
         routePathText.classList.remove('personal-route');
         updateBrowserRouteDisplay(sublinkPath);
       } else {
         const appPath = `/app/c/${activeSession.id.slice(0, 12)}`;
-        routeIcon.textContent = '🔒';
+        routeIcon.textContent = '\uD83D\uDD12';
         routePathText.textContent = appPath;
         routePathText.classList.add('personal-route');
         updateBrowserRouteDisplay('/app');
@@ -925,7 +929,7 @@
                   ${escapeHtml(account.name)} (${escapeHtml(account.email)})
                 </span>
                 <span>
-                  ${escapeHtml(planObj.name)} • ${fmtNum(account.quotaUsed)} / ${fmtNum(account.quotaTotal)} Tokens
+                  ${escapeHtml(planObj.name)} \u2022 ${fmtNum(account.quotaUsed)} / ${fmtNum(account.quotaTotal)} Tokens
                 </span>
               </div>
             `
@@ -966,7 +970,7 @@
                 data-action="close-mobile-sidebar"
                 data-user="${userId}"
                 title="Close Sidebar"
-              >✕</button>
+              >\u2715</button>
             </div>
 
             <div class="sidebar-scroll-area">
@@ -1033,7 +1037,7 @@
                           <span class="quota-sponsor-badge ${isForked ? 'forked-personal' : 'personal-owned'}">
                             ${
                               isForked
-                                ? 'Copied from Shared • My Quota'
+                                ? 'Copied from Shared \u2022 My Quota'
                                 : `Uses ${escapeHtml(account.shortName)}'s Quota`
                             }
                           </span>
@@ -1099,13 +1103,13 @@
                     data-user="${userId}"
                     title="Open Sessions & Quota Sidebar"
                   >
-                    <span>☰ Chats</span>
+                    <span>\u2630 Chats</span>
                   </button>
                   <span class="session-mode-badge ${isSharedActive ? 'shared-mode' : 'personal-mode'}">
                     ${
                       isSharedActive
-                        ? `Shared Session • /s/${escapeHtml(activeSession.shareCode)}`
-                        : `Personal Chat • /app (${escapeHtml(account.shortName)}'s Quota)`
+                        ? `Shared Session \u2022 /s/${escapeHtml(activeSession.shareCode)}`
+                        : `Personal Chat \u2022 /app (${escapeHtml(account.shortName)}'s Quota)`
                     }
                   </span>
                   <h1 class="session-title-heading" title="${escapeHtml(activeSession.title)}">
@@ -1146,7 +1150,7 @@
                           data-session-id="${activeSession.id}"
                           title="Grant Muhammad Hasnain (hasnainrashi@gmail.com) live access to this shared chat on Host Quota and open his screen side-by-side"
                         >
-                          <span>👤+ Give Access to Hasnain</span>
+                          <span>\uD83D\uDC64+ Give Access to Hasnain</span>
                         </button>
 
                         <button
@@ -1155,7 +1159,7 @@
                           data-action="open-share-modal"
                           data-session-id="${activeSession.id}"
                         >
-                          <span>🔗 Share${isHostOfActive ? ' & Quota' : ''}</span>
+                          <span>\uD83D\uDD17 Share${isHostOfActive ? ' & Quota' : ''}</span>
                         </button>
 
                         <button
@@ -1166,7 +1170,7 @@
                           data-session-id="${activeSession.id}"
                           title="Copy this shared conversation into your Personal Chats (/app) where subsequent prompts deduct from your own software token quota"
                         >
-                          <span>🔀 Continue Independently (Copy to My Chats)</span>
+                          <span>\uD83D\uDD00 Continue Independently (Copy to My Chats)</span>
                         </button>
                       `
                       : `
@@ -1183,7 +1187,7 @@
                     data-action="toggle-canvas"
                     data-user="${userId}"
                   >
-                    <span>📄 ${isSharedActive ? 'Artifacts / Canvas' : 'Canvas'}</span>
+                    <span>\uD83D\uDCC4 ${isSharedActive ? 'Artifacts / Canvas' : 'Canvas'}</span>
                   </button>
                 </div>
               </div>
@@ -1199,7 +1203,7 @@
                           ${fmtNum(activeSession.tokensUsed)} / ${fmtNum(activeSession.tokenCap)} session tokens used
                         </span>
                         <span class="compression-saved-pill">
-                          ✦ ${fmtNum(activeSession.tokensSavedByCompression)} saved by Flash-Lite
+                          \u2726 ${fmtNum(activeSession.tokensSavedByCompression)} saved by Flash-Lite
                         </span>
                       </div>
                       <div class="quota-bar-visual">
@@ -1213,7 +1217,7 @@
                       <div class="quota-bar-info">
                         <span class="quota-bar-title">Personal Software Token Quota (${escapeHtml(account.email)}):</span>
                         <span class="quota-bar-numbers">
-                          ${fmtNum(activeSession.tokensUsed)} tokens in this thread • Billed to ${escapeHtml(account.shortName)}'s ${escapeHtml(planObj.name)} (${fmtNum(account.quotaUsed)} / ${fmtNum(account.quotaTotal)})
+                          ${fmtNum(activeSession.tokensUsed)} tokens in this thread \u2022 Billed to ${escapeHtml(account.shortName)}'s ${escapeHtml(planObj.name)} (${fmtNum(account.quotaUsed)} / ${fmtNum(account.quotaTotal)})
                         </span>
                       </div>
                       <div class="quota-bar-visual">
@@ -1238,17 +1242,17 @@
                 <div class="live-typing-bar">
                   ${
                     state.typingStatus && state.typingStatus.sessionId === activeSession.id
-                      ? `<span>✦ ${escapeHtml(state.typingStatus.text)}</span>`
+                      ? `<span>\u2726 ${escapeHtml(state.typingStatus.text)}</span>`
                       : `
                         <span>
                           ${
                             isSharedActive
-                              ? `Live Room /s/${escapeHtml(activeSession.shareCode)} • ${
+                              ? `Live Room /s/${escapeHtml(activeSession.shareCode)} \u2022 ${
                                   activeSession.permissionMode === 'can_prompt'
                                     ? `All participants can prompt @Gemini (Uses ${escapeHtml(activeSession.hostShortName)}'s Host Quota)`
                                     : 'View & Team Chat Only (AI prompting paused for guests)'
                                 }`
-                              : `Personal Workspace (/app) • Prompts deduct from ${escapeHtml(account.name)}'s Software Token Quota`
+                              : `Personal Workspace (/app) \u2022 Prompts deduct from ${escapeHtml(account.name)}'s Software Token Quota`
                           }
                         </span>
                       `
@@ -1266,7 +1270,7 @@
                         data-user="${userId}"
                         data-mode="ai"
                       >
-                        ✦ Ask CoThread AI (${isSharedActive ? `Host Quota` : `My Quota`})
+                        \u2726 Ask CoThread AI (${isSharedActive ? `Host Quota` : `My Quota`})
                       </button>
                       <button
                         type="button"
@@ -1275,7 +1279,7 @@
                         data-user="${userId}"
                         data-mode="chat"
                       >
-                        💬 Team Message (0 Tokens)
+                        \uD83D\uDCAC Team Message (0 Tokens)
                       </button>
                     </div>
 
@@ -1290,7 +1294,7 @@
                               data-user="${userId}"
                               data-mode="ai"
                               data-text="@Gemini Propose a Cloud Run WebSocket + Redis pub/sub schema for our shared room."
-                            >✦ Ask AI: Cloud Run Schema</button>
+                            >\u2726 Ask AI: Cloud Run Schema</button>
                             <button
                               type="button"
                               class="quick-chip"
@@ -1298,7 +1302,7 @@
                               data-user="${userId}"
                               data-mode="chat"
                               data-text="Looks great! I'll copy this thread to my Personal Chats if I need to test custom configs."
-                            >💬 Team Chat: "Looks great!"</button>
+                            >\uD83D\uDCAC Team Chat: "Looks great!"</button>
                           `
                           : `
                             <button
@@ -1308,7 +1312,7 @@
                               data-user="${userId}"
                               data-mode="ai"
                               data-text="@Gemini Extend this copied architecture with a private benchmark suite using my own quota."
-                            >🔒 Ask AI (My Personal Quota)</button>
+                            >\uD83D\uDD12 Ask AI (My Personal Quota)</button>
                           `
                       }
                     </div>
@@ -1339,9 +1343,9 @@
                       ${
                         pane.composerMode === 'ai'
                           ? isSharedActive
-                            ? 'Ask AI (Host Quota) ↑'
-                            : 'Ask AI (My Quota) ↑'
-                          : 'Send Message ↑'
+                            ? 'Ask AI (Host Quota) \u2191'
+                            : 'Ask AI (My Quota) \u2191'
+                          : 'Send Message \u2191'
                       }
                     </button>
                   </div>
@@ -1352,7 +1356,7 @@
               <aside class="shared-canvas-drawer ${pane.canvasOpen ? '' : 'collapsed'}">
                 <div class="canvas-header">
                   <div>
-                    <div class="canvas-title">📄 ${escapeHtml(activeSession.canvasTitle || 'spec.md')}</div>
+                    <div class="canvas-title">\uD83D\uDCC4 ${escapeHtml(activeSession.canvasTitle || 'spec.md')}</div>
                     <div class="canvas-subtitle">Edited by ${escapeHtml(activeSession.canvasLastEditedBy || 'Team')}</div>
                   </div>
                   <button
@@ -1360,7 +1364,7 @@
                     class="acct-btn"
                     data-action="toggle-canvas"
                     data-user="${userId}"
-                  >✕</button>
+                  >\u2715</button>
                 </div>
 
                 <textarea
@@ -1403,7 +1407,7 @@
       return `
         <div class="stream-context-banner">
           <div>
-            <strong>🔀 Independent Personal Thread (<code>/app</code> • Copied from <code>/s/${escapeHtml(session.forkedFromShareCode || 'shared')}</code>):</strong>
+            <strong>\uD83D\uDD00 Independent Personal Thread (<code>/app</code> \u2022 Copied from <code>/s/${escapeHtml(session.forkedFromShareCode || 'shared')}</code>):</strong>
             Owned by <strong>${escapeHtml(account.name)} (${escapeHtml(account.email)})</strong>.
             All new prompts deduct from your own <strong>Software Token Quota</strong> while the original shared session stays intact.
           </div>
@@ -1414,7 +1418,7 @@
     return `
       <div class="stream-context-banner">
         <div>
-          <strong>Private Personal Thread (<code>/app</code> • ${escapeHtml(account.email)}):</strong>
+          <strong>Private Personal Thread (<code>/app</code> \u2022 ${escapeHtml(account.email)}):</strong>
           Visible only to you. Prompts deduct from your software-assigned <strong>${escapeHtml(PLAN_TIERS[account.planTier]?.name || 'CoThread')}</strong> quota.
         </div>
       </div>
@@ -1425,7 +1429,7 @@
     const isAI = msg.kind === 'ai' || msg.senderId === 'gemini';
     const isOwn = !isAI && msg.senderId === viewingUserId;
     const senderAcct = state.accounts[msg.senderId] || {
-      initials: isAI ? '✦' : 'CT',
+      initials: isAI ? '\u2726' : 'CT',
       colorClass: isAI ? 'gemini' : 'custom'
     };
 
@@ -1448,9 +1452,9 @@
               <span class="msg-intent-tag">
                 ${
                   msg.kind === 'prompt'
-                    ? '✦ Prompted AI'
+                    ? '\u2726 Prompted AI'
                     : msg.kind === 'chat'
-                    ? '💬 Team Message (0 Tokens)'
+                    ? '\uD83D\uDCAC Team Message (0 Tokens)'
                     : `Replying to ${escapeHtml(msg.triggeredBy || 'Team')}`
                 }
               </span>
@@ -1473,8 +1477,8 @@
                   <span class="quota-attribution-pill ${msg.quotaType === 'host' ? 'charged-host' : ''}">
                     ${
                       msg.quotaType === 'host'
-                        ? `⚡ ${escapeHtml(msg.modelUsed || 'gemini-3.8-flash')} • ${fmtNum(msg.tokensCharged)} tokens charged to ${escapeHtml(msg.quotaChargedTo)} • ${fmtNum(msg.tokensSaved || 140)} saved via Flash-Lite`
-                        : `🔒 ${escapeHtml(msg.modelUsed || 'gemini-3.8-flash')} • ${fmtNum(msg.tokensCharged)} tokens charged to ${escapeHtml(msg.quotaChargedTo)}`
+                        ? `\u26A1 ${escapeHtml(msg.modelUsed || 'gemini-3.8-flash')} \u2022 ${fmtNum(msg.tokensCharged)} tokens charged to ${escapeHtml(msg.quotaChargedTo)} \u2022 ${fmtNum(msg.tokensSaved || 140)} saved via Flash-Lite`
+                        : `\uD83D\uDD12 ${escapeHtml(msg.modelUsed || 'gemini-3.8-flash')} \u2022 ${fmtNum(msg.tokensCharged)} tokens charged to ${escapeHtml(msg.quotaChargedTo)}`
                     }
                   </span>
                   ${
@@ -1487,7 +1491,7 @@
                           data-user="${viewingUserId}"
                           data-session-id="${session.id}"
                           data-msg-id="${msg.id}"
-                        >📄 Open in Artifact Canvas</button>
+                        >\uD83D\uDCC4 Open in Artifact Canvas</button>
                       `
                       : ''
                   }
@@ -1696,7 +1700,7 @@
           {
             id: 'm_w_' + Date.now(),
             senderId: 'gemini',
-            senderName: 'Google ADK • Gemini 3.8 Flash',
+            senderName: 'Google ADK \u2022 Gemini 3.8 Flash',
             senderRole: 'CoThread AI',
             kind: 'ai',
             modelUsed: 'gemini-3.8-flash',
@@ -1733,10 +1737,10 @@
         id: 'm_access_' + colleagueAcct.id + '_' + Date.now(),
         senderId: colleagueAcct.id,
         senderName: colleagueAcct.name,
-        senderRole: 'Colleague • Joined via Sublink',
+        senderRole: 'Colleague \u2022 Joined via Sublink',
         kind: 'chat',
         timestamp: nowTimeLabel(),
-        text: `🔓 **Access Granted:** **${session.hostName}** granted **${colleagueAcct.name}** (\`${colleagueAcct.email}\` • ${tier.name} ${fmtNum(tier.quota)} Quota) live **Can Prompt** access to \`/s/${session.shareCode}\`. All @Gemini prompts in this room are sponsored by **${session.hostShortName}'s Host Quota** (${fmtNum(session.tokenCap)} Session Cap) while ${colleagueAcct.shortName}'s personal ${fmtNum(tier.quota)} quota remains untouched!`
+        text: `\uD83D\uDD13 **Access Granted:** **${session.hostName}** granted **${colleagueAcct.name}** (\`${colleagueAcct.email}\` \u2022 ${tier.name} ${fmtNum(tier.quota)} Quota) live **Can Prompt** access to \`/s/${session.shareCode}\`. All @Gemini prompts in this room are sponsored by **${session.hostShortName}'s Host Quota** (${fmtNum(session.tokenCap)} Session Cap) while ${colleagueAcct.shortName}'s personal ${fmtNum(tier.quota)} quota remains untouched!`
       });
     }
 
@@ -1754,7 +1758,7 @@
     renderApp();
     scrollChatToBottom(session.id);
     showToast(
-      `✓ Granted ${colleagueAcct.name} (${colleagueAcct.email}) live access to /s/${session.shareCode} & opened Dual-Pane View!`,
+      `\u2713 Granted ${colleagueAcct.name} (${colleagueAcct.email}) live access to /s/${session.shareCode} & opened Dual-Pane View!`,
       'shared'
     );
     return colleagueAcct;
@@ -1819,7 +1823,7 @@
       tokensUsed: 0,
       canvasTitle: 'personal_notes.md',
       canvasLastEditedBy: account.shortName,
-      canvasContent: `# ${account.name} — Private Personal Artifact (/app)\nBilled to ${account.email}'s Software Token Quota.\n`,
+      canvasContent: `# ${account.name} \u2014 Private Personal Artifact (/app)\nBilled to ${account.email}'s Software Token Quota.\n`,
       messages: [
         {
           id: 'm_p_' + Date.now(),
@@ -1857,7 +1861,7 @@
 
     const defaultOAuthProfiles = [
       {
-        name: 'Robina Mirbahar (Project Lead • Host)',
+        name: 'Robina Mirbahar (Project Lead \u2022 Host)',
         email: 'robina@cothread.ai',
         planTier: preselectedTier || 'pro',
         initials: 'RM',
@@ -1899,7 +1903,7 @@
                 <span class="avatar-circle ${acct.colorClass || 'custom'}">${escapeHtml(acct.initials || 'CT')}</span>
                 <div class="google-acct-info">
                   <strong>${escapeHtml(acct.name)}</strong>
-                  <small>${escapeHtml(acct.email)} • ${escapeHtml(tier.name)} (${quotaLabel} Quota)</small>
+                  <small>${escapeHtml(acct.email)} \u2022 ${escapeHtml(tier.name)} (${quotaLabel} Quota)</small>
                 </div>
               </div>
               <span class="plan-tier-badge">${escapeHtml(tier.badge)}</span>
@@ -1960,15 +1964,15 @@
     body.innerHTML = `
       <div class="form-section" style="background:rgba(24,128,56,0.06);border:1.5px solid rgba(24,128,56,0.28);border-radius:12px;padding:12px 14px;margin-bottom:14px;">
         <label class="form-label" style="margin-bottom:6px;">
-          <span>⚡ Quick Grant Access to Co-Builder &amp; Collaborator</span>
+          <span>\u26A1 Quick Grant Access to Co-Builder &amp; Collaborator</span>
           <span style="color:#188038;font-weight:700;">Instant Live Room Sync</span>
         </label>
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
           <button type="button" class="btn-primary" id="modalGrantHasnainBtn" style="flex:1;background:#188038;border-color:#188038;">
-            👤+ Grant Access to Muhammad Hasnain (hasnainrashi@gmail.com • Starter 25k)
+            \uD83D\uDC64+ Grant Access to Muhammad Hasnain (hasnainrashi@gmail.com \u2022 Starter 25k)
           </button>
           <button type="button" class="btn-secondary" id="modalOpenHasnainTabBtn">
-            Open Hasnain in 2nd Tab ↗
+            Open Hasnain in 2nd Tab \u2197
           </button>
         </div>
         <form id="modalInviteCustomForm" style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
@@ -1982,13 +1986,13 @@
         <label class="form-label">
           <span>Shareable CoThread Session Sublink (<code>/s/${escapeHtml(session.shareCode)}</code>)</span>
           <span style="color: ${session.linkActive ? 'var(--accent-emerald)' : '#E11D48'}">
-            ${session.linkActive ? '● Sublink Active' : '● Sublink Revoked'}
+            ${session.linkActive ? '\u25CF Sublink Active' : '\u25CF Sublink Revoked'}
           </span>
         </label>
         <div class="share-link-box">
           <input type="text" class="share-link-input" id="shareLinkUrlInput" readonly value="${escapeHtml(fullSublink)}" />
           <button type="button" class="btn-primary" id="copyShareLinkBtn">Copy Sublink</button>
-          <button type="button" class="btn-secondary" id="openSecondTabBtn">Open in 2nd Tab ↗</button>
+          <button type="button" class="btn-secondary" id="openSecondTabBtn">Open in 2nd Tab \u2197</button>
         </div>
         <p class="form-help">Colleagues opening this sublink automatically join <code>/s/${escapeHtml(session.shareCode)}</code> using <strong>${escapeHtml(session.hostName)}'s</strong> sponsored session allowance.</p>
       </div>
@@ -1997,10 +2001,10 @@
         <label class="form-label" for="sharePermissionSelect">Colleague Permission Level</label>
         <select id="sharePermissionSelect" class="form-select">
           <option value="can_prompt" ${session.permissionMode === 'can_prompt' ? 'selected' : ''}>
-            ⚡ Can Prompt @Gemini &amp; Edit Canvas (Uses Host's Sponsored Session Quota)
+            \u26A1 Can Prompt @Gemini &amp; Edit Canvas (Uses Host's Sponsored Session Quota)
           </option>
           <option value="view_only" ${session.permissionMode === 'view_only' ? 'selected' : ''}>
-            👀 View &amp; Team Chat Only (Colleagues can Copy to My Chats to prompt on their own quota)
+            \uD83D\uDC40 View &amp; Team Chat Only (Colleagues can Copy to My Chats to prompt on their own quota)
           </option>
         </select>
       </div>
@@ -2151,7 +2155,7 @@
             <span class="avatar-circle ${account.colorClass}">${escapeHtml(account.initials)}</span>
             <div>
               <strong style="display:block;">${escapeHtml(account.name)}</strong>
-              <span style="font-size:11px;color:var(--ink-muted);">${escapeHtml(account.email)} • Cloud Firestore Document: <code>users/${escapeHtml(account.id)}</code></span>
+              <span style="font-size:11px;color:var(--ink-muted);">${escapeHtml(account.email)} \u2022 Cloud Firestore Document: <code>users/${escapeHtml(account.id)}</code></span>
             </div>
           </div>
           <span class="plan-tier-badge">${escapeHtml(PLAN_TIERS[account.planTier]?.badge || 'PRO')}</span>
@@ -2169,7 +2173,7 @@
           <div class="mini-progress-fill" style="width:${pct}%"></div>
         </div>
         <p class="form-help">
-          Enforced via <code>firestore.rules</code> &amp; <code>QuotaGuardTool</code> across Gemini 3.8 Flash, Gemini 4 Argon, and Gemini 3.5 Flash-Lite—zero API keys required.
+          Enforced via <code>firestore.rules</code> &amp; <code>QuotaGuardTool</code> across Gemini 3.8 Flash, Gemini 4 Argon, and Gemini 3.5 Flash-Lite\u2014zero API keys required.
         </p>
       </div>
 
@@ -2339,7 +2343,7 @@
           {
             id: 'm_mcp_' + Date.now(),
             senderId: 'gemini',
-            senderName: 'cothread-mcp-server • Google ADK',
+            senderName: 'cothread-mcp-server \u2022 Google ADK',
             senderRole: 'CoThread AI',
             kind: 'ai',
             modelUsed: state.primaryModel,
@@ -2407,16 +2411,16 @@
     const tabsHtml = `
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
         <button type="button" class="cothread-mini-sticker ${activeStackTab === 'firestore' ? 'yellow' : ''}" data-switch-stack-tab="firestore">
-          ☁️ Cloud Firestore DB (${usersCount} Users • ${sharedCount + personalCount} Docs)
+          \u2601\uFE0F Cloud Firestore DB (${usersCount} Users \u2022 ${sharedCount + personalCount} Docs)
         </button>
         <button type="button" class="cothread-mini-sticker ${activeStackTab === 'adk' ? 'teal' : ''}" data-switch-stack-tab="adk">
-          🤖 Google ADK Agent (${traces.length} Traces)
+          \uD83E\uDD16 Google ADK Agent (${traces.length} Traces)
         </button>
         <button type="button" class="cothread-mini-sticker ${activeStackTab === 'mcp' ? 'pink' : ''}" data-switch-stack-tab="mcp">
-          🔌 MCP Server (JSON-RPC 2.0)
+          \uD83D\uDD0C MCP Server (JSON-RPC 2.0)
         </button>
         <button type="button" class="cothread-mini-sticker" style="${activeStackTab === 'studio' ? 'background:#FFC900;' : 'background:#FFF;'}" data-switch-stack-tab="studio">
-          🔥 Firebase Studio (.idx)
+          \uD83D\uDD25 Firebase Studio (.idx)
         </button>
       </div>
     `;
@@ -2446,7 +2450,7 @@
         <div class="form-section">
           <label class="form-label">
             <span>Cloud Firestore Collections (<code>src/db/firestore-db.js</code> &amp; <code>firestore.rules</code>)</span>
-            <span style="color:var(--accent-emerald);font-weight:700;">● Transactional Quota Ledger Active</span>
+            <span style="color:var(--accent-emerald);font-weight:700;">\u25CF Transactional Quota Ledger Active</span>
           </label>
           <p class="form-help" style="margin-bottom:10px;">
             Secured by <code>firestore.rules</code> + composite indexes in <code>firestore.indexes.json</code>. Shared session prompts atomically debit the Host's cap; 1-click forks create an isolated <code>type: "personal"</code> document in <code>sessions/{id}</code>.
@@ -2461,7 +2465,7 @@
         <div class="form-section">
           <label class="form-label">
             <span>Google Agent Development Kit (<code>src/adk/cothread-adk-agent.js</code>)</span>
-            <span style="color:var(--accent-emerald);font-weight:700;">● CoThreadADKOrchestrator Ready</span>
+            <span style="color:var(--accent-emerald);font-weight:700;">\u25CF CoThreadADKOrchestrator Ready</span>
           </label>
           <div class="participant-breakdown-list" style="margin-bottom:12px;">
             <div class="participant-breakdown-item">
@@ -2487,7 +2491,7 @@
       panelHtml = `
         <div class="form-section">
           <label class="form-label">
-            <span>CoThread MCP Server (<code>src/mcp/cothread-mcp-server.js</code> • JSON-RPC 2.0)</span>
+            <span>CoThread MCP Server (<code>src/mcp/cothread-mcp-server.js</code> \u2022 JSON-RPC 2.0)</span>
             <span style="font-family:var(--font-mono);">POST /api/mcp &amp; stdio</span>
           </label>
           <p class="form-help" style="margin-bottom:10px;">
@@ -2495,16 +2499,16 @@
           </p>
           <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
             <button type="button" class="btn-secondary" data-run-mcp-tool="cothread_list_sessions">
-              ▶ cothread_list_sessions
+              \u25B6 cothread_list_sessions
             </button>
             <button type="button" class="btn-secondary" data-run-mcp-tool="cothread_check_quota">
-              ▶ cothread_check_quota
+              \u25B6 cothread_check_quota
             </button>
             <button type="button" class="btn-secondary" data-run-mcp-tool="cothread_create_shared_session">
-              ▶ cothread_create_shared_session
+              \u25B6 cothread_create_shared_session
             </button>
             <button type="button" class="btn-secondary" data-run-mcp-tool="cothread_prompt_adk_agent">
-              ▶ cothread_prompt_adk_agent
+              \u25B6 cothread_prompt_adk_agent
             </button>
           </div>
           <pre id="mcpOutputConsole" style="background:#121212;color:#23A094;padding:12px;border-radius:12px;border:2px solid #000;font-family:var(--font-mono);font-size:11.5px;max-height:210px;overflow:auto;">// Click a tool button above to execute JSON-RPC 2.0 tools/call on cothread-mcp-server</pre>
@@ -2515,7 +2519,7 @@
         <div class="form-section">
           <label class="form-label">
             <span>Firebase Studio &amp; Google Cloud Deployment Stack</span>
-            <span style="font-family:var(--font-mono);">.idx/dev.nix • .idx/mcp.json • firebase.json</span>
+            <span style="font-family:var(--font-mono);">.idx/dev.nix \u2022 .idx/mcp.json \u2022 firebase.json</span>
           </label>
           <div class="participant-breakdown-list">
             <div class="participant-breakdown-item">
@@ -2524,7 +2528,7 @@
             </div>
             <div class="participant-breakdown-item">
               <strong>Firebase Studio MCP Registration</strong>
-              <code>.idx/mcp.json → node src/mcp/cothread-mcp-server.js --stdio</code>
+              <code>.idx/mcp.json \u2192 node src/mcp/cothread-mcp-server.js --stdio</code>
             </div>
             <div class="participant-breakdown-item">
               <strong>Firestore Security Rules &amp; Indexes</strong>
@@ -2532,7 +2536,7 @@
             </div>
             <div class="participant-breakdown-item">
               <strong>Cloud Run + Firebase Hosting Rewrite</strong>
-              <code>firebase.json (/api/** &amp; /s/** → cothread-service)</code>
+              <code>firebase.json (/api/** &amp; /s/** \u2192 cothread-service)</code>
             </div>
           </div>
         </div>
@@ -2576,7 +2580,7 @@
     const item = document.createElement('div');
     item.className = `toast-item ${variant === 'personal' ? 'personal-toast' : ''}`;
     item.innerHTML = `
-      <span>${variant === 'personal' ? '🔀' : '✦'}</span>
+      <span>${variant === 'personal' ? '\uD83D\uDD00' : '\u2726'}</span>
       <div style="flex:1;line-height:1.4;">${escapeHtml(message)}</div>
     `;
     container.appendChild(item);
@@ -2771,7 +2775,7 @@
       navigator.clipboard?.writeText(shareUrl).catch(() => {});
       if (btnEl) {
         const origText = btnEl.textContent;
-        btnEl.textContent = '✓ Copied Sublink!';
+        btnEl.textContent = '\u2713 Copied Sublink!';
         setTimeout(() => {
           btnEl.textContent = origText;
         }, 1800);
@@ -2846,18 +2850,18 @@
       const speakerSelect = document.getElementById('showcaseSpeakerSelect');
 
       if (showcasePermissionMode === 'viewer') {
-        btn.textContent = '🔒 View Only (Locked for Guests)';
+        btn.textContent = '\uD83D\uDD12 View Only (Locked for Guests)';
         btn.style.background = 'rgba(217, 48, 37, 0.12)';
         btn.style.color = '#d93025';
         btn.style.borderColor = 'rgba(217, 48, 37, 0.35)';
         if (speakerSelect?.value === 'guest' && showcaseInput) {
           showcaseInput.disabled = true;
-          showcaseInput.placeholder = '🔒 Host switched room to View Only — Fork to My Chats or switch to Host to prompt';
+          showcaseInput.placeholder = '\uD83D\uDD12 Host switched room to View Only \u2014 Fork to My Chats or switch to Host to prompt';
           if (showcaseSubmit) showcaseSubmit.disabled = true;
         }
         showToast('Switched /s/cothread-arch-9x2k permission to View Only.', 'warning');
       } else {
-        btn.textContent = '✓ Can Prompt (Sponsored)';
+        btn.textContent = '\u2713 Can Prompt (Sponsored)';
         btn.style.background = 'rgba(24, 128, 56, 0.12)';
         btn.style.color = '#188038';
         btn.style.borderColor = 'rgba(24, 128, 56, 0.35)';
@@ -2877,7 +2881,7 @@
       if (role === 'guest' && showcasePermissionMode === 'viewer') {
         if (showcaseInput) {
           showcaseInput.disabled = true;
-          showcaseInput.placeholder = '🔒 Host switched room to View Only — Fork to My Chats or switch to Host to prompt';
+          showcaseInput.placeholder = '\uD83D\uDD12 Host switched room to View Only \u2014 Fork to My Chats or switch to Host to prompt';
         }
         if (showcaseSubmit) showcaseSubmit.disabled = true;
       } else {
@@ -2937,8 +2941,8 @@
       const senderInitials = isHost ? 'RM' : 'MH';
       const senderAvatarClass = isHost ? 'avatar-host' : 'avatar-guest';
       const senderBadgeHtml = isHost
-        ? '<span class="msg-badge badge-host">HOST • PRO 250K</span>'
-        : '<span class="msg-badge badge-guest">COLLEAGUE • STARTER 25K (USES HOST QUOTA)</span>';
+        ? '<span class="msg-badge badge-host">HOST \u2022 PRO 250K</span>'
+        : '<span class="msg-badge badge-guest">COLLEAGUE \u2022 STARTER 25K (USES HOST QUOTA)</span>';
 
       // Append human prompt bubble
       const userMsgEl = document.createElement('div');
@@ -2959,11 +2963,11 @@
       const aiMsgEl = document.createElement('div');
       aiMsgEl.className = 'showcase-msg msg-ai';
       aiMsgEl.innerHTML = `
-        <div class="msg-avatar avatar-ai">✦</div>
+        <div class="msg-avatar avatar-ai">\u2726</div>
         <div class="msg-bubble msg-bubble-ai">
           <div class="msg-meta">
             <strong>Gemini (<code>${escapeHtml(state.primaryModel || 'gemini-4-argon')}</code>)</strong>
-            <span class="msg-badge badge-sponsored">⚡ STREAMING MULTIPLAYER SYNTHESIS...</span>
+            <span class="msg-badge badge-sponsored">\u26A1 STREAMING MULTIPLAYER SYNTHESIS...</span>
           </div>
           <p class="showcase-ai-body">Synthesizing architecture & updating Shared Artifact Canvas...</p>
         </div>
@@ -3010,11 +3014,11 @@
           .replace(/\n/g, '<br/>');
 
         aiMsgEl.innerHTML = `
-          <div class="msg-avatar avatar-ai">✦</div>
+          <div class="msg-avatar avatar-ai">\u2726</div>
           <div class="msg-bubble msg-bubble-ai">
             <div class="msg-meta">
               <strong>Gemini (<code>${escapeHtml(state.primaryModel || 'gemini-4-argon')}</code>)</strong>
-              <span class="msg-badge badge-sponsored">⚡ ${tokenCost.toLocaleString()} TOKENS CHARGED TO HOST QUOTA (${ isHost ? 'PRO 250K' : "HASNAIN'S 25K UNTOUCHED" })</span>
+              <span class="msg-badge badge-sponsored">\u26A1 ${tokenCost.toLocaleString()} TOKENS CHARGED TO HOST QUOTA (${ isHost ? 'PRO 250K' : "HASNAIN'S 25K UNTOUCHED" })</span>
             </div>
             <div style="font-size:0.86rem;line-height:1.55;">${formattedHtml}</div>
           </div>
@@ -3031,7 +3035,7 @@
       } finally {
         if (sendBtn) {
           sendBtn.disabled = false;
-          sendBtn.textContent = 'Co-Prompt Gemini →';
+          sendBtn.textContent = 'Co-Prompt Gemini \u2192';
         }
       }
     };
