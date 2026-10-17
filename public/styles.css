@@ -1,6 +1,6 @@
 /* ============================================================================
-   COTHREAD DESIGN SYSTEM — GUMROAD.COM NEO-BRUTALIST EDITION
-   Palette: Gumroad Pink (#FF90E8), Safety Yellow (#FFC900), Teal (#23A094),
+   COTHREAD DESIGN SYSTEM — COTHREAD NEO-BRUTALIST EDITION
+   Palette: CoThread Pink (#FF90E8), Safety Yellow (#FFC900), Teal (#23A094),
             Bright Orange (#FF6B00), Paper Gray (#F4F4F0), Pure Black (#000000)
    Borders: 2px solid #000000 | Shadows: Hard Offset 4px 4px 0px #000000
    ============================================================================ */
@@ -139,7 +139,7 @@ a {
 }
 
 /* ============================================================================
-   1. GUMROAD STICKY FULL-WIDTH TOP NAVBAR & CUSTOM LOGO
+   1. COTHREAD STICKY FULL-WIDTH TOP NAVBAR & CUSTOM LOGO
    ============================================================================ */
 .website-root {
   width: 100%;
@@ -148,7 +148,7 @@ a {
   background: var(--bg-page);
 }
 
-.gumroad-navbar {
+.cothread-navbar {
   position: sticky;
   top: 0;
   z-index: 60;
@@ -161,13 +161,13 @@ a {
   padding-left: 24px;
 }
 
-.gumroad-nav-left {
+.cothread-nav-left {
   display: flex;
   align-items: center;
   gap: 14px;
 }
 
-.gumroad-brand-link {
+.cothread-brand-link {
   display: inline-flex;
   align-items: center;
   gap: 10px;
@@ -178,11 +178,11 @@ a {
   transition: transform 0.2s ease;
 }
 
-.gumroad-brand-link:hover .cothread-logo-coin {
+.cothread-brand-link:hover .cothread-logo-coin {
   transform: rotate(-10deg) scale(1.08);
 }
 
-.gumroad-wordmark {
+.cothread-wordmark {
   font-family: var(--font-serif);
   font-size: 28px;
   font-weight: 700;
@@ -190,7 +190,7 @@ a {
   color: var(--ink-primary);
 }
 
-.gumroad-beta-sticker {
+.cothread-beta-sticker {
   font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 800;
@@ -202,7 +202,7 @@ a {
   box-shadow: 2px 2px 0px #000000;
 }
 
-.gumroad-github-pill {
+.cothread-github-pill {
   display: inline-flex;
   align-items: center;
   gap: 7px;
@@ -215,7 +215,7 @@ a {
   transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
 }
 
-.gumroad-github-pill:hover {
+.cothread-github-pill:hover {
   background: var(--gum-yellow);
   color: #000000;
   transform: translate(-2px, -2px);
@@ -235,13 +235,13 @@ a {
   font-size: 11px;
 }
 
-.gumroad-nav-links {
+.cothread-nav-links {
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
-.gumroad-nav-pill {
+.cothread-nav-pill {
   padding: 8px 16px;
   border-radius: 999px;
   border: 2px solid transparent;
@@ -251,7 +251,7 @@ a {
   white-space: nowrap;
 }
 
-.gumroad-nav-pill:hover {
+.cothread-nav-pill:hover {
   border-color: var(--border-strong);
   background: var(--gum-yellow);
   color: #000000;
@@ -259,26 +259,26 @@ a {
   box-shadow: 2px 2px 0px #000000;
 }
 
-.gumroad-nav-pill.active {
+.cothread-nav-pill.active {
   background: var(--ink-primary);
   color: var(--bg-elevated);
   border-color: var(--border-strong);
 }
 
-.gumroad-nav-pill.idea-pill {
+.cothread-nav-pill.idea-pill {
   background: var(--accent-terracotta-soft);
   border-color: var(--border-strong);
   color: var(--ink-primary);
   font-weight: 700;
 }
 
-.gumroad-nav-EdgeActions {
+.cothread-nav-EdgeActions {
   display: flex;
   align-items: stretch;
   height: 100%;
 }
 
-.gumroad-edge-btn {
+.cothread-edge-btn {
   height: 100%;
   padding: 0 24px;
   border: none;
@@ -294,44 +294,44 @@ a {
   white-space: nowrap;
 }
 
-.gumroad-edge-btn.theme-edge {
+.cothread-edge-btn.theme-edge {
   background: var(--bg-page);
   color: var(--ink-primary);
   padding: 0 18px;
   font-size: 13.5px;
 }
-.gumroad-edge-btn.theme-edge:hover {
+.cothread-edge-btn.theme-edge:hover {
   background: var(--gum-yellow);
   color: #000000;
 }
 
-.gumroad-edge-btn.login-edge {
+.cothread-edge-btn.login-edge {
   background: var(--bg-elevated);
   color: var(--ink-primary);
 }
-.gumroad-edge-btn.login-edge:hover {
+.cothread-edge-btn.login-edge:hover {
   background: var(--gum-pink);
   color: #000000;
 }
 
-.gumroad-edge-btn.cta-edge {
+.cothread-edge-btn.cta-edge {
   background: #000000;
   color: #FFFFFF;
   padding: 0 28px;
 }
-html[data-theme="dark"] .gumroad-edge-btn.cta-edge {
+html[data-theme="dark"] .cothread-edge-btn.cta-edge {
   background: var(--gum-pink);
   color: #000000;
 }
-.gumroad-edge-btn.cta-edge:hover {
+.cothread-edge-btn.cta-edge:hover {
   background: var(--gum-pink);
   color: #000000;
 }
 
 /* ============================================================================
-   2. GUMROAD HERO SECTION, PARALLAX COINS & TRIPLE-LAYER STACKED BUTTONS
+   2. COTHREAD HERO SECTION, PARALLAX COINS & TRIPLE-LAYER STACKED BUTTONS
    ============================================================================ */
-.gumroad-hero-section {
+.cothread-hero-section {
   position: relative;
   padding: 96px 28px 112px;
   min-height: 560px;
@@ -361,7 +361,7 @@ html[data-theme="dark"] .gumroad-edge-btn.cta-edge {
 .coin-pos-4 { bottom: 52px; right: 3.5%; }
 .coin-pos-5 { bottom: 26px; left: 24%; }
 
-.gumroad-hero-center {
+.cothread-hero-center {
   position: relative;
   z-index: 2;
   max-width: 900px;
@@ -405,7 +405,7 @@ html[data-theme="dark"] .gumroad-edge-btn.cta-edge {
   color: var(--ink-primary);
 }
 
-.gumroad-hero-title {
+.cothread-hero-title {
   font-family: var(--font-serif);
   font-size: clamp(3.3rem, 6.6vw, 5.8rem);
   font-weight: 700;
@@ -414,7 +414,7 @@ html[data-theme="dark"] .gumroad-edge-btn.cta-edge {
   color: var(--ink-primary);
 }
 
-.gumroad-underline-yellow {
+.cothread-underline-yellow {
   display: inline-block;
   background: var(--gum-yellow);
   color: #000000;
@@ -425,7 +425,7 @@ html[data-theme="dark"] .gumroad-edge-btn.cta-edge {
   transform: rotate(1deg);
 }
 
-.gumroad-highlight-pink {
+.cothread-highlight-pink {
   display: inline-block;
   background: var(--gum-pink);
   color: #000000;
@@ -436,7 +436,7 @@ html[data-theme="dark"] .gumroad-edge-btn.cta-edge {
   transform: rotate(-1.5deg);
 }
 
-.gumroad-hero-subtitle {
+.cothread-hero-subtitle {
   max-width: 720px;
   font-size: clamp(1.1rem, 1.55vw, 1.35rem);
   font-weight: 500;
@@ -444,7 +444,7 @@ html[data-theme="dark"] .gumroad-edge-btn.cta-edge {
   line-height: 1.55;
 }
 
-.gumroad-hero-subtitle code {
+.cothread-hero-subtitle code {
   font-family: var(--font-mono);
   font-size: 0.92em;
   background: var(--gum-yellow);
@@ -455,8 +455,8 @@ html[data-theme="dark"] .gumroad-edge-btn.cta-edge {
   font-weight: 700;
 }
 
-/* Exact Gumroad Action Row: Triple-Layer Stacked Button + Search/Sublink Input Box */
-.gumroad-hero-cta-row {
+/* Exact CoThread Action Row: Triple-Layer Stacked Button + Search/Sublink Input Box */
+.cothread-hero-cta-row {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -465,12 +465,12 @@ html[data-theme="dark"] .gumroad-edge-btn.cta-edge {
   margin-top: 8px;
 }
 
-.gumroad-layered-btn-wrap {
+.cothread-layered-btn-wrap {
   position: relative;
   display: inline-block;
 }
 
-.gumroad-layer-red {
+.cothread-layer-red {
   position: absolute;
   inset: 0;
   background: var(--gum-red);
@@ -480,7 +480,7 @@ html[data-theme="dark"] .gumroad-edge-btn.cta-edge {
   transition: transform 0.15s ease;
 }
 
-.gumroad-layer-yellow {
+.cothread-layer-yellow {
   position: absolute;
   inset: 0;
   background: var(--gum-yellow);
@@ -490,7 +490,7 @@ html[data-theme="dark"] .gumroad-edge-btn.cta-edge {
   transition: transform 0.15s ease;
 }
 
-.gumroad-layer-main {
+.cothread-layer-main {
   position: relative;
   z-index: 3;
   height: 62px;
@@ -510,19 +510,19 @@ html[data-theme="dark"] .gumroad-edge-btn.cta-edge {
   transition: transform 0.15s ease, background-color 0.15s ease, color 0.15s ease;
 }
 
-.gumroad-layered-btn-wrap:hover .gumroad-layer-red {
+.cothread-layered-btn-wrap:hover .cothread-layer-red {
   transform: translate(8px, 8px);
 }
-.gumroad-layered-btn-wrap:hover .gumroad-layer-yellow {
+.cothread-layered-btn-wrap:hover .cothread-layer-yellow {
   transform: translate(4px, 4px);
 }
-.gumroad-layered-btn-wrap:hover .gumroad-layer-main {
+.cothread-layered-btn-wrap:hover .cothread-layer-main {
   transform: translate(-4px, -4px);
   background: var(--gum-pink);
   color: #000000;
 }
 
-.gumroad-hero-search-form {
+.cothread-hero-search-form {
   position: relative;
   display: flex;
   align-items: center;
@@ -536,7 +536,7 @@ html[data-theme="dark"] .gumroad-edge-btn.cta-edge {
   padding: 0 8px 0 16px;
 }
 
-.gumroad-hero-search-input {
+.cothread-hero-search-input {
   flex: 1;
   border: none;
   background: transparent;
@@ -547,7 +547,7 @@ html[data-theme="dark"] .gumroad-edge-btn.cta-edge {
   outline: none;
 }
 
-.gumroad-hero-search-btn {
+.cothread-hero-search-btn {
   width: 44px;
   height: 44px;
   border-radius: 8px;
@@ -562,12 +562,12 @@ html[data-theme="dark"] .gumroad-edge-btn.cta-edge {
   justify-content: center;
   transition: transform 0.12s ease, background 0.12s ease;
 }
-.gumroad-hero-search-btn:hover {
+.cothread-hero-search-btn:hover {
   background: var(--gum-yellow);
   transform: translate(-1px, -1px);
 }
 
-.gumroad-hero-quick-stickers {
+.cothread-hero-quick-stickers {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -576,7 +576,7 @@ html[data-theme="dark"] .gumroad-edge-btn.cta-edge {
   margin-top: 6px;
 }
 
-.gumroad-mini-sticker {
+.cothread-mini-sticker {
   padding: 8px 16px;
   border-radius: 999px;
   border: 2px solid #000000;
@@ -586,15 +586,15 @@ html[data-theme="dark"] .gumroad-edge-btn.cta-edge {
   cursor: pointer;
   transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
-.gumroad-mini-sticker.yellow { background: var(--gum-yellow); color: #000000; }
-.gumroad-mini-sticker.teal { background: var(--gum-teal); color: #FFFFFF; }
-.gumroad-mini-sticker.pink { background: var(--gum-pink); color: #000000; }
-.gumroad-mini-sticker:hover {
+.cothread-mini-sticker.yellow { background: var(--gum-yellow); color: #000000; }
+.cothread-mini-sticker.teal { background: var(--gum-teal); color: #FFFFFF; }
+.cothread-mini-sticker.pink { background: var(--gum-pink); color: #000000; }
+.cothread-mini-sticker:hover {
   transform: translate(-2px, -2px);
   box-shadow: 5px 5px 0px #000000;
 }
 
-.gumroad-live-studio-section {
+.cothread-live-studio-section {
   padding: 68px 28px;
   background: var(--gum-pink);
   border-bottom: 2.5px solid #000000;
@@ -1130,7 +1130,7 @@ html[data-theme="dark"] .gumroad-edge-btn.cta-edge {
 }
 
 /* ============================================================================
-   3. GUMROAD BENTO SHOWCASE, "THE COTHREAD WAY" ORANGE LOOP & MARQUEE
+   3. COTHREAD BENTO SHOWCASE, "THE COTHREAD WAY" ORANGE LOOP & MARQUEE
    ============================================================================ */
 .editorial-bento-section,
 .cothread-way-section,
@@ -1144,14 +1144,14 @@ html[data-theme="dark"] .gumroad-edge-btn.cta-edge {
   margin: 0 auto;
 }
 
-.gumroad-bento-pair {
+.cothread-bento-pair {
   display: grid;
   grid-template-columns: 1.65fr 1fr;
   gap: 28px;
   margin-bottom: 28px;
 }
 
-.gumroad-bento-card {
+.cothread-bento-card {
   border: 2.5px solid var(--border-strong);
   border-radius: 28px;
   padding: 36px;
@@ -1162,14 +1162,14 @@ html[data-theme="dark"] .gumroad-edge-btn.cta-edge {
   gap: 20px;
 }
 
-.gumroad-bento-card.bg-white-card {
+.cothread-bento-card.bg-white-card {
   background: var(--bg-elevated);
   display: grid;
   grid-template-columns: 1.2fr 1fr;
   align-items: center;
 }
 
-.gumroad-bento-card.bg-yellow-card {
+.cothread-bento-card.bg-yellow-card {
   background: var(--gum-yellow);
   color: #000000;
 }
@@ -1188,7 +1188,7 @@ html[data-theme="dark"] .gumroad-edge-btn.cta-edge {
 .gbc-pill-tag.pink { background: var(--gum-pink); color: #000000; }
 .gbc-pill-tag.black { background: #000000; color: #FFFFFF; }
 
-.gumroad-bento-card h2 {
+.cothread-bento-card h2 {
   font-family: var(--font-serif);
   font-size: clamp(2rem, 3.2vw, 2.8rem);
   font-weight: 700;
@@ -1197,13 +1197,13 @@ html[data-theme="dark"] .gumroad-edge-btn.cta-edge {
   margin: 10px 0;
 }
 
-.gumroad-bento-card p {
+.cothread-bento-card p {
   font-size: 16px;
   line-height: 1.55;
   font-weight: 500;
 }
 
-.gumroad-checklist {
+.cothread-checklist {
   margin-top: 16px;
   display: flex;
   flex-direction: column;
@@ -1301,14 +1301,14 @@ html[data-theme="dark"] .gumroad-edge-btn.cta-edge {
   color: #23A094;
 }
 
-/* Gumroad "Instead of... start..." Comparison Cards */
-.gumroad-comparison-duo {
+/* CoThread "Instead of... start..." Comparison Cards */
+.cothread-comparison-duo {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 28px;
 }
 
-.gumroad-comp-card {
+.cothread-comp-card {
   background: var(--bg-elevated);
   border: 2.5px solid var(--border-strong);
   border-radius: 28px;
@@ -1319,7 +1319,7 @@ html[data-theme="dark"] .gumroad-edge-btn.cta-edge {
   gap: 18px;
 }
 
-.gumroad-comp-card.highlight-teal {
+.cothread-comp-card.highlight-teal {
   background: var(--gum-teal);
   color: #FFFFFF;
 }
@@ -1362,7 +1362,7 @@ html[data-theme="dark"] .gumroad-edge-btn.cta-edge {
 }
 
 /* Section 3: "The CoThread Way" Orange Rounded-Full Loop Pill */
-.gumroad-center-heading {
+.cothread-center-heading {
   font-family: var(--font-serif);
   font-size: clamp(2.4rem, 4.4vw, 3.8rem);
   font-weight: 700;
@@ -1373,7 +1373,7 @@ html[data-theme="dark"] .gumroad-edge-btn.cta-edge {
   margin: 0 auto 40px;
 }
 
-.gumroad-orange-pill-loop {
+.cothread-orange-pill-loop {
   max-width: 1060px;
   margin: 0 auto 40px;
   background: var(--gum-orange);
@@ -1421,7 +1421,7 @@ html[data-theme="dark"] .gumroad-edge-btn.cta-edge {
   transform: scale(1.08);
 }
 
-.gumroad-way-subcopy {
+.cothread-way-subcopy {
   max-width: 720px;
   margin: 0 auto;
   text-align: center;
@@ -1430,25 +1430,25 @@ html[data-theme="dark"] .gumroad-edge-btn.cta-edge {
   align-items: center;
   gap: 14px;
 }
-.gumroad-way-subcopy h3 {
+.cothread-way-subcopy h3 {
   font-family: var(--font-serif);
   font-size: 30px;
   font-weight: 700;
 }
-.gumroad-way-subcopy p {
+.cothread-way-subcopy p {
   font-size: 16.5px;
   color: var(--ink-secondary);
 }
 
-/* Section 4: Giant Gumroad Stat & Marquee Pills */
-.gumroad-stat-marquee-section {
+/* Section 4: Giant CoThread Stat & Marquee Pills */
+.cothread-stat-marquee-section {
   padding: 84px 0;
   border-bottom: 2px solid var(--border-strong);
   background: var(--bg-elevated);
   overflow: hidden;
 }
 
-.gumroad-giant-stat {
+.cothread-giant-stat {
   text-align: center;
   padding: 0 24px 56px;
 }
@@ -1471,28 +1471,28 @@ html[data-theme="dark"] .gumroad-edge-btn.cta-edge {
   color: var(--ink-secondary);
 }
 
-.gumroad-marquee-wrap {
+.cothread-marquee-wrap {
   width: 100%;
   overflow: hidden;
   padding: 12px 0;
 }
 
-.gumroad-marquee-track {
+.cothread-marquee-track {
   display: flex;
   gap: 16px;
   width: max-content;
-  animation: gumroadMarquee 28s linear infinite;
+  animation: cothreadMarquee 28s linear infinite;
 }
-.gumroad-marquee-track:hover {
+.cothread-marquee-track:hover {
   animation-play-state: paused;
 }
 
-@keyframes gumroadMarquee {
+@keyframes cothreadMarquee {
   0% { transform: translateX(0); }
   100% { transform: translateX(-50%); }
 }
 
-.gumroad-tag-pill {
+.cothread-tag-pill {
   padding: 12px 24px;
   border-radius: 999px;
   background: var(--bg-page);
@@ -1505,16 +1505,16 @@ html[data-theme="dark"] .gumroad-edge-btn.cta-edge {
   cursor: pointer;
   transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
-.gumroad-tag-pill.pink { background: var(--gum-pink); color: #000000; }
-.gumroad-tag-pill.yellow { background: var(--gum-yellow); color: #000000; }
-.gumroad-tag-pill.teal { background: var(--gum-teal); color: #FFFFFF; }
+.cothread-tag-pill.pink { background: var(--gum-pink); color: #000000; }
+.cothread-tag-pill.yellow { background: var(--gum-yellow); color: #000000; }
+.cothread-tag-pill.teal { background: var(--gum-teal); color: #FFFFFF; }
 
-.gumroad-tag-pill:hover {
+.cothread-tag-pill:hover {
   transform: translate(-3px, -3px);
   box-shadow: 4px 4px 0px #000000;
 }
 
-/* Section 5: Gumroad Neo-Brutalist Pricing Cards */
+/* Section 5: CoThread Neo-Brutalist Pricing Cards */
 .section-header-editorial.center {
   text-align: center;
   max-width: 720px;
@@ -1662,8 +1662,8 @@ html[data-theme="dark"] .gumroad-edge-btn.cta-edge {
   box-shadow: 6px 6px 0px #000000;
 }
 
-/* Gumroad Closing Banner & Black Footer */
-.gumroad-closing-banner {
+/* CoThread Closing Banner & Black Footer */
+.cothread-closing-banner {
   background: var(--gum-pink);
   color: #000000;
   padding: 80px 28px;
@@ -1674,7 +1674,7 @@ html[data-theme="dark"] .gumroad-edge-btn.cta-edge {
   align-items: center;
   gap: 28px;
 }
-.gumroad-closing-banner h2 {
+.cothread-closing-banner h2 {
   font-family: var(--font-serif);
   font-size: clamp(2.6rem, 5vw, 4.4rem);
   font-weight: 700;
@@ -1734,13 +1734,13 @@ html[data-theme="dark"] .gumroad-edge-btn.cta-edge {
 
 @media (max-width: 1040px) {
   .hero-container,
-  .gumroad-bento-pair,
-  .gumroad-bento-card.bg-white-card,
-  .gumroad-comparison-duo,
+  .cothread-bento-pair,
+  .cothread-bento-card.bg-white-card,
+  .cothread-comparison-duo,
   .pricing-cards-grid {
     grid-template-columns: 1fr;
   }
-  .gumroad-nav-links,
+  .cothread-nav-links,
   .hero-coins-layer {
     display: none;
   }
@@ -3047,7 +3047,7 @@ html[data-theme="dark"] .gumroad-edge-btn.cta-edge {
 }
 
 /* ============================================================================
-   6. GUMROAD NEO-BRUTALIST WORKSPACE ENHANCEMENTS (/app & /s/:shareCode)
+   6. COTHREAD NEO-BRUTALIST WORKSPACE ENHANCEMENTS (/app & /s/:shareCode)
    ============================================================================ */
 .workspace-top-header {
   height: 62px !important;
