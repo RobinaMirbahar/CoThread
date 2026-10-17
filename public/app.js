@@ -12,8 +12,8 @@
 (function () {
   'use strict';
 
-  const STORAGE_KEY = 'cothread_firestore_state_v10';
-  const TAB_AUTH_KEY = 'cothread_tab_user_v10';
+  const STORAGE_KEY = 'cothread_firestore_state_v11';
+  const TAB_AUTH_KEY = 'cothread_tab_user_v11';
   const THEME_KEY = 'cothread_theme_ct8';
   const CHANNEL_NAME = 'cothread_realtime';
 
@@ -1668,17 +1668,17 @@ export async function executeAdkCollaborativeTurn() {
 
     const defaultOAuthProfiles = [
       {
-        name: 'Robina Mirbahar',
-        email: 'robina@cothread.ai',
+        name: 'Lead Architect (Host)',
+        email: 'architect@cothread.ai',
         planTier: preselectedTier || 'pro',
-        initials: 'RM',
+        initials: 'LA',
         colorClass: 'alex'
       },
       {
-        name: 'Muhammad Hasnain',
-        email: 'hasnainrashi@gmail.com',
+        name: 'Staff Engineer (Team)',
+        email: 'engineer@cothread.ai',
         planTier: 'starter',
-        initials: 'MH',
+        initials: 'SE',
         colorClass: 'hasnain'
       }
     ];
@@ -2382,8 +2382,8 @@ export async function executeAdkCollaborativeTurn() {
 
     // Immediate 1-click workspace entry when user clicks any "Start CoThreading" / "Create / Open Workspace" CTA
     registerOrSignInWithDetails(
-      typedName || 'Robina Mirbahar',
-      'robina@cothread.ai',
+      typedName || 'Lead Architect',
+      'architect@cothread.ai',
       selectedPlan
     );
   }
@@ -2452,8 +2452,8 @@ export async function executeAdkCollaborativeTurn() {
     // Google Custom Account Form
     document.getElementById('googleCustomAccountForm')?.addEventListener('submit', (e) => {
       e.preventDefault();
-      const name = (document.getElementById('googleCustomName')?.value || '').trim() || 'Robina Mirbahar';
-      const email = (document.getElementById('googleCustomEmail')?.value || '').trim() || 'robina@cothread.ai';
+      const name = (document.getElementById('googleCustomName')?.value || '').trim() || 'Lead Architect';
+      const email = (document.getElementById('googleCustomEmail')?.value || '').trim() || 'architect@cothread.ai';
       const tier = document.getElementById('googleCustomTier')?.value || 'pro';
       registerOrSignInWithDetails(name, email, tier);
     });
@@ -2487,7 +2487,7 @@ export async function executeAdkCollaborativeTurn() {
       if (!state.sideBySideMode && accountIds.length < 2) {
         state.sideBySideMode = true;
         // Automatically provision 2nd collaborator account so Dual-Pane opens on 1st click!
-        registerOrSignInWithDetails('Muhammad Hasnain', 'hasnainrashi@gmail.com', 'starter');
+        registerOrSignInWithDetails('Staff Engineer', 'engineer@cothread.ai', 'starter');
         showToast(
           'Enabled Dual-Pane Multiplayer Workspace (Screen 1: Host • Screen 2: Collaborator).',
           'shared'
