@@ -1,5 +1,5 @@
 /**
- * CoThread — Collaborative AI Platform
+ * CoThread \u2014 Collaborative AI Platform
  * - Company Website at `/` (domain.com)
  * - Chat Workspace at `/chat` (or `#/chat` or `chat.domain.com`)
  * - Top header with Sidebar Toggle, Brand, Chat Title, Live Collaborators (Name ONLY, owner filtered out), Share Button, Theme Toggle
@@ -75,7 +75,7 @@
               senderRole: 'AI Assistant',
               kind: 'ai',
               timestamp: nowTimeLabel(),
-              text: `Welcome to **CoThread**! ✦\n\nThis is a real-time collaborative AI chat:\n\n• **Share this chat**: Click **🔗 Share** in the top right to invite teammates privately or create a public link.\n• **Multiplayer presence**: When someone joins, their avatar immediately appears in the top right presence stack.\n• **Shared context**: Anyone in the chat can send prompts, and everyone sees who asked what with their name and avatar.`
+              text: `Welcome to **CoThread**! \u2726\n\nThis is a real-time collaborative AI chat:\n\n\u2022 **Share this chat**: Click **\uD83D\uDD17 Share** in the top right to invite teammates privately or create a public link.\n\u2022 **Multiplayer presence**: When someone joins, their avatar immediately appears in the top right presence stack.\n\u2022 **Shared context**: Anyone in the chat can send prompts, and everyone sees who asked what with their name and avatar.`
             }
           ]
         }
@@ -148,8 +148,8 @@
     } catch (e) {}
     const webIcon = document.getElementById('websiteThemeIcon');
     const appIcon = document.getElementById('appThemeIcon');
-    if (webIcon) webIcon.textContent = clean === 'light' ? '☀️' : '🌙';
-    if (appIcon) appIcon.textContent = clean === 'light' ? '☀️' : '🌙';
+    if (webIcon) webIcon.textContent = clean === 'light' ? '\u2600\uFE0F' : '\uD83C\uDF19';
+    if (appIcon) appIcon.textContent = clean === 'light' ? '\u2600\uFE0F' : '\uD83C\uDF19';
   }
 
   function toggleTheme() {
@@ -849,7 +849,7 @@
                 data-action="close-sidebar"
                 data-user="${userId}"
                 title="Close Sidebar"
-              >✕</button>
+              >\u2715</button>
             </div>
 
             <div class="sidebar-scroll-area">
@@ -874,7 +874,7 @@
                       >
                         <div class="nav-item-top">
                           <span class="nav-item-title">${escapeHtml(s.title || 'Untitled Chat')}</span>
-                          ${participantCount > 1 ? `<span class="nav-item-count" title="${participantCount} collaborators">👥 ${participantCount}</span>` : ''}
+                          ${participantCount > 1 ? `<span class="nav-item-count" title="${participantCount} collaborators">\uD83D\uDC65 ${participantCount}</span>` : ''}
                         </div>
                       </button>
 
@@ -885,15 +885,15 @@
                         data-session-id="${s.id}"
                         data-user="${userId}"
                         title="Chat settings"
-                      >⋮</button>
+                      >\u22EE</button>
 
                       ${isMenuOpen ? `
                         <div class="chat-item-dropdown">
                           <button type="button" class="chat-dropdown-item" data-action="rename-chat" data-session-id="${s.id}" data-user="${userId}">
-                            ✏️ Rename
+                            \u270F\uFE0F Rename
                           </button>
                           <button type="button" class="chat-dropdown-item delete" data-action="delete-chat" data-session-id="${s.id}" data-user="${userId}">
-                            🗑️ Delete
+                            \uD83D\uDDD1\uFE0F Delete
                           </button>
                         </div>
                       ` : ''}
@@ -938,10 +938,10 @@
                 <div class="messages-scroll-container" id="msgScroll_${userId}">
                   ${activeSession.messages.length === 0 ? `
                     <div class="empty-chat-welcome">
-                      <div style="font-size: 38px; margin-bottom: 14px;">✦</div>
+                      <div style="font-size: 38px; margin-bottom: 14px;">\u2726</div>
                       <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 8px;">How can CoThread AI help today?</h2>
                       <p style="color: var(--ink-muted); font-size: 13.5px; line-height: 1.6; max-width: 500px; text-align: center;">
-                        Ask anything, brainstorm ideas, or click <strong>🔗 Share</strong> in the top right to collaborate live with teammates in real time.
+                        Ask anything, brainstorm ideas, or click <strong>\uD83D\uDD17 Share</strong> in the top right to collaborate live with teammates in real time.
                       </p>
                     </div>
                   ` : activeSession.messages.map((msg) => renderMessageRowHTML(msg, userId, activeSession)).join('')}
@@ -950,7 +950,7 @@
                 <!-- Live Typing / Processing Indicator -->
                 <div class="live-typing-bar">
                   ${state.typingStatus && state.typingStatus.sessionId === activeSession.id
-                    ? `<span>✦ ${escapeHtml(state.typingStatus.text)}</span>`
+                    ? `<span>\u2726 ${escapeHtml(state.typingStatus.text)}</span>`
                     : ''}
                 </div>
 
@@ -959,7 +959,7 @@
                   <div class="composer-top-row">
                     <!-- Model Selector inside Chat Box like Gemini -->
                     <div class="composer-model-pill" title="Active AI Model">
-                      <span class="sparkle-icon">✦</span>
+                      <span class="sparkle-icon">\u2726</span>
                       <select id="chatModelSelect" class="chat-model-select">
                         <option value="gemini-3.8-flash" ${state.primaryModel === 'gemini-3.8-flash' ? 'selected' : ''}>Gemini 3.8 Flash</option>
                         <option value="gemini-4-argon" ${state.primaryModel === 'gemini-4-argon' ? 'selected' : ''}>Gemini 4 Argon</option>
@@ -985,7 +985,7 @@
                       data-session-id="${activeSession.id}"
                       title="Send message"
                     >
-                      ↑
+                      \u2191
                     </button>
                   </div>
                 </div>
@@ -1001,7 +1001,7 @@
     const isAI = msg.kind === 'ai' || msg.senderId === 'gemini';
     const isOwn = !isAI && msg.senderId === viewingUserId;
     const senderAcct = isAI
-      ? { name: 'CoThread AI', initials: '✦', colorClass: 'gemini' }
+      ? { name: 'CoThread AI', initials: '\u2726', colorClass: 'gemini' }
       : (state.accounts[msg.senderId] || {
           name: msg.senderName || 'Collaborator',
           initials: (msg.senderName || 'CT').slice(0, 2).toUpperCase(),
@@ -1295,7 +1295,7 @@
         const btn = document.getElementById('sharePublicCopyBtn');
         if (btn) {
           const orig = btn.innerHTML;
-          btn.innerHTML = '<span>✓ Copied!</span>';
+          btn.innerHTML = '<span>\u2713 Copied!</span>';
           setTimeout(() => {
             btn.innerHTML = orig;
           }, 2000);
@@ -1317,7 +1317,7 @@
       'Multiple users prompt Gemini in one shared chat with live presence and history.',
       'Real-time collaborative AI chat with live presence and shared history.',
       'Live collaborator presence & avatars in the top bar as teammates join.',
-      'Zero quota confusion • Share with 1 click via Public or Private threads.',
+      'Zero quota confusion \u2022 Share with 1 click via Public or Private threads.',
       'Turn individual AI prompting into a synchronized multiplayer workspace.'
     ];
 
