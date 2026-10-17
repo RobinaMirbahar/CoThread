@@ -1,21 +1,22 @@
 /**
- * CoThread — Standard Gemini / Claude Style Collaborative AI Chat Portal
- * Features:
- * 1. Google Docs-style live presence in top bar (avatars of who joined the chat)
- * 2. Multi-user shared chat: prompts show sender's name and avatar
- * 3. Dummy Login & Signup portal with 1-click test personas (Hasnain, Sarah, Alex)
- * 4. 1-Click Share: copies join link; anyone opening it joins with live presence
- * 5. Cross-tab real-time sync via BroadcastChannel & LocalStorage
- * 6. Clean Gemini / Claude chat portal UI with zero marketing or quota clutter
+ * CoThread — Collaborative AI Platform
+ * - Company Website at `/` (domain.com)
+ * - Chat Workspace at `/chat` (or `#/chat` or `chat.domain.com`)
+ * - Google Docs style live presence (name only on hover)
+ * - Gemini/Claude chat layout with Model selector inside the composer box
+ * - Share modal with Public vs Private link options
+ * - 3-dot kebab menu on each chat in sidebar (Rename, Delete)
+ * - Action buttons on each AI response (Copy, Start New Chat)
+ * - Dummy Login/Signup portal with 1-click test personas (Hasnain, Sarah, Alex)
  */
 
 (function () {
   'use strict';
 
-  const STORAGE_KEY = 'cothread_chat_state_v20';
-  const TAB_AUTH_KEY = 'cothread_active_user_v20';
-  const THEME_KEY = 'cothread_theme_v20';
-  const CHANNEL_NAME = 'cothread_realtime_v20';
+  const STORAGE_KEY = 'cothread_chat_state_v21';
+  const TAB_AUTH_KEY = 'cothread_active_user_v21';
+  const THEME_KEY = 'cothread_theme_v21';
+  const CHANNEL_NAME = 'cothread_realtime_v21';
 
   // Seed Default Accounts
   const DEFAULT_ACCOUNTS = {
@@ -72,7 +73,7 @@
               senderRole: 'AI Assistant',
               kind: 'ai',
               timestamp: nowTimeLabel(),
-              text: `Welcome to **CoThread**! ✦\n\nThis is a real-time collaborative AI chat — like **Google Docs for AI**:\n\n• **Share this chat**: Click **🔗 Share** in the top bar to copy the invite link.\n• **Multiplayer presence**: When a collaborator opens the link, their avatar immediately appears in the top bar presence stack.\n• **Shared context**: Anyone in the chat can send prompts, and everyone sees who asked what with their name and avatar.`
+              text: `Welcome to **CoThread**! ✦\n\nThis is a real-time collaborative AI chat — like **Google Docs for AI**:\n\n• **Share this chat**: Click **🔗 Share** in the top bar to invite teammates (Public or Private).\n• **Multiplayer presence**: When someone joins, their avatar immediately appears in the top bar.\n• **Shared context**: Anyone in the chat can send prompts, and everyone sees who asked what with their name and avatar.`
             }
           ]
         }
@@ -83,6 +84,47 @@
   let state = loadState();
   let currentUserId = loadTabUser();
   let pendingInviteShareCode = detectSublinkShareCode();
+  let activeShareSessionId = null;
+
+  // Determine current route: 'home' vs 'chat'
+  function isChatRoute() {
+    const path = window.location.pathname.toLowerCase();
+    const hash = window.location.hash.toLowerCase();
+    const host = window.location.host.toLowerCase();
+    const params = new URLSearchParams(window.location.search);
+
+    if (host.startsWith('chat.')) return true;
+    if (path === '/chat' || path.startsWith('/chat/') || path === '/app' || path.startsWith('/app/')) return true;
+    if (hash === '#/chat' || hash.startsWith('#/chat') || hash.startsWith('#/s/')) return true;
+    if (params.get('view') === 'chat' || params.get('join') || params.get('s')) return true;
+    return false;
+  }
+
+  function navigateTo(route) {
+    if (route === 'chat') {
+      try {
+        if (window.location.protocol !== 'file:') {
+          window.history.pushState(null, '', '/chat');
+        } else {
+          window.location.hash = '#/chat';
+        }
+      } catch (e) {
+        window.location.hash = '#/chat';
+      }
+    } else {
+      try {
+        if (window.location.protocol !== 'file:') {
+          window.history.pushState(null, '', '/');
+        } else {
+          window.location.hash = '';
+        }
+      } catch (e) {
+        window.location.hash = '';
+      }
+    }
+    renderApp();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 
   // Initialize Theme
   function initTheme() {
@@ -101,7 +143,9 @@
     try {
       localStorage.setItem(THEME_KEY, clean);
     } catch (e) {}
+    const webIcon = document.getElementById('websiteThemeIcon');
     const appIcon = document.getElementById('appThemeIcon');
+    if (webIcon) webIcon.textContent = clean === 'light' ? '☀️' : '🌙';
     if (appIcon) appIcon.textContent = clean === 'light' ? '☀️' : '🌙';
   }
 
@@ -119,7 +163,6 @@
         if (ev.data && ev.data.type === 'STATE_SYNC' && ev.data.state) {
           state = ev.data.state;
           renderApp();
-          pulseSyncBadge('Synced Live');
         } else if (ev.data && ev.data.type === 'TOAST') {
           showToast(ev.data.message, ev.data.variant);
         }
@@ -136,13 +179,16 @@
     }
   });
 
+  window.addEventListener('popstate', () => {
+    renderApp();
+  });
+
   function loadState() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw);
         if (parsed && parsed.accounts && Array.isArray(parsed.sessions) && parsed.sessions.length > 0) {
-          // Ensure default accounts exist
           parsed.accounts = { ...DEFAULT_ACCOUNTS, ...parsed.accounts };
           return parsed;
         }
@@ -218,6 +264,7 @@
       state.paneState[userId] = {
         activeSessionId: defaultSess ? defaultSess.id : null,
         mobileSidebarOpen: false,
+        openMenuSessionId: null,
         draftText: ''
       };
     } else if (!state.paneState[userId].activeSessionId && state.sessions.length > 0) {
@@ -241,15 +288,6 @@
     safe = safe.replace(/@([a-zA-Z0-9_-]+)/g, '<strong style="color:var(--accent-terracotta)">@$1</strong>');
     safe = safe.replace(/\n/g, '<br/>');
     return safe;
-  }
-
-  function pulseSyncBadge(text) {
-    const el = document.getElementById('syncStatusText');
-    if (!el) return;
-    el.textContent = text || 'Live Sync';
-    setTimeout(() => {
-      if (el) el.textContent = 'Live Sync';
-    }, 2200);
   }
 
   function showToast(message, variant) {
@@ -319,18 +357,18 @@
     }
 
     saveAndBroadcastState();
-    renderApp();
+    navigateTo('chat');
     showToast(`Logged in as ${account.name}`, 'shared');
   }
 
   function logoutUser() {
     setTabUser(null);
-    renderApp();
+    navigateTo('home');
     showToast('Signed out.', 'personal');
   }
 
   // =========================================================
-  // CHAT ACTIONS: NEW CHAT, SEND MESSAGE, SHARE
+  // CHAT ACTIONS: NEW CHAT, SEND MESSAGE, RENAME, DELETE, SHARE
   // =========================================================
 
   function createNewChat(userId) {
@@ -351,10 +389,48 @@
     };
 
     state.sessions.unshift(newSession);
-    ensurePaneStateForUser(userId).activeSessionId = newId;
+    const pane = ensurePaneStateForUser(userId);
+    pane.activeSessionId = newId;
+    pane.openMenuSessionId = null;
     saveAndBroadcastState();
     renderApp();
     showToast('Created new chat!', 'shared');
+  }
+
+  function renameChat(sessionId, userId) {
+    const session = getSessionById(sessionId);
+    if (!session) return;
+    const newTitle = prompt('Rename Chat:', session.title);
+    if (newTitle && newTitle.trim()) {
+      session.title = newTitle.trim();
+      const pane = ensurePaneStateForUser(userId);
+      pane.openMenuSessionId = null;
+      saveAndBroadcastState();
+      renderApp();
+      showToast('Chat renamed!', 'shared');
+    }
+  }
+
+  function deleteChat(sessionId, userId) {
+    const session = getSessionById(sessionId);
+    if (!session) return;
+    if (!confirm(`Delete "${session.title}"?`)) return;
+
+    state.sessions = state.sessions.filter((s) => s.id !== sessionId);
+
+    if (state.sessions.length === 0) {
+      createNewChat(userId);
+      return;
+    }
+
+    const pane = ensurePaneStateForUser(userId);
+    if (pane.activeSessionId === sessionId) {
+      pane.activeSessionId = state.sessions[0].id;
+    }
+    pane.openMenuSessionId = null;
+    saveAndBroadcastState();
+    renderApp();
+    showToast('Chat deleted.', 'personal');
   }
 
   async function handleSendMessage(userId, sessionId, rawInputText) {
@@ -369,10 +445,10 @@
 
     // If chat title is "New Chat", auto-title it based on first message
     if (session.title === 'New Chat') {
-      session.title = text.length > 32 ? text.slice(0, 32) + '...' : text;
+      session.title = text.length > 30 ? text.slice(0, 30) + '...' : text;
     }
 
-    // Ensure current user is registered in session participants
+    // Ensure current user is in session participants
     if (!session.participants) session.participants = [];
     if (!session.participants.includes(userId)) {
       session.participants.push(userId);
@@ -484,10 +560,10 @@
       } catch (e) {}
     }
 
-    // 3. Realistic intelligent collaborative fallback response
+    // 3. Fallback response
     await new Promise((resolve) => setTimeout(resolve, 600));
     return {
-      text: `Hello ${triggeringAccount.shortName}! I received your prompt: "${cleanPrompt}".\n\nSince this is a shared CoThread conversation, all participants in this chat (${(session.participants || []).map((p) => state.accounts[p]?.shortName || p).join(', ')}) share this exact AI context. Feel free to continue chatting together!`,
+      text: `Hello ${triggeringAccount.shortName}! I received your prompt: "${cleanPrompt}".\n\nSince this is a collaborative CoThread conversation, all participants in this chat (${(session.participants || []).map((p) => state.accounts[p]?.shortName || p).join(', ')}) share this exact AI context. Feel free to continue chatting together!`,
       codeSnippet: cleanPrompt.toLowerCase().includes('code') || cleanPrompt.toLowerCase().includes('script')
         ? `// Collaborative CoThread Snippet\nconsole.log("Shared context active for:", "${triggeringAccount.name}");`
         : null
@@ -505,18 +581,67 @@
   }
 
   // =========================================================
-  // RENDERING: AUTH PORTAL vs GEMINI/CLAUDE CHAT PORTAL
+  // SHARE MODAL MANAGEMENT
+  // =========================================================
+
+  function openShareModal(sessionId) {
+    const session = getSessionById(sessionId);
+    if (!session) return;
+    activeShareSessionId = sessionId;
+
+    const modal = document.getElementById('shareModalBackdrop');
+    const input = document.getElementById('shareModalLinkInput');
+    if (!modal || !input) return;
+
+    updateShareModalUrl();
+    modal.classList.remove('hidden');
+  }
+
+  function closeShareModal() {
+    const modal = document.getElementById('shareModalBackdrop');
+    if (modal) modal.classList.add('hidden');
+    activeShareSessionId = null;
+  }
+
+  function updateShareModalUrl() {
+    const session = getSessionById(activeShareSessionId);
+    if (!session) return;
+    const input = document.getElementById('shareModalLinkInput');
+    if (!input) return;
+
+    const isPrivate = document.getElementById('shareOptPrivate')?.checked;
+    const privacyParam = isPrivate ? '&privacy=private' : '&privacy=public';
+    const baseUrl = `${window.location.origin}/chat`;
+    input.value = `${baseUrl}?join=${encodeURIComponent(session.shareCode)}${privacyParam}`;
+  }
+
+  // =========================================================
+  // RENDERING: HOME WEBSITE vs AUTH vs CHAT
   // =========================================================
 
   function renderApp() {
+    const websiteRoot = document.getElementById('websiteRoot');
     const authPortal = document.getElementById('authPortal');
     const appShell = document.getElementById('appShell');
 
+    const inChatArea = isChatRoute();
+
+    if (!inChatArea) {
+      // 1. Show Company Website at / (domain.com)
+      if (websiteRoot) websiteRoot.classList.remove('hidden');
+      if (authPortal) authPortal.classList.add('hidden');
+      if (appShell) appShell.classList.add('hidden');
+      return;
+    }
+
+    // User is on /chat (chat workspace route)
+    if (websiteRoot) websiteRoot.classList.add('hidden');
+
     if (!currentUserId || !state.accounts[currentUserId]) {
+      // 2. Not logged in -> Show Dummy Login/Signup Portal
       if (authPortal) authPortal.classList.remove('hidden');
       if (appShell) appShell.classList.add('hidden');
 
-      // Check if there is an invite banner to display
       const inviteNotice = document.getElementById('authInviteNotice');
       const inviteNoticeText = document.getElementById('authInviteNoticeText');
       if (pendingInviteShareCode) {
@@ -533,10 +658,10 @@
       return;
     }
 
+    // 3. Logged in -> Show Gemini/Claude Chat Portal
     if (authPortal) authPortal.classList.add('hidden');
     if (appShell) appShell.classList.remove('hidden');
 
-    // Auto-join pending chat if logged in
     if (pendingInviteShareCode) {
       const invitedSession = findSessionByShareCode(pendingInviteShareCode);
       if (invitedSession) {
@@ -567,7 +692,6 @@
     const activeSession = getSessionById(pane.activeSessionId);
     if (!activeSession) return '';
 
-    // List all sessions accessible
     const sessions = state.sessions;
 
     return `
@@ -609,19 +733,42 @@
                 ${sessions.map((s) => {
                   const isSelected = s.id === activeSession.id;
                   const participantCount = (s.participants && s.participants.length) || 1;
+                  const isMenuOpen = pane.openMenuSessionId === s.id;
                   return `
-                    <button
-                      type="button"
-                      class="session-nav-item ${isSelected ? 'active-shared' : ''}"
-                      data-action="select-session"
-                      data-user="${userId}"
-                      data-session-id="${s.id}"
-                    >
-                      <div class="nav-item-top">
-                        <span class="nav-item-title">${escapeHtml(s.title || 'Untitled Chat')}</span>
-                        ${participantCount > 1 ? `<span class="nav-item-count" title="${participantCount} collaborators">👥 ${participantCount}</span>` : ''}
-                      </div>
-                    </button>
+                    <div class="session-nav-item-wrap">
+                      <button
+                        type="button"
+                        class="session-nav-item ${isSelected ? 'active-shared' : ''}"
+                        data-action="select-session"
+                        data-user="${userId}"
+                        data-session-id="${s.id}"
+                      >
+                        <div class="nav-item-top">
+                          <span class="nav-item-title">${escapeHtml(s.title || 'Untitled Chat')}</span>
+                          ${participantCount > 1 ? `<span class="nav-item-count" title="${participantCount} collaborators">👥 ${participantCount}</span>` : ''}
+                        </div>
+                      </button>
+
+                      <button
+                        type="button"
+                        class="chat-item-menu-btn"
+                        data-action="toggle-chat-menu"
+                        data-session-id="${s.id}"
+                        data-user="${userId}"
+                        title="Chat settings"
+                      >⋮</button>
+
+                      ${isMenuOpen ? `
+                        <div class="chat-item-dropdown">
+                          <button type="button" class="chat-dropdown-item" data-action="rename-chat" data-session-id="${s.id}" data-user="${userId}">
+                            ✏️ Rename
+                          </button>
+                          <button type="button" class="chat-dropdown-item delete" data-action="delete-chat" data-session-id="${s.id}" data-user="${userId}">
+                            🗑️ Delete
+                          </button>
+                        </div>
+                      ` : ''}
+                    </div>
                   `;
                 }).join('')}
               </div>
@@ -676,17 +823,17 @@
                 </div>
 
                 <div class="session-header-actions docs-presence-bar">
-                  <!-- Google Docs Presence Avatars Stack -->
+                  <!-- Google Docs Presence Avatars Stack (NAME ONLY on hover!) -->
                   <div class="presence-avatar-stack" title="Collaborators in this chat">
                     ${(activeSession.participants || [userId]).map((pid) => {
                       const pAcct = state.accounts[pid] || {
                         name: 'Collaborator',
-                        email: '',
                         initials: 'CT',
                         colorClass: 'custom'
                       };
                       const isYou = pid === userId;
-                      const tooltip = `${escapeHtml(pAcct.name)}${isYou ? ' (You)' : ''}${pAcct.email ? ` • ${escapeHtml(pAcct.email)}` : ''}`;
+                      // Display Name ONLY, not email!
+                      const tooltip = `${escapeHtml(pAcct.name)}${isYou ? ' (You)' : ''}`;
                       return `
                         <div class="presence-avatar-item" data-tooltip="${tooltip}">
                           <span class="avatar-circle ${pAcct.colorClass || 'custom'}">
@@ -701,9 +848,9 @@
                   <button
                     type="button"
                     class="share-chat-action-btn"
-                    data-action="quick-share"
+                    data-action="open-share-modal"
                     data-session-id="${activeSession.id}"
-                    title="Share this chat link with others to collaborate live"
+                    title="Share this chat link (Public or Private)"
                   >
                     <span>🔗 Share</span>
                   </button>
@@ -715,11 +862,11 @@
               <div class="chat-stream-column">
                 <div class="messages-scroll-container" id="msgScroll_${userId}">
                   ${activeSession.messages.length === 0 ? `
-                    <div class="empty-chat-welcome" style="text-align: center; margin: auto; padding: 50px 20px; max-width: 540px;">
+                    <div class="empty-chat-welcome">
                       <div style="font-size: 38px; margin-bottom: 14px;">✦</div>
                       <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 8px;">How can CoThread AI help today?</h2>
-                      <p style="color: var(--ink-muted); font-size: 13.5px; line-height: 1.6;">
-                        Ask a question, brainstorm ideas, or share this chat link with your teammates using the <strong>🔗 Share</strong> button to collaborate together in real time like Google Docs.
+                      <p style="color: var(--ink-muted); font-size: 13.5px; line-height: 1.6; max-width: 500px; text-align: center;">
+                        Ask anything, brainstorm ideas, or click <strong>🔗 Share</strong> in the top bar to collaborate live with teammates in real time like Google Docs.
                       </p>
                     </div>
                   ` : activeSession.messages.map((msg) => renderMessageRowHTML(msg, userId, activeSession)).join('')}
@@ -732,8 +879,19 @@
                     : ''}
                 </div>
 
-                <!-- COMPOSER DOCK (Claude / Gemini style) -->
+                <!-- COMPOSER DOCK (Gemini style with Model selector inside) -->
                 <div class="composer-dock">
+                  <div class="composer-top-row">
+                    <!-- Model Selector inside the Chat Box like Gemini -->
+                    <div class="composer-model-pill" title="Active AI Model">
+                      <span class="sparkle-icon">✦</span>
+                      <select id="chatModelSelect" class="chat-model-select">
+                        <option value="gemini-3.8-flash" ${state.primaryModel === 'gemini-3.8-flash' ? 'selected' : ''}>Gemini 3.8 Flash</option>
+                        <option value="gemini-4-argon" ${state.primaryModel === 'gemini-4-argon' ? 'selected' : ''}>Gemini 4 Argon</option>
+                      </select>
+                    </div>
+                  </div>
+
                   <div class="composer-input-row">
                     <input
                       type="text"
@@ -801,6 +959,17 @@
               ? `<pre class="msg-code-block">${escapeHtml(msg.codeSnippet)}</pre>`
               : ''
           }
+
+          ${isAI ? `
+            <div class="msg-action-bar">
+              <button type="button" class="msg-action-btn" data-action="copy-response" data-msg-id="${msg.id}" title="Copy response">
+                <span>📋 Copy</span>
+              </button>
+              <button type="button" class="msg-action-btn" data-action="new-chat-from-prompt" data-user="${viewingUserId}" title="Start a new chat">
+                <span>💬 Start New Chat</span>
+              </button>
+            </div>
+          ` : ''}
         </div>
       </div>
     `;
@@ -813,6 +982,16 @@
   function bindPaneEvents(userId) {
     const paneEl = document.querySelector(`.workspace-pane[data-pane-user="${userId}"]`);
     if (!paneEl) return;
+
+    // Chat Model Select inside composer
+    const modelSel = paneEl.querySelector('#chatModelSelect');
+    if (modelSel) {
+      modelSel.addEventListener('change', (e) => {
+        state.primaryModel = e.target.value;
+        saveAndBroadcastState();
+        showToast(`Switched model to ${state.primaryModel}`, 'shared');
+      });
+    }
 
     const inputEl = paneEl.querySelector(`#composerInput_${userId}`);
     if (inputEl) {
@@ -830,7 +1009,15 @@
 
     paneEl.addEventListener('click', (e) => {
       const btn = e.target.closest('[data-action]');
-      if (!btn) return;
+      if (!btn) {
+        // If clicking outside dropdown menu, close any open menu
+        const pane = ensurePaneStateForUser(userId);
+        if (pane.openMenuSessionId) {
+          pane.openMenuSessionId = null;
+          renderApp();
+        }
+        return;
+      }
 
       const action = btn.getAttribute('data-action');
       const targetUser = btn.getAttribute('data-user') || userId;
@@ -840,9 +1027,24 @@
         const p = ensurePaneStateForUser(targetUser);
         p.activeSessionId = sId;
         p.mobileSidebarOpen = false;
+        p.openMenuSessionId = null;
         saveAndBroadcastState();
         renderApp();
         scrollChatToBottom(sId);
+      } else if (action === 'toggle-chat-menu') {
+        e.stopPropagation();
+        const sId = btn.getAttribute('data-session-id');
+        const p = ensurePaneStateForUser(targetUser);
+        p.openMenuSessionId = p.openMenuSessionId === sId ? null : sId;
+        renderApp();
+      } else if (action === 'rename-chat') {
+        e.stopPropagation();
+        const sId = btn.getAttribute('data-session-id');
+        renameChat(sId, targetUser);
+      } else if (action === 'delete-chat') {
+        e.stopPropagation();
+        const sId = btn.getAttribute('data-session-id');
+        deleteChat(sId, targetUser);
       } else if (action === 'new-chat') {
         createNewChat(targetUser);
       } else if (action === 'toggle-mobile-sidebar') {
@@ -859,38 +1061,49 @@
         handleSendMessage(targetUser, sId, inp ? inp.value : '');
       } else if (action === 'logout') {
         logoutUser();
-      } else if (action === 'quick-share') {
+      } else if (action === 'open-share-modal') {
         const sId = btn.getAttribute('data-session-id');
-        const session = getSessionById(sId);
-        if (session) {
-          const shareUrl = `${window.location.origin}${window.location.pathname}?join=${encodeURIComponent(session.shareCode)}`;
-          navigator.clipboard?.writeText(shareUrl).catch(() => {});
-          const origHtml = btn.innerHTML;
+        openShareModal(sId);
+      } else if (action === 'copy-response') {
+        const msgId = btn.getAttribute('data-msg-id');
+        const p = ensurePaneStateForUser(targetUser);
+        const session = getSessionById(p.activeSessionId);
+        const msg = session?.messages.find((m) => m.id === msgId);
+        if (msg) {
+          navigator.clipboard?.writeText(msg.text).catch(() => {});
+          const origText = btn.innerHTML;
           btn.innerHTML = '<span>✓ Copied!</span>';
           setTimeout(() => {
-            btn.innerHTML = origHtml;
-          }, 2000);
-          showToast('Chat link copied! Anyone with the link will join with live presence.', 'shared');
+            btn.innerHTML = origText;
+          }, 1800);
+          showToast('Response copied to clipboard!', 'shared');
         }
+      } else if (action === 'new-chat-from-prompt') {
+        createNewChat(targetUser);
       }
     });
   }
 
   function initGlobalEvents() {
     // Theme toggle
+    document.getElementById('websiteThemeToggleBtn')?.addEventListener('click', toggleTheme);
     document.getElementById('appThemeToggleBtn')?.addEventListener('click', toggleTheme);
 
-    // Header Model Select
-    document.getElementById('headerModelSelect')?.addEventListener('change', (e) => {
-      state.primaryModel = e.target.value;
-      saveAndBroadcastState();
-      showToast(`Model set to ${state.primaryModel}`, 'shared');
+    // Company Page Navigation CTAs -> Navigate to /chat
+    document.getElementById('navOpenChatBtn')?.addEventListener('click', () => navigateTo('chat'));
+    document.getElementById('navOpenLoginBtn')?.addEventListener('click', () => navigateTo('chat'));
+    document.getElementById('heroLaunchChatBtn')?.addEventListener('click', () => navigateTo('chat'));
+    document.getElementById('bentoLaunchChatBtn')?.addEventListener('click', () => navigateTo('chat'));
+
+    document.querySelectorAll('[data-action="go-to-chat"]').forEach((btn) => {
+      btn.addEventListener('click', () => navigateTo('chat'));
     });
 
-    // Return to sign in / brand link
-    document.getElementById('backToWebsiteBtn')?.addEventListener('click', () => {
-      logoutUser();
-    });
+    // Chat Header Return to Website
+    document.getElementById('backToWebsiteBtn')?.addEventListener('click', () => navigateTo('home'));
+
+    // Back to Home from Auth Portal
+    document.getElementById('authBackHomeBtn')?.addEventListener('click', () => navigateTo('home'));
 
     // Dummy Auth Portal Tabs
     const tabLogin = document.getElementById('tabLoginBtn');
@@ -935,6 +1148,32 @@
         if (email) loginOrRegisterUser(name, email);
       });
     });
+
+    // Share Modal Events
+    document.getElementById('closeShareModalBtn')?.addEventListener('click', closeShareModal);
+    document.getElementById('shareModalBackdrop')?.addEventListener('click', (e) => {
+      if (e.target.id === 'shareModalBackdrop') closeShareModal();
+    });
+
+    document.querySelectorAll('input[name="sharePrivacy"]').forEach((radio) => {
+      radio.addEventListener('change', updateShareModalUrl);
+    });
+
+    document.getElementById('shareModalCopyBtn')?.addEventListener('click', () => {
+      const input = document.getElementById('shareModalLinkInput');
+      if (input && input.value) {
+        navigator.clipboard?.writeText(input.value).catch(() => {});
+        const copyBtn = document.getElementById('shareModalCopyBtn');
+        if (copyBtn) {
+          const orig = copyBtn.innerHTML;
+          copyBtn.innerHTML = '<span>✓ Copied!</span>';
+          setTimeout(() => {
+            copyBtn.innerHTML = orig;
+          }, 2000);
+        }
+        showToast('Link copied to clipboard!', 'shared');
+      }
+    });
   }
 
   // =========================================================
@@ -945,7 +1184,6 @@
     initTheme();
     initGlobalEvents();
 
-    // Check URL parameters for invites
     try {
       const params = new URLSearchParams(window.location.search);
       const joinCode = params.get('join') || params.get('s');

@@ -3,22 +3,268 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>CoThread — Collaborative AI Chat</title>
-  <link rel="icon" type="image/svg+xml" href="./public/logo.svg?v=ct18" />
+  <title>CoThread — Collaborative AI Platform</title>
+  <link rel="icon" type="image/svg+xml" href="./public/logo.svg?v=ct20" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="./public/styles.css?v=ct18" />
+  <link rel="stylesheet" href="./public/styles.css?v=ct20" />
 </head>
 <body>
 
   <!-- =========================================================================
-       1. DUMMY LOGIN & SIGNUP PORTAL (Claude / Gemini Style)
+       1. COMPANY WEBSITE AT / (domain.com)
        ========================================================================= -->
-  <div class="auth-portal-root" id="authPortal">
+  <div class="website-root" id="websiteRoot">
+    <!-- Navbar -->
+    <header class="cothread-navbar">
+      <div class="cothread-nav-left">
+        <a href="/" class="cothread-brand-link" id="navBrandLogo" aria-label="CoThread Home">
+          <img src="./public/logo.svg?v=ct20" class="cothread-logo-coin" width="44" height="44" alt="CoThread Logo" />
+          <span class="cothread-wordmark">CoThread</span>
+        </a>
+
+        <a
+          href="https://github.com/hasnain-kk/CoThread"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="cothread-github-pill"
+          title="View CoThread on GitHub"
+        >
+          <svg width="16" height="16" viewBox="0 0 98 96" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M48.854 0C21.839 0 0 22 0 49.217c0 21.756 13.993 40.172 33.405 46.69 2.427.49 3.316-1.059 3.316-2.362 0-1.141-.08-5.052-.08-9.127-13.59 2.934-16.42-5.867-16.42-5.867-2.184-5.704-5.42-7.17-5.42-7.17-4.448-3.015.324-3.015.324-3.015 4.934.326 7.523 5.052 7.523 5.052 4.367 7.496 11.404 5.378 14.235 4.074.404-3.178 1.699-5.378 3.074-6.6-10.839-1.141-22.243-5.378-22.243-24.283 0-5.378 1.94-9.778 5.014-13.2-.485-1.222-2.184-6.275.486-13.038 0 0 4.125-1.304 13.426 5.052a46.97 46.97 0 0 1 12.214-1.63c4.125 0 8.33.571 12.213 1.63 9.302-6.356 13.427-5.052 13.427-5.052 2.67 6.763.97 11.816.485 13.038 3.155 3.422 5.015 7.822 5.015 13.2 0 18.905-11.404 23.06-22.324 24.283 1.78 1.548 3.316 4.481 3.316 9.126 0 6.6-.08 11.897-.08 13.526 0 1.304.89 2.853 3.316 2.364 19.412-6.52 33.405-24.935 33.405-46.691C97.707 22 75.788 0 48.854 0z"/>
+          </svg>
+          <span>GitHub</span>
+          <span class="star-icon">&#x2605;</span>
+        </a>
+      </div>
+
+      <nav class="cothread-nav-links" aria-label="Primary Navigation">
+        <a href="#capabilitiesSection" class="cothread-nav-pill active">Platform</a>
+        <a href="#cothreadWaySection" class="cothread-nav-pill">How It Works</a>
+        <a href="#pricingSection" class="cothread-nav-pill">Plans</a>
+      </nav>
+
+      <div class="cothread-nav-EdgeActions">
+        <button type="button" class="cothread-edge-btn theme-edge" id="websiteThemeToggleBtn" title="Toggle Theme">
+          <span id="websiteThemeIcon">&#x2600;&#xFE0F;</span>
+        </button>
+        <button type="button" class="cothread-edge-btn login-edge" id="navOpenLoginBtn">
+          Log in
+        </button>
+        <button type="button" class="cothread-edge-btn cta-edge" id="navOpenChatBtn">
+          Open Chat &#x2192;
+        </button>
+      </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="cothread-hero-section" id="heroSection">
+      <div class="cothread-hero-center">
+        <div class="hero-brand-emblem-wrap">
+          <img src="./public/logo.svg?v=ct20" width="86" height="86" alt="CoThread Coin Logo" class="hero-center-logo-img" />
+          <div class="hero-brand-pill">
+            <span class="hero-brand-name">CoThread</span>
+          </div>
+        </div>
+
+        <h1 class="cothread-hero-title">
+          Go from <span class="cothread-underline-yellow">solo</span><br />
+          to <span class="cothread-highlight-pink">team AI.</span>
+        </h1>
+
+        <p class="cothread-hero-subtitle">
+          Real-time collaborative AI chat &bull; Like Google Docs for AI.<br />
+          Multiple users prompt Gemini in one shared chat with live presence and history.
+        </p>
+
+        <div class="cothread-hero-cta-row">
+          <div class="cothread-layered-btn-wrap">
+            <div class="cothread-layer-red" aria-hidden="true"></div>
+            <div class="cothread-layer-yellow" aria-hidden="true"></div>
+            <button type="button" class="cothread-layer-main" id="heroLaunchChatBtn">
+              Start CoThreading &#x2192;
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Capabilities / Bento Section -->
+    <section class="editorial-bento-section" id="capabilitiesSection">
+      <div class="section-container">
+        <div class="cothread-bento-pair">
+          <article class="cothread-bento-card wide-card bg-white-card">
+            <div class="gbc-content">
+              <h2>Multiplayer Collaborative Chat</h2>
+              <p>
+                One shared link turns individual AI prompting into a live team session. Collaborate like Google Docs:
+              </p>
+              <div class="cothread-checklist">
+                <div class="gc-row">
+                  <span class="gc-pink-check">&#x2713;</span>
+                  <span>Google Docs-style live presence in the top bar</span>
+                </div>
+                <div class="gc-row">
+                  <span class="gc-pink-check">&#x2713;</span>
+                  <span>Every prompt shows who asked with their name &amp; avatar</span>
+                </div>
+                <div class="gc-row">
+                  <span class="gc-pink-check">&#x2713;</span>
+                  <span>Instant 1-click sharing (Public or Private)</span>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="cothread-bento-card narrow-card bg-yellow-card">
+            <h2>Gemini AI Powered</h2>
+            <p>
+              Powered by Google GenAI Gemini 3.8 Flash &amp; Gemini 4 Argon. Seamless context retention across all teammates.
+            </p>
+            <div style="margin-top: 18px;">
+              <button type="button" class="pricing-cta-btn primary" id="bentoLaunchChatBtn" style="width: 100%;">
+                Open CoThread Chat &#x2192;
+              </button>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3-Step Workflow -->
+    <section class="cothread-way-section" id="cothreadWaySection">
+      <div class="section-container">
+        <div class="section-header-editorial center">
+          <span class="cothread-section-kicker">HOW IT WORKS</span>
+          <h2 class="cothread-center-heading">CoThread in 3 simple steps</h2>
+        </div>
+
+        <div class="cothread-steps-grid" style="grid-template-columns: repeat(3, 1fr);">
+          <article class="cothread-step-card">
+            <div class="step-card-top">
+              <span class="step-num-badge pink">01</span>
+            </div>
+            <h3>1. Create or Open a Chat</h3>
+            <p>Start a new conversation with Gemini just like your standard AI chat portal.</p>
+          </article>
+
+          <article class="cothread-step-card">
+            <div class="step-card-top">
+              <span class="step-num-badge yellow">02</span>
+            </div>
+            <h3>2. Share with Teammates</h3>
+            <p>Click <strong>🔗 Share</strong> to copy your invite link (Public or Private) and send it to your team.</p>
+          </article>
+
+          <article class="cothread-step-card">
+            <div class="step-card-top">
+              <span class="step-num-badge teal">03</span>
+            </div>
+            <h3>3. Chat Together in Real Time</h3>
+            <p>See who joins live with Google Docs avatars. Everyone prompts the same shared AI in real time.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section class="pricing-section" id="pricingSection">
+      <div class="section-container">
+        <div class="section-header-editorial center">
+          <h2 class="cothread-center-heading">Simple, Transparent Plans</h2>
+        </div>
+
+        <div class="pricing-cards-grid">
+          <div class="pricing-card">
+            <div class="pricing-card-top">
+              <div class="pricing-Header-row">
+                <h3>Starter</h3>
+                <span class="tier-coin-badge yellow">FREE</span>
+              </div>
+              <div class="pricing-price">$0 <span>/ mo</span></div>
+              <div class="pricing-quota-highlight">Unlimited Chats</div>
+            </div>
+            <ul class="pricing-features">
+              <li>&#x2713; Full collaborative chat access</li>
+              <li>&#x2713; Live Google Docs presence</li>
+              <li>&#x2713; Gemini 3.8 Flash</li>
+            </ul>
+            <button type="button" class="pricing-cta-btn secondary" data-action="go-to-chat">
+              Get Started Free &#x2192;
+            </button>
+          </div>
+
+          <div class="pricing-card featured-pro">
+            <div class="pro-popular-pill">&#x2605; POPULAR</div>
+            <div class="pricing-card-top">
+              <div class="pricing-Header-row">
+                <h3>Pro Team</h3>
+                <span class="tier-coin-badge black">PRO</span>
+              </div>
+              <div class="pricing-price">$20 <span>/ mo</span></div>
+              <div class="pricing-quota-highlight pro-color">Advanced AI</div>
+            </div>
+            <ul class="pricing-features">
+              <li>&#x2713; Gemini 4 Argon + 3.8 Flash</li>
+              <li>&#x2713; Unlimited collaborative teammates</li>
+              <li>&#x2713; Priority response times</li>
+            </ul>
+            <button type="button" class="pricing-cta-btn primary" data-action="go-to-chat">
+              Launch Pro &#x2192;
+            </button>
+          </div>
+
+          <div class="pricing-card">
+            <div class="pricing-card-top">
+              <div class="pricing-Header-row">
+                <h3>Enterprise</h3>
+                <span class="tier-coin-badge teal">CUSTOM</span>
+              </div>
+              <div class="pricing-price">Custom</div>
+              <div class="pricing-quota-highlight">Organization</div>
+            </div>
+            <ul class="pricing-features">
+              <li>&#x2713; Dedicated model instances</li>
+              <li>&#x2713; Organization SSO &amp; Security</li>
+              <li>&#x2713; Custom SLA</li>
+            </ul>
+            <button type="button" class="pricing-cta-btn secondary" data-action="go-to-chat">
+              Contact Sales &#x2192;
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="editorial-footer">
+      <div class="footer-inner">
+        <div class="footer-brand-col">
+          <div class="brand-wordmark-link" style="display:flex;align-items:center;gap:10px;">
+            <img src="./public/logo.svg?v=ct20" width="36" height="36" alt="CoThread Logo" />
+            <span class="wordmark-serif">CoThread</span>
+          </div>
+          <p class="footer-copy">
+            &#x24B8; 2026 CoThread &bull; Real-time collaborative AI platform.
+          </p>
+        </div>
+        <div class="footer-links-col">
+          <a href="https://github.com/hasnain-kk/CoThread" target="_blank" rel="noopener noreferrer" class="footer-link-btn">&#x1F517; GitHub</a>
+          <button type="button" class="footer-link-btn" data-action="go-to-chat">&#x1F4AC; Launch Chat</button>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- =========================================================================
+       2. DUMMY LOGIN & SIGNUP PORTAL (Shown at /chat if not logged in)
+       ========================================================================= -->
+  <div class="auth-portal-root hidden" id="authPortal">
     <div class="auth-portal-card">
       <div class="auth-portal-header">
-        <img src="./public/logo.svg?v=ct18" width="56" height="56" alt="CoThread Logo" class="auth-logo" />
+        <button type="button" class="auth-back-home-btn" id="authBackHomeBtn" title="Back to Homepage">&larr; Back to Home</button>
+        <img src="./public/logo.svg?v=ct20" width="56" height="56" alt="CoThread Logo" class="auth-logo" />
         <h1 class="auth-title">CoThread</h1>
         <p class="auth-subtitle">Real-time collaborative AI chat &bull; Like Google Docs for AI</p>
       </div>
@@ -94,30 +340,21 @@
   </div>
 
   <!-- =========================================================================
-       2. PRODUCTION COTHREAD WORKSPACE (/app & /s/:shareCode)
+       3. PRODUCTION COTHREAD WORKSPACE (/chat or domain.com/chat)
        ========================================================================= -->
   <div class="app-shell hidden" id="appShell">
     <header class="workspace-top-header">
       <div class="top-header-left">
-        <button type="button" class="back-to-site-brand" id="backToWebsiteBtn" title="Return to Sign In">
-          <img src="./public/logo.svg?v=ct18" width="32" height="32" alt="CoThread Logo" />
+        <button type="button" class="back-to-site-brand" id="backToWebsiteBtn" title="Return to Company Website">
+          <img src="./public/logo.svg?v=ct20" width="32" height="32" alt="CoThread Logo" />
           <span class="wordmark-serif sm">CoThread</span>
         </button>
-
-        <div class="model-selector-pill">
-          <span class="sparkle-icon">&#x2726;</span>
-          <select id="headerModelSelect" class="header-model-select" aria-label="Select CoThread AI Model">
-            <option value="gemini-3.8-flash">Gemini 3.8 Flash (ADK)</option>
-            <option value="gemini-4-argon">Gemini 4 Argon (ADK)</option>
-          </select>
-          <span class="flash-lite-tag">Flash-Lite</span>
-        </div>
       </div>
 
       <div class="top-header-right">
-        <div class="sync-status-pill" title="Live Collaborative Sync">
+        <!-- Live pulse dot without "Live Sync" text as requested -->
+        <div class="sync-status-pill" title="Real-time Multiplayer Sync Active">
           <span class="live-pulse-dot"></span>
-          <span id="syncStatusText">Live Sync</span>
         </div>
 
         <button type="button" class="header-utility-btn" id="appThemeToggleBtn" title="Toggle Theme">
@@ -129,10 +366,54 @@
     <main class="workspace-stage" id="workspaceStage"></main>
   </div>
 
+  <!-- =========================================================================
+       4. SHARE MODAL (Public vs Private)
+       ========================================================================= -->
+  <div class="modal-backdrop hidden" id="shareModalBackdrop">
+    <div class="modal-card share-dialog-card">
+      <div class="modal-header">
+        <div class="modal-title-cluster">
+          <span class="sparkle-icon">🔗</span>
+          <h3>Share Collaborative Chat</h3>
+        </div>
+        <button type="button" class="modal-close-btn" id="closeShareModalBtn">✕</button>
+      </div>
+      <div class="modal-body share-modal-body">
+        <p class="share-modal-desc">
+          Invite teammates to this chat. They will join with Google Docs-style live presence and can prompt Gemini in this same thread.
+        </p>
+        
+        <div class="share-privacy-options">
+          <label class="share-privacy-label">
+            <input type="radio" name="sharePrivacy" value="public" checked id="shareOptPublic" />
+            <div class="share-privacy-info">
+              <strong>🌐 Public CoThread Link</strong>
+              <small>Anyone with this link can join, see history, and chat.</small>
+            </div>
+          </label>
+          <label class="share-privacy-label">
+            <input type="radio" name="sharePrivacy" value="private" id="shareOptPrivate" />
+            <div class="share-privacy-info">
+              <strong>🔒 Private / Direct Link</strong>
+              <small>Restricted: only direct collaborators with this link can participate.</small>
+            </div>
+          </label>
+        </div>
+
+        <div class="share-url-row">
+          <input type="text" id="shareModalLinkInput" class="share-url-input" readonly />
+          <button type="button" class="share-modal-copy-btn" id="shareModalCopyBtn">
+            <span>Copy Link</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="toast-container" id="toastContainer" aria-live="polite"></div>
 
-  <script src="./src/core/quota-engine.js?v=ct18"></script>
-  <script src="./src/ai/gemini-service.js?v=ct18"></script>
-  <script src="./public/app.js?v=ct18"></script>
+  <script src="./src/core/quota-engine.js?v=ct20"></script>
+  <script src="./src/ai/gemini-service.js?v=ct20"></script>
+  <script src="./public/app.js?v=ct20"></script>
 </body>
 </html>
