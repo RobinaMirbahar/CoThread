@@ -1324,6 +1324,48 @@
       }
     }
 
+    // 4c. Automatic Vertex AI Express Fallback (`aiplatform.googleapis.com`) for GCP Promotional Credits (e.g. cloud-champion-innovator)
+    if (!usedLiveSdk && platformServerKey && typeof fetch === 'function') {
+      try {
+        const vertexModel = resolvedModel === 'gemini-4-argon' ? 'gemini-2.5-pro' : 'gemini-2.5-flash';
+        const vertexUrl = `https://aiplatform.googleapis.com/v1/publishers/google/models/${vertexModel}:generateContent?key=${encodeURIComponent(String(platformServerKey).trim())}`;
+        const vertexResp = await fetch(vertexUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            systemInstruction: {
+              parts: [{ text: promptData.systemInstruction }],
+            },
+            contents: [
+              {
+                role: 'user',
+                parts: [{ text: promptData.formattedInput }],
+              },
+            ],
+          }),
+        });
+        if (vertexResp.ok) {
+          const vertexData = await vertexResp.json();
+          const vertexText = vertexData?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          if (vertexText) {
+            fullText = vertexText;
+            usedLiveSdk = true;
+            liveApiNotice = null;
+            if (vertexData?.usageMetadata) {
+              sdkUsage = {
+                inputTokens: vertexData.usageMetadata.promptTokenCount || 0,
+                outputTokens: vertexData.usageMetadata.candidatesTokenCount || 0,
+                totalTokens: vertexData.usageMetadata.totalTokenCount || 0,
+                extraSavedTokens: 0,
+              };
+            }
+          }
+        }
+      } catch (_vertexErr) {
+        // Continue to CoThread ADK Architect fallback
+      }
+    }
+
     // 5. High-realism streaming simulation when running in zero-config prototype mode or when quota is depleted
     if (!usedLiveSdk || !fullText) {
       fullText = buildSimulatedCollaborativeReply({
