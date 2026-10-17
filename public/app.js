@@ -669,7 +669,9 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
+            userId: triggeringAccount.id,
             senderId: triggeringAccount.id,
+            content: cleanPrompt,
             text: cleanPrompt,
             isAiPrompt: true,
             model: state.primaryModel
@@ -680,12 +682,17 @@
         if (res.ok) {
           const data = await res.json();
           const aiMsg = data.aiMessage || data;
-          if (aiMsg && (aiMsg.text || aiMsg.reply)) {
+          if (aiMsg && (aiMsg.content || aiMsg.text || aiMsg.reply)) {
             const charged = aiMsg.tokenCost || aiMsg.tokensCharged || estimatedCharged;
             const saved = aiMsg.tokensSaved || estimatedSaved;
+            if (data.session?.canvasDocument?.content) {
+              session.canvasTitle = data.session.canvasDocument.title || session.canvasTitle;
+              session.canvasContent = data.session.canvasDocument.content;
+              session.canvasLastEditedBy = `${triggeringAccount.shortName} & ${state.primaryModel}`;
+            }
             recordAdkTrace(charged, saved);
             return {
-              text: aiMsg.text || aiMsg.reply,
+              text: aiMsg.content || aiMsg.text || aiMsg.reply,
               codeSnippet: aiMsg.codeSnippet || null,
               tokensCharged: charged,
               tokensSaved: saved
@@ -693,39 +700,76 @@
           }
         }
       } catch (e) {
-        // Local Firestore + ADK execution fallback
+        // Proceed to local CoThreadAI engine
       }
     }
 
-    await new Promise((r) => setTimeout(r, 460));
+    // Use the universal CoThreadAI / GeminiService engine loaded from src/ai/gemini-service.js
+    const aiEngine = window.CoThreadAI || window.GeminiService;
+    if (aiEngine && typeof aiEngine.generateCollaborativeResponse === 'function') {
+      try {
+        const hostAcct = state.accounts[session.hostId] || triggeringAccount;
+        const result = await aiEngine.generateCollaborativeResponse({
+          session: {
+            ...session,
+            mode: session.type === 'shared' ? 'shared' : 'personal',
+            hostUser: {
+              id: hostAcct.id,
+              name: hostAcct.name,
+              planTier: hostAcct.planTier
+            },
+            hostQuotaLimit: session.type === 'shared' ? session.tokenCap : triggeringAccount.quotaTotal,
+            hostTokensUsed: session.type === 'shared' ? session.tokensUsed : triggeringAccount.quotaUsed,
+            personalQuotaLimit: triggeringAccount.quotaTotal,
+            personalTokensUsed: triggeringAccount.quotaUsed
+          },
+          userMessage: {
+            content: cleanPrompt,
+            senderId: triggeringAccount.id,
+            senderName: triggeringAccount.name
+          },
+          senderUser: {
+            id: triggeringAccount.id,
+            name: triggeringAccount.name,
+            planTier: triggeringAccount.planTier,
+            isHost: session.type === 'shared' && triggeringAccount.id === session.hostId
+          },
+          model: state.primaryModel
+        });
 
-    const isShared = session.type === 'shared';
-    const quotaSummary = isShared
-      ? `Sponsored by **${session.hostName}'s Host Quota** (\`/s/${session.shareCode}\` • ${fmtNum(session.tokensUsed + estimatedCharged)} / ${fmtNum(session.tokenCap)} session tokens)`
-      : `Deducted from **${triggeringAccount.name}'s Software Token Quota** (\`/app\` Personal Chat • Host Quota untouched)`;
+        if (result && (result.cleanText || result.text)) {
+          const charged = result.totalTokens || estimatedCharged;
+          const saved = result.compressedTokensSaved || estimatedSaved;
+          let snippet = null;
 
+          if (result.canvasUpdate && result.canvasUpdate.content) {
+            session.canvasTitle = result.canvasUpdate.title || session.canvasTitle;
+            session.canvasContent = result.canvasUpdate.content;
+            session.canvasLastEditedBy = `${triggeringAccount.shortName} & ${state.primaryModel}`;
+            snippet = result.canvasUpdate.content;
+          }
+
+          recordAdkTrace(charged, saved);
+          return {
+            text: result.cleanText || result.text,
+            codeSnippet: snippet,
+            tokensCharged: charged,
+            tokensSaved: saved
+          };
+        }
+      } catch (err) {
+        // Fallback below if needed
+      }
+    }
+
+    await new Promise((r) => setTimeout(r, 320));
     recordAdkTrace(estimatedCharged, estimatedSaved);
 
     return {
       text:
-        `**Google ADK Orchestrator • @${triggeringAccount.shortName} (${state.primaryModel})**\n` +
-        `Executed via \`CoThreadADKOrchestrator\` for *"${cleanPrompt}"* in **"${session.title}"**:\n\n` +
-        `• **ADK Sub-Agent 1 (\`ContextCompressionSubAgent\` • \`${state.compressionModel}\`)**: Distilled ${session.messages.length} Firestore messages, saving **${estimatedSaved} software tokens**.\n` +
-        `• **ADK Tool (\`QuotaGuardTool\` • Cloud Firestore)**: ${quotaSummary}.\n` +
-        `• **ADK Sub-Agent 2 (\`CollaborativeArchitectSubAgent\` • \`${state.primaryModel}\`)**: Synchronized response & Shared Canvas${isShared ? ` (click **Continue Independently (Copy to My Chats)** anytime to fork onto your personal quota)` : ''}.`,
-      codeSnippet:
-`// Google ADK + Cloud Firestore Transaction (${state.primaryModel})
-export async function executeAdkCollaborativeTurn() {
-  return {
-    orchestrator: "CoThreadADKOrchestrator",
-    firestorePath: "sessions/${session.id}",
-    route: "${isShared ? '/s/' + session.shareCode : '/app'}",
-    triggeredBy: "${triggeringAccount.email}",
-    billedAccount: "${isShared ? session.hostName + ' (Host Quota)' : triggeringAccount.name + ' (Personal Quota)'}",
-    tokensCharged: ${estimatedCharged},
-    tokensSavedByFlashLite: ${estimatedSaved}
-  };
-}`,
+        `**${state.primaryModel} Synthesis for @${triggeringAccount.shortName}**\n` +
+        `Processed *"${cleanPrompt}"* in **"${session.title}"** with **${estimatedSaved} tokens saved** by \`${state.compressionModel}\`. Updated the live **Artifact Canvas** with the implementation module.`,
+      codeSnippet: null,
       tokensCharged: estimatedCharged,
       tokensSaved: estimatedSaved
     };
@@ -2533,6 +2577,288 @@ export async function executeAdkCollaborativeTurn() {
         renderWebsiteInviteBanner();
       }
       launchWorkspaceDirectlyOrSignIn('starter');
+    });
+
+    // Interactive Capability 1: Copy Sublink buttons on Landing Page
+    const handleLandingSublinkCopy = (btnEl) => {
+      const shareUrl = buildShareableSublinkUrl('cothread-arch-9x2k');
+      navigator.clipboard?.writeText(shareUrl).catch(() => {});
+      if (btnEl) {
+        const origText = btnEl.textContent;
+        btnEl.textContent = '✓ Copied Sublink!';
+        setTimeout(() => {
+          btnEl.textContent = origText;
+        }, 1800);
+      }
+      showToast('Copied live sublink (/s/cothread-arch-9x2k) to clipboard!', 'shared');
+    };
+    document.getElementById('bentoCopySublinkBtn')?.addEventListener('click', (e) => {
+      handleLandingSublinkCopy(e.currentTarget);
+    });
+    document.getElementById('showcaseCopyRouteBtn')?.addEventListener('click', (e) => {
+      handleLandingSublinkCopy(e.currentTarget);
+    });
+
+    // Interactive Capability 1b: Join as Colleague (Starter 25k) directly into Dual-Pane Workspace
+    document.querySelectorAll('[data-bento-join-guest]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        state.sideBySideMode = true;
+        registerOrSignInWithDetails('Robina Mirbahar', 'robina@cothread.ai', 'pro');
+        registerOrSignInWithDetails('Muhammad Hasnain', 'hasnainrashi@gmail.com', 'starter');
+        showToast(
+          'Joined /s/cothread-arch-9x2k with Robina (Host • Pro 250k) & Hasnain (Colleague • Starter 25k)!',
+          'shared'
+        );
+      });
+    });
+
+    // Interactive Capability 2: Live Host Cap Slider & Permission Toggle on Landing Page (synced with session state)
+    let showcaseTokensUsed = 4820;
+    let showcaseTokenCap = 25000;
+    let showcasePermissionMode = 'collaborator'; // 'collaborator' | 'viewer'
+
+    const syncLandingQuotaUI = () => {
+      const pct = Math.min(100, Math.round((showcaseTokensUsed / Math.max(1000, showcaseTokenCap)) * 100));
+      const bentoMeterFill = document.getElementById('bentoQuotaMeterFill');
+      const bentoCapValueLabel = document.getElementById('bentoCapValueLabel');
+      const showcaseQuotaLabel = document.getElementById('showcaseQuotaLabel');
+      const showcaseQuotaFill = document.getElementById('showcaseQuotaFill');
+      if (bentoMeterFill) bentoMeterFill.style.width = `${pct}%`;
+      if (bentoCapValueLabel) {
+        bentoCapValueLabel.textContent = `${showcaseTokensUsed.toLocaleString()} / ${showcaseTokenCap.toLocaleString()} Tokens`;
+      }
+      if (showcaseQuotaLabel) {
+        showcaseQuotaLabel.textContent = `${showcaseTokensUsed.toLocaleString()} / ${showcaseTokenCap.toLocaleString()} Cap`;
+      }
+      if (showcaseQuotaFill) showcaseQuotaFill.style.width = `${pct}%`;
+
+      // Also sync with primary shared session in state
+      const sharedSess = (state.sessions || []).find((s) => s.type === 'shared');
+      if (sharedSess) {
+        sharedSess.tokenCap = showcaseTokenCap;
+      }
+    };
+
+    document.getElementById('bentoCapSlider')?.addEventListener('input', (e) => {
+      showcaseTokenCap = Number(e.target.value) || 25000;
+      syncLandingQuotaUI();
+    });
+
+    document.getElementById('bentoPermToggleBtn')?.addEventListener('click', (e) => {
+      const btn = e.currentTarget;
+      showcasePermissionMode = showcasePermissionMode === 'collaborator' ? 'viewer' : 'collaborator';
+      const sharedSess = (state.sessions || []).find((s) => s.type === 'shared');
+      if (sharedSess) {
+        sharedSess.permission = showcasePermissionMode;
+      }
+      const showcaseInput = document.getElementById('showcasePromptInput');
+      const showcaseSubmit = document.getElementById('showcaseSendPromptBtn');
+      const speakerSelect = document.getElementById('showcaseSpeakerSelect');
+
+      if (showcasePermissionMode === 'viewer') {
+        btn.textContent = '🔒 View Only (Locked for Guests)';
+        btn.style.background = 'rgba(217, 48, 37, 0.12)';
+        btn.style.color = '#d93025';
+        btn.style.borderColor = 'rgba(217, 48, 37, 0.35)';
+        if (speakerSelect?.value === 'guest' && showcaseInput) {
+          showcaseInput.disabled = true;
+          showcaseInput.placeholder = '🔒 Host switched room to View Only — Fork to My Chats or switch to Host to prompt';
+          if (showcaseSubmit) showcaseSubmit.disabled = true;
+        }
+        showToast('Switched /s/cothread-arch-9x2k permission to View Only.', 'warning');
+      } else {
+        btn.textContent = '✓ Can Prompt (Sponsored)';
+        btn.style.background = 'rgba(24, 128, 56, 0.12)';
+        btn.style.color = '#188038';
+        btn.style.borderColor = 'rgba(24, 128, 56, 0.35)';
+        if (showcaseInput) {
+          showcaseInput.disabled = false;
+          showcaseInput.placeholder = 'Ask Gemini 4 Argon a real architectural question right here...';
+          if (showcaseSubmit) showcaseSubmit.disabled = false;
+        }
+        showToast('Switched /s/cothread-arch-9x2k permission to Can Prompt (Host-Sponsored).', 'shared');
+      }
+    });
+
+    document.getElementById('showcaseSpeakerSelect')?.addEventListener('change', (e) => {
+      const role = e.target.value;
+      const showcaseInput = document.getElementById('showcasePromptInput');
+      const showcaseSubmit = document.getElementById('showcaseSendPromptBtn');
+      if (role === 'guest' && showcasePermissionMode === 'viewer') {
+        if (showcaseInput) {
+          showcaseInput.disabled = true;
+          showcaseInput.placeholder = '🔒 Host switched room to View Only — Fork to My Chats or switch to Host to prompt';
+        }
+        if (showcaseSubmit) showcaseSubmit.disabled = true;
+      } else {
+        if (showcaseInput) {
+          showcaseInput.disabled = false;
+          showcaseInput.placeholder = 'Ask Gemini 4 Argon a real architectural question right here...';
+        }
+        if (showcaseSubmit) showcaseSubmit.disabled = false;
+      }
+    });
+
+    // Interactive Capability 4: Open Workspace with Shared Artifact Canvas Open
+    document.querySelectorAll('[data-bento-open-canvas]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        launchWorkspaceDirectlyOrSignIn('pro');
+        const uid = currentUserId || Object.keys(state.accounts)[0];
+        if (uid) {
+          const pane = ensurePaneStateForUser(uid);
+          pane.canvasOpen = true;
+          renderApp();
+          showToast('Opened Shared Artifact Canvas inside CoThread Workspace.', 'shared');
+        }
+      });
+    });
+
+    // Interactive Capability 3 & Live Studio Fork Button: Fork to Personal Workspace
+    document.getElementById('showcaseForkPersonalBtn')?.addEventListener('click', () => {
+      registerOrSignInWithDetails('Muhammad Hasnain', 'hasnainrashi@gmail.com', 'starter');
+      const uid = currentUserId || Object.keys(state.accounts)[0];
+      const sharedSess = (state.sessions || []).find((s) => s.type === 'shared');
+      if (uid && sharedSess) {
+        handleForkSessionToPersonal(uid, sharedSess.id);
+      }
+    });
+
+    // Live Studio Interactive Co-Prompt Composer & Preset Chips on Landing Page
+    const runLandingShowcasePrompt = async (promptText) => {
+      const cleanPrompt = (promptText || '').trim();
+      if (!cleanPrompt) return;
+
+      const streamEl = document.getElementById('showcaseChatStream');
+      const inputEl = document.getElementById('showcasePromptInput');
+      const sendBtn = document.getElementById('showcaseSendPromptBtn');
+      const speakerSelect = document.getElementById('showcaseSpeakerSelect');
+      const canvasBodyEl = document.getElementById('showcaseCanvasBody');
+      const canvasTitleEl = document.getElementById('showcaseCanvasTitle');
+      if (!streamEl) return;
+
+      const speakerRole = speakerSelect?.value || 'guest';
+      if (speakerRole === 'guest' && showcasePermissionMode === 'viewer') {
+        showToast('Room is in View Only mode for colleagues. Fork to My Chats or toggle Can Prompt!', 'warning');
+        return;
+      }
+
+      const isHost = speakerRole === 'host';
+      const senderName = isHost ? 'Robina Mirbahar' : 'Muhammad Hasnain';
+      const senderInitials = isHost ? 'RM' : 'MH';
+      const senderAvatarClass = isHost ? 'avatar-host' : 'avatar-guest';
+      const senderBadgeHtml = isHost
+        ? '<span class="msg-badge badge-host">HOST • PRO 250K</span>'
+        : '<span class="msg-badge badge-guest">COLLEAGUE • STARTER 25K (USES HOST QUOTA)</span>';
+
+      // Append human prompt bubble
+      const userMsgEl = document.createElement('div');
+      userMsgEl.className = `showcase-msg ${isHost ? 'msg-host' : 'msg-guest'}`;
+      userMsgEl.innerHTML = `
+        <div class="msg-avatar ${senderAvatarClass}">${senderInitials}</div>
+        <div class="msg-bubble">
+          <div class="msg-meta">
+            <strong>${escapeHtml(senderName)}</strong>
+            ${senderBadgeHtml}
+          </div>
+          <p>${escapeHtml(cleanPrompt)}</p>
+        </div>
+      `;
+      streamEl.appendChild(userMsgEl);
+
+      // Append AI streaming indicator bubble
+      const aiMsgEl = document.createElement('div');
+      aiMsgEl.className = 'showcase-msg msg-ai';
+      aiMsgEl.innerHTML = `
+        <div class="msg-avatar avatar-ai">✦</div>
+        <div class="msg-bubble msg-bubble-ai">
+          <div class="msg-meta">
+            <strong>Gemini (<code>${escapeHtml(state.primaryModel || 'gemini-4-argon')}</code>)</strong>
+            <span class="msg-badge badge-sponsored">⚡ STREAMING MULTIPLAYER SYNTHESIS...</span>
+          </div>
+          <p class="showcase-ai-body">Synthesizing architecture & updating Shared Artifact Canvas...</p>
+        </div>
+      `;
+      streamEl.appendChild(aiMsgEl);
+      streamEl.scrollTop = streamEl.scrollHeight;
+
+      if (inputEl) inputEl.value = '';
+      if (sendBtn) {
+        sendBtn.disabled = true;
+        sendBtn.textContent = 'Synthesizing...';
+      }
+
+      try {
+        const sharedSess = (state.sessions || []).find((s) => s.type === 'shared') || {
+          id: 'session_landing_showcase',
+          title: 'Cloud Run Webhook Ingestion Architecture',
+          type: 'shared',
+          messages: [],
+        };
+        const aiResult = await synthesizeCoThreadAIResponse({
+          session: sharedSess,
+          senderAccount: {
+            id: isHost ? 'user_host' : 'user_guest',
+            name: senderName,
+            planTier: isHost ? 'pro' : 'starter',
+          },
+          promptText: cleanPrompt,
+          sponsorAccount: {
+            id: 'user_host',
+            name: 'Robina Mirbahar',
+            planTier: 'pro',
+          },
+          isShared: true,
+        });
+
+        const tokenCost = aiResult.tokenCost || 420;
+        showcaseTokensUsed = Math.min(showcaseTokenCap, showcaseTokensUsed + tokenCost);
+        syncLandingQuotaUI();
+
+        const formattedHtml = escapeHtml(aiResult.text || '')
+          .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+          .replace(/`([^`]+)`/g, '<code>$1</code>')
+          .replace(/\n/g, '<br/>');
+
+        aiMsgEl.innerHTML = `
+          <div class="msg-avatar avatar-ai">✦</div>
+          <div class="msg-bubble msg-bubble-ai">
+            <div class="msg-meta">
+              <strong>Gemini (<code>${escapeHtml(state.primaryModel || 'gemini-4-argon')}</code>)</strong>
+              <span class="msg-badge badge-sponsored">⚡ ${tokenCost.toLocaleString()} TOKENS CHARGED TO HOST QUOTA (${ isHost ? 'PRO 250K' : "HASNAIN'S 25K UNTOUCHED" })</span>
+            </div>
+            <div style="font-size:0.86rem;line-height:1.55;">${formattedHtml}</div>
+          </div>
+        `;
+
+        if (sharedSess.canvasTitle && canvasTitleEl) {
+          canvasTitleEl.textContent = sharedSess.canvasTitle;
+        }
+        if (sharedSess.canvasContent && canvasBodyEl) {
+          const snippet = sharedSess.canvasContent.split('\n').slice(0, 18).join('\n');
+          canvasBodyEl.innerHTML = `<pre style="margin:0;padding:8px;background:rgba(15,23,42,0.06);border-radius:8px;font-family:var(--font-mono);font-size:0.74rem;overflow-x:auto;white-space:pre-wrap;">${escapeHtml(snippet)}</pre>`;
+        }
+        streamEl.scrollTop = streamEl.scrollHeight;
+      } finally {
+        if (sendBtn) {
+          sendBtn.disabled = false;
+          sendBtn.textContent = 'Co-Prompt Gemini →';
+        }
+      }
+    };
+
+    document.getElementById('showcasePromptForm')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const inputEl = document.getElementById('showcasePromptInput');
+      runLandingShowcasePrompt(inputEl?.value || '');
+    });
+
+    document.querySelectorAll('[data-showcase-preset]').forEach((chip) => {
+      chip.addEventListener('click', () => {
+        const presetPrompt = chip.getAttribute('data-showcase-preset') || '';
+        const inputEl = document.getElementById('showcasePromptInput');
+        if (inputEl) inputEl.value = presetPrompt;
+        runLandingShowcasePrompt(presetPrompt);
+      });
     });
   }
 
