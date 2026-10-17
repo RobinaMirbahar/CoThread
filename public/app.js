@@ -2807,35 +2807,144 @@
     });
 
     // Interactive Capability 2: Live Host Cap Slider & Permission Toggle on Landing Page (synced with session state)
-    let showcaseTokensUsed = 4820;
-    let showcaseTokenCap = 25000;
-    let showcasePermissionMode = 'collaborator'; // 'collaborator' | 'viewer'
+    const initialSharedSess = (state.sessions || []).find((s) => s.type === 'shared');
+    let showcaseTokensUsed = initialSharedSess && typeof initialSharedSess.tokensUsed === 'number'
+      ? initialSharedSess.tokensUsed
+      : 4820;
+    let showcaseTokenCap = initialSharedSess && typeof initialSharedSess.tokenCap === 'number'
+      ? initialSharedSess.tokenCap
+      : 25000;
+    let showcasePermissionMode = initialSharedSess && initialSharedSess.permission
+      ? initialSharedSess.permission
+      : 'collaborator'; // 'collaborator' | 'viewer'
 
     const syncLandingQuotaUI = () => {
-      const pct = Math.min(100, Math.round((showcaseTokensUsed / Math.max(1000, showcaseTokenCap)) * 100));
-      const bentoMeterFill = document.getElementById('bentoQuotaMeterFill');
-      const bentoCapValueLabel = document.getElementById('bentoCapValueLabel');
-      const showcaseQuotaLabel = document.getElementById('showcaseQuotaLabel');
-      const showcaseQuotaFill = document.getElementById('showcaseQuotaFill');
-      if (bentoMeterFill) bentoMeterFill.style.width = `${pct}%`;
-      if (bentoCapValueLabel) {
-        bentoCapValueLabel.textContent = `${showcaseTokensUsed.toLocaleString()} / ${showcaseTokenCap.toLocaleString()} Tokens`;
-      }
-      if (showcaseQuotaLabel) {
-        showcaseQuotaLabel.textContent = `${showcaseTokensUsed.toLocaleString()} / ${showcaseTokenCap.toLocaleString()} Cap`;
-      }
-      if (showcaseQuotaFill) showcaseQuotaFill.style.width = `${pct}%`;
+      const safeCap = Math.max(1000, showcaseTokenCap);
+      const pct = Math.min(100, Math.round((showcaseTokensUsed / safeCap) * 100));
+      const allowanceLeft = Math.max(0, safeCap - showcaseTokensUsed);
+      const hostProTotal = 250000;
+      const hostPoolRemaining = Math.max(0, hostProTotal - showcaseTokensUsed);
 
-      // Also sync with primary shared session in state
+      const barColor = pct >= 95
+        ? '#DC2626'
+        : pct >= 75
+          ? '#F59E0B'
+          : '#16A34A';
+
+      // 1. Update "Sponsor the room" Bento Card elements
+      const bentoCapLabel = document.getElementById('bentoCapLabel') || document.getElementById('bentoCapValueLabel');
+      const bentoCapFill = document.getElementById('bentoCapFill') || document.getElementById('bentoQuotaMeterFill');
+      const bentoSlider = document.getElementById('bentoCapSlider');
+      const bentoAllowanceLeft = document.getElementById('bentoAllowanceLeft');
+      const bentoHostPoolLeft = document.getElementById('bentoHostPoolLeft');
+
+      if (bentoCapLabel) {
+        bentoCapLabel.textContent = `${showcaseTokensUsed.toLocaleString()} / ${safeCap.toLocaleString()} tokens (${pct}%)`;
+      }
+      if (bentoCapFill) {
+        bentoCapFill.style.width = `${pct}%`;
+        bentoCapFill.style.backgroundColor = barColor;
+      }
+      if (bentoSlider && Number(bentoSlider.value) !== safeCap) {
+        bentoSlider.value = String(safeCap);
+      }
+      if (bentoAllowanceLeft) {
+        bentoAllowanceLeft.textContent = allowanceLeft > 0
+          ? `Allowance Left: ${allowanceLeft.toLocaleString()} tok`
+          : '\u26A0 Cap Reached (0 tok left)';
+        bentoAllowanceLeft.style.color = allowanceLeft > 0 ? '#111111' : '#DC2626';
+      }
+      if (bentoHostPoolLeft) {
+        bentoHostPoolLeft.textContent = `Host Pool: ${hostPoolRemaining.toLocaleString()} / 250k`;
+      }
+
+      // 2. Update Live Studio Showcase Quota Strip
+      const showcaseCapText = document.getElementById('showcaseCapText') || document.getElementById('showcaseQuotaLabel');
+      const showcaseCapFill = document.getElementById('showcaseCapFill') || document.getElementById('showcaseQuotaFill');
+      const showcasePermBadge = document.getElementById('showcasePermBadge');
+
+      if (showcaseCapText) {
+        showcaseCapText.textContent = `${showcaseTokensUsed.toLocaleString()} / ${safeCap.toLocaleString()} (${pct}%)`;
+      }
+      if (showcaseCapFill) {
+        showcaseCapFill.style.width = `${pct}%`;
+        showcaseCapFill.style.backgroundColor = barColor;
+      }
+      if (showcasePermBadge) {
+        if (showcasePermissionMode === 'viewer') {
+          showcasePermBadge.textContent = '\uD83D\uDD12 VIEW ONLY';
+          showcasePermBadge.style.background = '#FEE2E2';
+          showcasePermBadge.style.color = '#991B1B';
+        } else if (allowanceLeft === 0) {
+          showcasePermBadge.textContent = '\u26A0 CAP REACHED';
+          showcasePermBadge.style.background = '#FEF3C7';
+          showcasePermBadge.style.color = '#92400E';
+        } else {
+          showcasePermBadge.textContent = 'CAN PROMPT AI';
+          showcasePermBadge.style.background = '';
+          showcasePermBadge.style.color = '';
+        }
+      }
+
+      // 3. Update Step 02 Card ("Sponsor the Room Quota")
+      const step2CapLabel = document.getElementById('step2CapLabel');
+      const step2StatusTag = document.getElementById('step2StatusTag');
+      if (step2CapLabel) {
+        step2CapLabel.textContent = `${showcaseTokensUsed.toLocaleString()} / ${safeCap.toLocaleString()}`;
+      }
+      if (step2StatusTag) {
+        step2StatusTag.textContent = allowanceLeft > 0 ? `\u2713 ${allowanceLeft.toLocaleString()} Left` : '\u26A0 Capped';
+      }
+
+      // 4. Sync with primary shared session & Host account in live workspace state
       const sharedSess = (state.sessions || []).find((s) => s.type === 'shared');
       if (sharedSess) {
-        sharedSess.tokenCap = showcaseTokenCap;
+        sharedSess.tokenCap = safeCap;
+        sharedSess.tokensUsed = showcaseTokensUsed;
+        const hostAcc = state.accounts && state.accounts[sharedSess.ownerId];
+        if (hostAcc) {
+          hostAcc.quotaUsed = showcaseTokensUsed;
+        }
       }
     };
 
-    document.getElementById('bentoCapSlider')?.addEventListener('input', (e) => {
-      showcaseTokenCap = Number(e.target.value) || 25000;
+    const capSliderEl = document.getElementById('bentoCapSlider');
+    if (capSliderEl) {
+      const handleSliderChange = (e) => {
+        showcaseTokenCap = Number(e.target.value) || 25000;
+        syncLandingQuotaUI();
+      };
+      capSliderEl.addEventListener('input', handleSliderChange);
+      capSliderEl.addEventListener('change', handleSliderChange);
+    }
+
+    const bentoSamples = [
+      'Design a fault-tolerant Cloud Run + Pub/Sub webhook dead-letter retry pipeline.',
+      'Write a Firestore atomic transaction enforcing Host Session Token Caps.',
+      'Compare single-player Claude, ChatGPT & Gemini against CoThread multiplayer rooms.',
+      'Generate an MCP tool schema for real-time collaborative canvas synchronization.'
+    ];
+    let bentoSampleIdx = 0;
+
+    document.getElementById('bentoTestPromptBtn')?.addEventListener('click', async () => {
+      if (showcasePermissionMode === 'viewer') {
+        showToast('Room is locked to View Only! Click Mode button to enable Can Prompt AI.', 'warning');
+        return;
+      }
+      if (showcaseTokensUsed >= showcaseTokenCap) {
+        showToast(`Host Session Cap (${showcaseTokenCap.toLocaleString()} tokens) reached! Drag the slider right to raise the cap.`, 'warning');
+        return;
+      }
+      const nextPrompt = bentoSamples[bentoSampleIdx % bentoSamples.length];
+      bentoSampleIdx += 1;
+      await runLandingShowcasePrompt(nextPrompt);
+    });
+
+    document.getElementById('bentoResetQuotaBtn')?.addEventListener('click', () => {
+      showcaseTokensUsed = 4820;
+      showcaseTokenCap = 25000;
       syncLandingQuotaUI();
+      showToast('Reset room telemetry to 4,820 / 25,000 tokens.', 'info');
     });
 
     document.getElementById('bentoPermToggleBtn')?.addEventListener('click', (e) => {
@@ -2850,28 +2959,27 @@
       const speakerSelect = document.getElementById('showcaseSpeakerSelect');
 
       if (showcasePermissionMode === 'viewer') {
-        btn.textContent = '\uD83D\uDD12 View Only (Locked for Guests)';
-        btn.style.background = 'rgba(217, 48, 37, 0.12)';
-        btn.style.color = '#d93025';
-        btn.style.borderColor = 'rgba(217, 48, 37, 0.35)';
+        btn.textContent = '\uD83D\uDD12 View Only (Locked)';
+        btn.style.background = '#FCA5A5';
+        btn.style.color = '#000000';
         if (speakerSelect?.value === 'guest' && showcaseInput) {
           showcaseInput.disabled = true;
-          showcaseInput.placeholder = '\uD83D\uDD12 Host switched room to View Only \u2014 Fork to My Chats or switch to Host to prompt';
+          showcaseInput.placeholder = '\uD83D\uDD12 Host switched room to View Only \u2014 Fork to My Chats or switch to Host';
           if (showcaseSubmit) showcaseSubmit.disabled = true;
         }
         showToast('Switched /s/cothread-arch-9x2k permission to View Only.', 'warning');
       } else {
-        btn.textContent = '\u2713 Can Prompt (Sponsored)';
-        btn.style.background = 'rgba(24, 128, 56, 0.12)';
-        btn.style.color = '#188038';
-        btn.style.borderColor = 'rgba(24, 128, 56, 0.35)';
+        btn.textContent = 'Mode: Can Prompt AI \u21BB';
+        btn.style.background = '#FF90E8';
+        btn.style.color = '#000000';
         if (showcaseInput) {
           showcaseInput.disabled = false;
-          showcaseInput.placeholder = 'Ask Gemini 4 Argon a real architectural question right here...';
+          showcaseInput.placeholder = 'Type a live prompt to Gemini...';
           if (showcaseSubmit) showcaseSubmit.disabled = false;
         }
         showToast('Switched /s/cothread-arch-9x2k permission to Can Prompt (Host-Sponsored).', 'shared');
       }
+      syncLandingQuotaUI();
     });
 
     document.getElementById('showcaseSpeakerSelect')?.addEventListener('change', (e) => {
@@ -2881,13 +2989,13 @@
       if (role === 'guest' && showcasePermissionMode === 'viewer') {
         if (showcaseInput) {
           showcaseInput.disabled = true;
-          showcaseInput.placeholder = '\uD83D\uDD12 Host switched room to View Only \u2014 Fork to My Chats or switch to Host to prompt';
+          showcaseInput.placeholder = '\uD83D\uDD12 Host switched room to View Only \u2014 Fork to My Chats or switch to Host';
         }
         if (showcaseSubmit) showcaseSubmit.disabled = true;
       } else {
         if (showcaseInput) {
           showcaseInput.disabled = false;
-          showcaseInput.placeholder = 'Ask Gemini 4 Argon a real architectural question right here...';
+          showcaseInput.placeholder = 'Type a live prompt to Gemini...';
         }
         if (showcaseSubmit) showcaseSubmit.disabled = false;
       }
@@ -2922,12 +3030,11 @@
       const cleanPrompt = (promptText || '').trim();
       if (!cleanPrompt) return;
 
-      const streamEl = document.getElementById('showcaseChatStream');
+      const streamEl = document.getElementById('showcaseMessagesArea') || document.getElementById('showcaseChatStream');
       const inputEl = document.getElementById('showcasePromptInput');
       const sendBtn = document.getElementById('showcaseSendPromptBtn');
+      const testBtn = document.getElementById('bentoTestPromptBtn');
       const speakerSelect = document.getElementById('showcaseSpeakerSelect');
-      const canvasBodyEl = document.getElementById('showcaseCanvasBody');
-      const canvasTitleEl = document.getElementById('showcaseCanvasTitle');
       if (!streamEl) return;
 
       const speakerRole = speakerSelect?.value || 'guest';
@@ -2936,40 +3043,42 @@
         return;
       }
 
-      const isHost = speakerRole === 'host';
-      const senderName = isHost ? 'Robina Mirbahar' : 'Muhammad Hasnain';
-      const senderInitials = isHost ? 'RM' : 'MH';
-      const senderAvatarClass = isHost ? 'avatar-host' : 'avatar-guest';
-      const senderBadgeHtml = isHost
-        ? '<span class="msg-badge badge-host">HOST \u2022 PRO 250K</span>'
-        : '<span class="msg-badge badge-guest">COLLEAGUE \u2022 STARTER 25K (USES HOST QUOTA)</span>';
+      if (showcaseTokensUsed >= showcaseTokenCap) {
+        showToast(`Host Session Cap (${showcaseTokenCap.toLocaleString()} tokens) reached! Drag the Host Session Cap slider right to allocate more tokens.`, 'warning');
+        return;
+      }
 
-      // Append human prompt bubble
+      const isHost = speakerRole === 'host';
+      const senderName = isHost ? 'Robina Mirbahar (Lead \u2022 Host)' : 'Muhammad Hasnain (Collaborator)';
+      const senderInitials = isHost ? 'RM' : 'MH';
+      const senderAvatarClass = isHost ? 'alex' : 'hasnain';
+      const senderTagHtml = isHost
+        ? '<span class="sc-tag">Pro 250k Pool</span>'
+        : '<span class="sc-tag guest">Sublink Guest</span>';
+
+      // Append human prompt bubble matching .sc-msg structure
       const userMsgEl = document.createElement('div');
-      userMsgEl.className = `showcase-msg ${isHost ? 'msg-host' : 'msg-guest'}`;
+      userMsgEl.className = `sc-msg ${isHost ? 'host-msg' : 'guest-msg'}`;
       userMsgEl.innerHTML = `
-        <div class="msg-avatar ${senderAvatarClass}">${senderInitials}</div>
-        <div class="msg-bubble">
-          <div class="msg-meta">
-            <strong>${escapeHtml(senderName)}</strong>
-            ${senderBadgeHtml}
-          </div>
-          <p>${escapeHtml(cleanPrompt)}</p>
+        <div class="sc-av ${senderAvatarClass}">${senderInitials}</div>
+        <div class="sc-bubble">
+          <div class="sc-meta"><strong>${escapeHtml(senderName)}</strong> ${senderTagHtml}</div>
+          <p><span class="mention">@Gemini</span> ${escapeHtml(cleanPrompt)}</p>
         </div>
       `;
       streamEl.appendChild(userMsgEl);
 
       // Append AI streaming indicator bubble
       const aiMsgEl = document.createElement('div');
-      aiMsgEl.className = 'showcase-msg msg-ai';
+      aiMsgEl.className = 'sc-msg ai-msg';
       aiMsgEl.innerHTML = `
-        <div class="msg-avatar avatar-ai">\u2726</div>
-        <div class="msg-bubble msg-bubble-ai">
-          <div class="msg-meta">
-            <strong>Gemini (<code>${escapeHtml(state.primaryModel || 'gemini-4-argon')}</code>)</strong>
-            <span class="msg-badge badge-sponsored">\u26A1 STREAMING MULTIPLAYER SYNTHESIS...</span>
+        <div class="sc-av ai">\u2726</div>
+        <div class="sc-bubble ai-surface">
+          <div class="sc-meta">
+            <strong>Google ADK \u2022 ${escapeHtml(state.primaryModel || 'Gemini 4 Argon')}</strong>
+            <span class="sc-quota-pill">\u26A1 Synthesizing on Host Quota...</span>
           </div>
-          <p class="showcase-ai-body">Synthesizing architecture & updating Shared Artifact Canvas...</p>
+          <p>Evaluating shared multiplayer context &amp; charging Host session allowance...</p>
         </div>
       `;
       streamEl.appendChild(aiMsgEl);
@@ -2978,7 +3087,11 @@
       if (inputEl) inputEl.value = '';
       if (sendBtn) {
         sendBtn.disabled = true;
-        sendBtn.textContent = 'Synthesizing...';
+        sendBtn.textContent = 'Running...';
+      }
+      if (testBtn) {
+        testBtn.disabled = true;
+        testBtn.textContent = '\u26A1 Running...';
       }
 
       try {
@@ -2992,7 +3105,7 @@
           session: sharedSess,
           senderAccount: {
             id: isHost ? 'user_host' : 'user_guest',
-            name: senderName,
+            name: isHost ? 'Robina Mirbahar' : 'Muhammad Hasnain',
             planTier: isHost ? 'pro' : 'starter',
           },
           promptText: cleanPrompt,
@@ -3004,7 +3117,7 @@
           isShared: true,
         });
 
-        const tokenCost = aiResult.tokensCharged || aiResult.tokenCost || 420;
+        const tokenCost = aiResult.tokensCharged || aiResult.tokenCost || 480;
         showcaseTokensUsed = Math.min(showcaseTokenCap, showcaseTokensUsed + tokenCost);
         syncLandingQuotaUI();
 
@@ -3014,31 +3127,34 @@
           .replace(/\n/g, '<br/>');
 
         aiMsgEl.innerHTML = `
-          <div class="msg-avatar avatar-ai">\u2726</div>
-          <div class="msg-bubble msg-bubble-ai">
-            <div class="msg-meta">
-              <strong>Gemini (<code>${escapeHtml(state.primaryModel || 'gemini-4-argon')}</code>)</strong>
-              <span class="msg-badge badge-sponsored">\u26A1 ${tokenCost.toLocaleString()} TOKENS CHARGED TO HOST QUOTA (${ isHost ? 'PRO 250K' : "HASNAIN'S 25K UNTOUCHED" })</span>
+          <div class="sc-av ai">\u2726</div>
+          <div class="sc-bubble ai-surface">
+            <div class="sc-meta">
+              <strong>Google ADK \u2022 ${escapeHtml(state.primaryModel || 'Gemini 4 Argon')}</strong>
+              <span class="sc-quota-pill">\u26A1 +${tokenCost.toLocaleString()} tokens \u2192 Host Quota (Now ${showcaseTokensUsed.toLocaleString()} / ${showcaseTokenCap.toLocaleString()})</span>
             </div>
-            <div style="font-size:0.86rem;line-height:1.55;">${formattedHtml}</div>
+            <p>${formattedHtml}</p>
           </div>
         `;
-
-        if (sharedSess.canvasTitle && canvasTitleEl) {
-          canvasTitleEl.textContent = sharedSess.canvasTitle;
-        }
-        if (sharedSess.canvasContent && canvasBodyEl) {
-          const snippet = sharedSess.canvasContent.split('\n').slice(0, 18).join('\n');
-          canvasBodyEl.innerHTML = `<pre style="margin:0;padding:8px;background:rgba(15,23,42,0.06);border-radius:8px;font-family:var(--font-mono);font-size:0.74rem;overflow-x:auto;white-space:pre-wrap;">${escapeHtml(snippet)}</pre>`;
-        }
         streamEl.scrollTop = streamEl.scrollHeight;
+        showToast(
+          `Charged +${tokenCost.toLocaleString()} tokens to Robina's Host Quota (${showcaseTokensUsed.toLocaleString()} / ${showcaseTokenCap.toLocaleString()} used, Hasnain: 0 used).`,
+          'shared'
+        );
       } finally {
         if (sendBtn) {
           sendBtn.disabled = false;
-          sendBtn.textContent = 'Co-Prompt Gemini \u2192';
+          sendBtn.textContent = 'Ask AI \u2192';
+        }
+        if (testBtn) {
+          testBtn.disabled = false;
+          testBtn.textContent = '\u26A1 +Prompt Tokens';
         }
       }
     };
+
+    // Initialize landing quota UI immediately on boot
+    syncLandingQuotaUI();
 
     document.getElementById('showcasePromptForm')?.addEventListener('submit', (e) => {
       e.preventDefault();
