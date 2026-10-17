@@ -48,7 +48,7 @@ try {
     $RepoExists = $false
 }
 
-$RepoDescription = "CoThread - Enterprise Collaborative AI Platform with Host-Sponsored Token Quota and Sublink Sharing (Project Lead: Robina Mirbahar @RobinaMirbahar - Google Cloud AI Builder Cup 2026)"
+$RepoDescription = "CoThread - Enterprise Collaborative AI Platform (Project Lead, Principal AI Architect: Robina Mirbahar @RobinaMirbahar | Original Idea, Co-Builder & Collaborator: Muhammad Hasnain @hasnain-kk)"
 
 if (-not $RepoExists) {
     $CreateBody = @{
@@ -65,7 +65,7 @@ if (-not $RepoExists) {
         description = $RepoDescription
     } | ConvertTo-Json
     $Repo = Invoke-RestMethod -Uri "https://api.github.com/repos/$Owner/$RepoName" -Method Patch -Headers $Headers -Body $PatchBody -ContentType "application/json"
-    Write-Host "   Updated repository description with Project Lead Robina Mirbahar (@RobinaMirbahar)" -ForegroundColor Green
+    Write-Host "   Updated repository description with Project Lead Robina Mirbahar & Original Idea / Co-Builder Muhammad Hasnain" -ForegroundColor Green
 }
 
 # 4. Upload all project files via GitHub Contents API (Zero git.exe dependency!)
