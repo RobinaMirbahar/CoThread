@@ -1,14 +1,14 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>CoThread â€” Go from Solo to Team AI</title>
-  <link rel="icon" type="image/svg+xml" href="./public/logo.svg?v=ct14" />
+  <link rel="icon" type="image/svg+xml" href="./logo.svg?v=ct14" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="./public/styles.css?v=ct14" />
+  <link rel="stylesheet" href="./styles.css?v=ct14" />
 </head>
 <body>
   <!-- =========================================================================
@@ -19,7 +19,7 @@
     <header class="cothread-navbar">
       <div class="cothread-nav-left">
         <a href="#" class="cothread-brand-link" id="navBrandLogo" aria-label="CoThread Home">
-          <img src="./public/logo.svg?v=ct14" class="cothread-logo-coin" width="44" height="44" alt="CoThread Logo" />
+          <img src="./logo.svg?v=ct14" class="cothread-logo-coin" width="44" height="44" alt="CoThread Logo" />
           <span class="cothread-wordmark">CoThread</span>
         </a>
 
@@ -114,7 +114,7 @@
       <div class="cothread-hero-center">
         <!-- Prominent Centerpiece CoThread 3D Coin Logo -->
         <div class="hero-brand-emblem-wrap">
-          <img src="./public/logo.svg?v=ct13" width="86" height="86" alt="CoThread Coin Logo" class="hero-center-logo-img" />
+          <img src="./logo.svg?v=ct13" width="86" height="86" alt="CoThread Coin Logo" class="hero-center-logo-img" />
           <div class="hero-brand-pill">
             <span class="hero-brand-name">CoThread</span>
           </div>
@@ -179,26 +179,35 @@
             <div class="gbc-content">
               <h2>Share any AI thread</h2>
               <p>
-                One <code>/s/</code> link turns solo prompts into a live multiplayer room.
+                One <code>/s/</code> link turns solo prompts into a live multiplayer room. Click any role below to enter live:
               </p>
               <div class="cothread-checklist">
                 <div class="gc-row">
                   <span class="gc-pink-check">âœ“</span>
-                  <span>Live team presence &amp; streaming</span>
+                  <span>Live team presence &amp; token-by-token streaming</span>
                 </div>
                 <div class="gc-row">
                   <span class="gc-pink-check">âœ“</span>
-                  <span>Ask AI or Team Chat (0 tokens)</span>
+                  <span>Ask AI (Host Quota) or Team Chat (0 tokens)</span>
                 </div>
               </div>
             </div>
             <div class="gbc-sticker-graphic">
               <div class="neo-sticker-window">
-                <div class="nsw-top"><code>/s/cothread-arch-9x2k</code> <span class="nsw-live">â— 3 LIVE</span></div>
+                <div class="nsw-top">
+                  <button type="button" id="bentoCopySublinkBtn" style="background:transparent;border:none;color:#FFF;font-family:var(--font-mono);font-size:11.5px;cursor:pointer;text-decoration:underline;" title="Click to copy live sublink">/s/cothread-arch-9x2k ðŸ“‹</button>
+                  <span class="nsw-live">â— 3 LIVE</span>
+                </div>
                 <div class="nsw-body">
-                  <div class="nsw-chip pink">Robina Mirbahar (Lead Host â€¢ 250k)</div>
-                  <div class="nsw-chip yellow">Staff Engineer (Can Prompt)</div>
-                  <div class="nsw-chip teal">Security Lead (Artifact Canvas)</div>
+                  <button type="button" class="nsw-chip pink" data-launch-workspace="pro" style="width:100%;text-align:left;cursor:pointer;">
+                    ðŸ‘‘ Robina Mirbahar (Lead Host â€¢ 250k) â†’
+                  </button>
+                  <button type="button" class="nsw-chip yellow" data-bento-join-guest="true" style="width:100%;text-align:left;cursor:pointer;">
+                    âš¡ Muhammad Hasnain (Collaborator â€¢ Can Prompt) â†’
+                  </button>
+                  <button type="button" class="nsw-chip teal" data-bento-open-canvas="true" style="width:100%;text-align:left;cursor:pointer;">
+                    ðŸ“„ Live Shared Artifact Canvas (Open Code) â†’
+                  </button>
                 </div>
               </div>
             </div>
@@ -207,12 +216,30 @@
           <article class="cothread-bento-card narrow-card bg-yellow-card">
             <h2>Sponsor the room</h2>
             <p>
-              Guests prompt for free using your configurable Host Cap.
+              Configure your live Host Cap &amp; guest permissions below:
             </p>
             <div class="neo-meter-sticker">
-              <div class="nms-label"><span>Host Cap</span> <strong>4,820 / 25,000</strong></div>
-              <div class="nms-bar"><div class="nms-fill" style="width:34%"></div></div>
-              <div class="nms-sub">âœ¦ Zero API keys required</div>
+              <div class="nms-label">
+                <span>Host Session Cap</span>
+                <strong id="bentoCapLabel">4,820 / 25,000 tokens</strong>
+              </div>
+              <div class="nms-bar"><div class="nms-fill" id="bentoCapFill" style="width:19%"></div></div>
+              <input
+                type="range"
+                id="bentoCapSlider"
+                min="5000"
+                max="100000"
+                step="5000"
+                value="25000"
+                aria-label="Configure Host Session Token Cap"
+                style="width:100%;accent-color:#000000;cursor:pointer;margin-top:4px;"
+              />
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:4px;">
+                <span class="nms-sub">âœ¦ Zero API keys</span>
+                <button type="button" id="bentoPermToggleBtn" style="padding:4px 10px;border-radius:999px;border:1.5px solid #000;background:#FF90E8;color:#000;font-size:11px;font-weight:800;cursor:pointer;">
+                  Mode: Can Prompt AI â†»
+                </button>
+              </div>
             </div>
           </article>
         </div>
@@ -331,42 +358,42 @@
                 <div class="window-dots">
                   <span></span><span></span><span></span>
                 </div>
-                <div class="window-route-pill">
+                <button type="button" class="window-route-pill" id="showcaseCopyRouteBtn" style="cursor:pointer;" title="Click to copy shared sublink">
                   <span class="live-green-dot"></span>
-                  <span>cothread.ai/s/cothread-arch-9x2k</span>
-                </div>
+                  <span>cothread.ai/s/cothread-arch-9x2k ðŸ“‹</span>
+                </button>
                 <div class="window-avatars">
-                  <span class="mini-av alex">CT</span>
-                  <span class="mini-av hasnain">ADK</span>
-                  <span class="mini-av sarah">MCP</span>
+                  <span class="mini-av alex" title="Robina Mirbahar (Lead Host)">RM</span>
+                  <span class="mini-av hasnain" title="Muhammad Hasnain (Collaborator)">MH</span>
+                  <span class="mini-av sarah" title="Google ADK Orchestrator">âœ¦</span>
                 </div>
               </div>
 
               <div class="showcase-quota-strip">
                 <div class="sq-left">
-                  <span class="sq-badge">FIRESTORE + ADK</span>
-                  <span class="sq-text">Host-Sponsored Quota Ledger â€¢ <strong>Cloud Run</strong></span>
+                  <span class="sq-badge" id="showcasePermBadge">CAN PROMPT AI</span>
+                  <span class="sq-text">Host Quota Ledger â€¢ <strong>Robina (250k Pro)</strong></span>
                 </div>
                 <div class="sq-right">
-                  <span class="sq-mono">25k CAP</span>
-                  <div class="sq-bar"><div class="sq-fill" style="width: 24%"></div></div>
+                  <span class="sq-mono" id="showcaseCapText">4,820 / 25,000</span>
+                  <div class="sq-bar"><div class="sq-fill" id="showcaseCapFill" style="width: 19%"></div></div>
                 </div>
               </div>
 
-              <div class="showcase-messages-area">
+              <div class="showcase-messages-area" id="showcaseMessagesArea" style="max-height: 280px; overflow-y: auto;">
                 <div class="sc-msg host-msg">
-                  <div class="sc-av alex">H</div>
+                  <div class="sc-av alex">RM</div>
                   <div class="sc-bubble">
-                    <div class="sc-meta"><strong>Session Host</strong> <span class="sc-tag">Firestore Sync</span></div>
-                    <p>Created <code>/s/cothread-arch-9x2k</code> backed by Cloud Firestore &amp; Google ADK.</p>
+                    <div class="sc-meta"><strong>Robina Mirbahar (Lead â€¢ Host)</strong> <span class="sc-tag">Pro 250k Pool</span></div>
+                    <p>Opened <code>/s/cothread-arch-9x2k</code> backed by Cloud Firestore &amp; Google ADK. Try sending a live prompt below!</p>
                   </div>
                 </div>
 
                 <div class="sc-msg guest-msg">
-                  <div class="sc-av hasnain">G</div>
+                  <div class="sc-av hasnain">MH</div>
                   <div class="sc-bubble">
-                    <div class="sc-meta"><strong>Team Collaborator</strong> <span class="sc-tag guest">Sublink Guest</span></div>
-                    <p><span class="mention">@Gemini</span> Compress thread via Flash-Lite and charge shared prompts to the Host cap.</p>
+                    <div class="sc-meta"><strong>Muhammad Hasnain (Collaborator)</strong> <span class="sc-tag guest">Sublink Guest</span></div>
+                    <p><span class="mention">@Gemini</span> Design a fault-tolerant webhook ingestion pipeline on Google Cloud Run in 4 concise bullet points.</p>
                   </div>
                 </div>
 
@@ -374,21 +401,46 @@
                   <div class="sc-av ai">âœ¦</div>
                   <div class="sc-bubble ai-surface">
                     <div class="sc-meta">
-                      <strong>Google ADK â€¢ Gemini 3.8 Flash</strong>
-                      <span class="sc-quota-pill">âš¡ QuotaGuardTool Verified</span>
+                      <strong>Google ADK â€¢ Gemini 4 Argon</strong>
+                      <span class="sc-quota-pill">âš¡ 390 tokens â†’ Host Quota (Guest: 0)</span>
                     </div>
-                    <p>Persisted to Firestore! Click <strong>Copy to My Chats</strong> anytime to fork onto your personal quota.</p>
+                    <p><strong>1. Stateless Cloud Run Ingress:</strong> Validate HMAC-SHA256 &amp; return <code>202 Accepted</code> in &lt;15ms.<br/><strong>2. Cloud Pub/Sub Buffering:</strong> Decouple 10k+ RPS traffic bursts.<br/><strong>3. Firestore Idempotency:</strong> Deduplicate <code>event_id</code> atomically.<br/><strong>4. Exponential Backoff &amp; DLT:</strong> Auto-route poison messages after 5 retries.</p>
                   </div>
                 </div>
               </div>
 
+              <!-- Live Preset Prompt Pills + Interactive Co-Prompt Bar -->
+              <div style="padding: 8px 14px; background: var(--bg-page); border-top: 1.5px dashed var(--border-strong); display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+                <span style="font-size:10.5px;font-weight:800;font-family:var(--font-mono);color:var(--ink-muted);">TRY LIVE:</span>
+                <button type="button" class="cothread-mini-sticker yellow" data-showcase-preset="Add an exponential backoff retry strategy and Dead Letter Topic configuration." style="padding:3px 9px;font-size:11px;">+ Backoff &amp; DLT</button>
+                <button type="button" class="cothread-mini-sticker pink" data-showcase-preset="Write the Node.js Express handler for this Cloud Run webhook endpoint." style="padding:3px 9px;font-size:11px;">+ Express Handler</button>
+                <button type="button" class="cothread-mini-sticker teal" data-showcase-preset="Compare single-player Claude, ChatGPT & Gemini with CoThread multiplayer." style="padding:3px 9px;font-size:11px;">+ Compare Claude/ChatGPT/Gemini</button>
+              </div>
+
+              <form id="showcasePromptForm" style="padding: 10px 14px; background: var(--bg-elevated); border-top: 2px solid var(--border-strong); display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                <select id="showcaseSpeakerSelect" aria-label="Select Speaker" style="height:38px;padding:0 8px;border-radius:8px;border:2px solid #000;font-size:12px;font-weight:700;background:var(--ct-yellow);color:#000;">
+                  <option value="guest">As Collaborator (Hasnain â€¢ Sponsored)</option>
+                  <option value="host">As Host (Robina â€¢ 250k Pro)</option>
+                </select>
+                <input
+                  type="text"
+                  id="showcasePromptInput"
+                  placeholder="Type a live prompt to Gemini..."
+                  aria-label="Type a live prompt to Gemini"
+                  style="flex:1;min-width:160px;height:38px;padding:0 12px;border-radius:8px;border:2px solid #000;font-size:13px;font-weight:600;background:#FFF;color:#000;"
+                />
+                <button type="submit" style="height:38px;padding:0 14px;border-radius:8px;border:2px solid #000;background:#000;color:#FFF;font-size:12.5px;font-weight:800;cursor:pointer;">
+                  Ask AI â†’
+                </button>
+              </form>
+
               <div class="showcase-bottom-bar">
-                <div class="sc-actions">
-                  <button type="button" class="sc-copy-btn" data-open-stack-tab="mcp">
-                    <span>ðŸ”Œ Inspect MCP &amp; ADK</span>
+                <div class="sc-actions" style="width:100%;justify-content:space-between;">
+                  <button type="button" class="sc-copy-btn" id="showcaseForkPersonalBtn">
+                    <span>ðŸ”€ Copy to My Chats (Personal Quota)</span>
                   </button>
                   <button type="button" class="sc-enter-btn" id="showcaseSignInBtn">
-                    <span>Launch Live Room â†—</span>
+                    <span>Open Full Workspace â†—</span>
                   </button>
                 </div>
               </div>
@@ -600,7 +652,7 @@
       <div class="footer-inner">
         <div class="footer-brand-col">
           <div class="brand-wordmark-link" style="display:flex;align-items:center;gap:10px;">
-            <img src="./public/logo.svg?v=ct14" width="36" height="36" alt="CoThread Logo" />
+            <img src="./logo.svg?v=ct14" width="36" height="36" alt="CoThread Logo" />
             <span class="wordmark-serif">CoThread</span>
           </div>
           <p class="footer-copy">
@@ -624,7 +676,7 @@
     <header class="workspace-top-header">
       <div class="top-header-left">
         <button type="button" class="back-to-site-brand" id="backToWebsiteBtn" title="Return to CoThread Home">
-          <img src="./public/logo.svg?v=ct14" width="32" height="32" alt="CoThread Logo" />
+          <img src="./logo.svg?v=ct14" width="32" height="32" alt="CoThread Logo" />
           <span class="wordmark-serif sm">CoThread</span>
         </button>
 
@@ -776,9 +828,9 @@
 
   <div class="toast-container" id="toastContainer" aria-live="polite"></div>
 
-  <script src="./src/core/quota-engine.js?v=ct14"></script>
-  <script src="./src/ai/gemini-service.js?v=ct14"></script>
-  <script src="./public/app.js?v=ct14"></script>
+  <script src="../src/core/quota-engine.js?v=ct14"></script>
+  <script src="../src/ai/gemini-service.js?v=ct14"></script>
+  <script src="./app.js?v=ct14"></script>
 
   <script>
     (function initCoinParallax() {
@@ -833,4 +885,3 @@
   </script>
 </body>
 </html>
-
