@@ -75,7 +75,7 @@
               senderRole: 'AI Assistant',
               kind: 'ai',
               timestamp: nowTimeLabel(),
-              text: `Welcome to **CoThread**! ✦\n\nThis is a real-time collaborative AI chat — like **Google Docs for AI**:\n\n• **Share this chat**: Click **🔗 Share** in the top right to invite teammates privately or create a public link.\n• **Multiplayer presence**: When someone joins, their avatar immediately appears in the top right presence stack.\n• **Shared context**: Anyone in the chat can send prompts, and everyone sees who asked what with their name and avatar.`
+              text: `Welcome to **CoThread**! ✦\n\nThis is a real-time collaborative AI chat:\n\n• **Share this chat**: Click **🔗 Share** in the top right to invite teammates privately or create a public link.\n• **Multiplayer presence**: When someone joins, their avatar immediately appears in the top right presence stack.\n• **Shared context**: Anyone in the chat can send prompts, and everyone sees who asked what with their name and avatar.`
             }
           ]
         }
@@ -941,7 +941,7 @@
                       <div style="font-size: 38px; margin-bottom: 14px;">✦</div>
                       <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 8px;">How can CoThread AI help today?</h2>
                       <p style="color: var(--ink-muted); font-size: 13.5px; line-height: 1.6; max-width: 500px; text-align: center;">
-                        Ask anything, brainstorm ideas, or click <strong>🔗 Share</strong> in the top right to collaborate live with teammates in real time like Google Docs.
+                        Ask anything, brainstorm ideas, or click <strong>🔗 Share</strong> in the top right to collaborate live with teammates in real time.
                       </p>
                     </div>
                   ` : activeSession.messages.map((msg) => renderMessageRowHTML(msg, userId, activeSession)).join('')}
@@ -1315,7 +1315,7 @@
 
     const phrases = [
       'Multiple users prompt Gemini in one shared chat with live presence and history.',
-      'Real-time collaborative AI chat • Like Google Docs for AI.',
+      'Real-time collaborative AI chat with live presence and shared history.',
       'Live collaborator presence & avatars in the top bar as teammates join.',
       'Zero quota confusion • Share with 1 click via Public or Private threads.',
       'Turn individual AI prompting into a synchronized multiplayer workspace.'

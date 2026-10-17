@@ -4833,30 +4833,28 @@ svg {
   margin: 0 0 16px;
   flex: 1;
 }
-
-.team-github-btn {
+.team-handle-link {
+  font-family: var(--font-mono);
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--ink-primary);
+  text-decoration: none;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 14px;
-  border-radius: 999px;
-  border: 2px solid #000000;
-  background: #000000;
-  color: #FFFFFF !important;
-  font-family: var(--font-mono);
-  font-size: 12.5px;
-  font-weight: 700;
-  text-decoration: none;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.05);
+  border: 1.5px solid var(--border-strong);
   width: fit-content;
-  transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
-  box-shadow: 3px 3px 0px rgba(0, 0, 0, 0.25);
+  transition: all 0.15s ease;
 }
 
-.team-github-btn:hover {
+.team-handle-link:hover {
   background: var(--ct-pink);
-  color: #000000 !important;
-  transform: translate(-2px, -2px);
-  box-shadow: 5px 5px 0px #000000;
+  color: #000000;
+  transform: translate(-1px, -1px);
+  box-shadow: 2px 2px 0px #000000;
 }
 
 @media (max-width: 768px) {
@@ -4866,26 +4864,33 @@ svg {
 }
 
 /* ==========================================================================
-   Footer Exact Credits
+   Footer High-Contrast Credits (Bright & 100% Readable on Black Footer)
    ========================================================================== */
-.footer-credit-text {
-  font-size: 13px;
-  line-height: 1.6;
-  color: var(--ink-muted);
+.footer-copy.footer-credit-text {
+  font-size: 14px;
+  line-height: 1.8;
+  color: #E2E8F0 !important;
   margin-top: 8px;
-  max-width: 750px;
+  max-width: 820px;
 }
 
-.footer-credit-text .credit-link {
-  color: var(--ink-primary);
+.footer-copy.footer-credit-text .credit-line {
+  display: block;
+  margin-bottom: 5px;
+  color: #E2E8F0 !important;
+}
+
+.footer-copy.footer-credit-text .credit-link {
+  color: #FF70B8 !important;
   font-weight: 700;
   text-decoration: underline;
   text-decoration-thickness: 1.5px;
+  text-underline-offset: 3px;
   transition: color 0.15s ease;
 }
 
-.footer-credit-text .credit-link:hover {
-  color: var(--ct-pink-dark, #FF1787);
+.footer-copy.footer-credit-text .credit-link:hover {
+  color: #FFDC58 !important;
 }
 
 
