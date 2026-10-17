@@ -1,0 +1,420 @@
+rules_version = '2';
+
+// ===============================================================
+// Assumed Data Model
+// ===============================================================
+//
+// This security rules file assumes the following data structures:
+//
+// Collection: users (Private User Profile & Quota State - Contains PII)
+// Document ID: {userId} (matches Firebase Auth UID)
+// Fields:
+//   - name: string (required, 1..100 chars) - User display name
+//   - email: string (required, valid email format, <= 254 chars, immutable) - User PII email address
+//   - planTier: string (required, enum: ['starter', 'pro', 'enterprise'], immutable for non-admin) - Subscription tier
+//   - quotaTotal: int (required, 0..100000000, immutable for non-admin) - Total software-assigned token quota
+//   - quotaUsed: int (required, 0 <= quotaUsed <= quotaTotal, monotonic non-decreasing for non-admin) - Consumed tokens
+//   - createdAt: timestamp (required, recent on create, immutable on update) - Account creation timestamp
+//
+// Collection: users_public (Public Collaborator Profile - Zero PII)
+// Document ID: {userId} (matches Firebase Auth UID)
+// Fields:
+//   - name: string (required, 1..100 chars) - Collaborator display name
+//   - role: string (optional, 1..100 chars) - Job title or workspace role label
+//   - avatarColor: string (optional, 1..20 chars) - Hex color badge
+//   - initials: string (optional, 1..4 chars) - Avatar initials
+//   - createdAt: timestamp (required, recent on create, immutable on update) - Creation timestamp
+//
+// Collection: sessions
+// Document ID: {sessionId}
+// Fields:
+//   - type: string (required, enum: ['shared', 'personal'], immutable) - Workspace session mode
+//   - ownerId: string (required, 1..128 chars, matches creator UID, immutable) - Host/Owner user ID
+//   - title: string (required, 1..200 chars) - Session title
+//   - shareCode: string (optional, 1..100 chars, owner-controlled) - Capability sublink identifier
+//   - linkActive: bool (required, owner-controlled) - Whether the share sublink is active or revoked
+//   - permission: string (required, enum: ['collaborator', 'viewer'], owner-controlled) - Guest access role
+//   - tokenCap: int (required, 0..10000000, owner-controlled) - Host-sponsored token ceiling for the session
+//   - tokensUsed: int (required, 0 <= tokensUsed <= tokenCap, non-decreasing) - Tokens consumed in session
+//   - participantIds: list of strings (required, max 50 items, owner-controlled) - Authorized participant UIDs
+//   - canvasContent: string (optional, 0..100000 chars) - Shared live architecture markdown specification
+//   - forkedFromSessionId: string (optional, 1..128 chars, immutable) - Source session ID if forked to personal
+//   - createdAt: timestamp (required, recent on create, immutable on update) - Session creation timestamp
+//   - updatedAt: timestamp (optional, recent on create/update) - Last modification timestamp
+//
+// Subcollection: sessions/{sessionId}/messages
+// Document ID: {messageId}
+// Fields:
+//   - senderId: string (required, matches request.auth.uid, immutable) - Author UID
+//   - senderName: string (required, 1..100 chars, immutable) - Author display name
+//   - role: string (required, enum: ['user', 'assistant'], immutable) - Message role
+//   - content: string (required, 1..20000 chars, immutable) - Prompt or response markdown body
+//   - tokenCost: int (required, 0..1000000, immutable) - Tokens billed for this turn
+//   - chargedToUserId: string (required, 1..128 chars, immutable) - UID of the quota pool billed (Host or Personal)
+//   - createdAt: timestamp (required, recent on create, immutable) - Message creation timestamp
+//
+// ===============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    // Check if the user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Check if user owns the resource (for user-owned documents)
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Check if user is an administrator via trusted custom claims
+    function isAdmin() {
+      return isAuthenticated() && request.auth.token.get('admin', false) == true;
+    }
+
+    // Validate required fields exist on the incoming document
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    // Validate that the document contains only the explicitly allowed fields
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    // Validate that immutable fields have not been modified during an update
+    function areImmutableFieldsUnchanged(fields) {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(fields);
+    }
+
+    // Validate string length within explicit bounds
+    function validStringLength(field, minLen, maxLen) {
+      return request.resource.data[field] is string &&
+             request.resource.data[field].size() >= minLen &&
+             request.resource.data[field].size() <= maxLen;
+    }
+
+    // Validate optional string (if present, must be a string and within length bounds)
+    function isValidOptionalString(field, minLen, maxLen) {
+      return !(field in request.resource.data) ||
+             (request.resource.data[field] is string &&
+              request.resource.data[field].size() >= minLen &&
+              request.resource.data[field].size() <= maxLen);
+    }
+
+    // Validate email format and maximum length
+    function isValidEmail(email) {
+      return email is string &&
+             email.size() >= 3 &&
+             email.size() <= 254 &&
+             email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    // Validate that a list is a list and enforces maximum size limits
+    function isValidList(listData, maxSize) {
+      return listData is list && listData.size() <= maxSize;
+    }
+
+    // Validate participantIds list structure and element constraints
+    function isValidParticipantList(participants) {
+      return isValidList(participants, 50) &&
+             (participants.size() == 0 ||
+              (participants[0] is string &&
+               participants[0].size() >= 1 &&
+               participants[0].size() <= 128));
+    }
+
+    // Validate that a timestamp is recent (within the last 5 minutes up to request.time)
+    function isRecent(time) {
+      return time is timestamp &&
+             time > request.time - duration.value(5, 'm') &&
+             time <= request.time;
+    }
+
+    // Validate optional recent timestamp
+    function isValidOptionalRecentTimestamp(field) {
+      return !(field in request.resource.data) ||
+             isRecent(request.resource.data[field]);
+    }
+
+    // ===============================================================
+    // Domain Validators (Called on BOTH create and update)
+    // ===============================================================
+
+    function isValidUser(data) {
+      let allowedFields = ['name', 'email', 'planTier', 'quotaTotal', 'quotaUsed', 'createdAt'];
+      let requiredFields = ['name', 'email', 'planTier', 'quotaTotal', 'quotaUsed', 'createdAt'];
+
+      return hasOnlyAllowedFields(allowedFields) &&
+             hasRequiredFields(requiredFields) &&
+             validStringLength('name', 1, 100) &&
+             isValidEmail(data.email) &&
+             data.planTier is string &&
+             data.planTier in ['starter', 'pro', 'enterprise'] &&
+             data.quotaTotal is int &&
+             data.quotaTotal >= 0 &&
+             data.quotaTotal <= 100000000 &&
+             data.quotaUsed is int &&
+             data.quotaUsed >= 0 &&
+             data.quotaUsed <= data.quotaTotal &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidPublicUser(data) {
+      let allowedFields = ['name', 'role', 'avatarColor', 'initials', 'createdAt'];
+      let requiredFields = ['name', 'createdAt'];
+
+      return hasOnlyAllowedFields(allowedFields) &&
+             hasRequiredFields(requiredFields) &&
+             validStringLength('name', 1, 100) &&
+             isValidOptionalString('role', 1, 100) &&
+             isValidOptionalString('avatarColor', 1, 20) &&
+             isValidOptionalString('initials', 1, 4) &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidSession(data) {
+      let allowedFields = [
+        'type',
+        'ownerId',
+        'title',
+        'shareCode',
+        'linkActive',
+        'permission',
+        'tokenCap',
+        'tokensUsed',
+        'participantIds',
+        'canvasContent',
+        'forkedFromSessionId',
+        'createdAt',
+        'updatedAt'
+      ];
+      let requiredFields = [
+        'type',
+        'ownerId',
+        'title',
+        'linkActive',
+        'permission',
+        'tokenCap',
+        'tokensUsed',
+        'participantIds',
+        'createdAt'
+      ];
+
+      return hasOnlyAllowedFields(allowedFields) &&
+             hasRequiredFields(requiredFields) &&
+             data.type is string &&
+             data.type in ['shared', 'personal'] &&
+             validStringLength('ownerId', 1, 128) &&
+             validStringLength('title', 1, 200) &&
+             isValidOptionalString('shareCode', 1, 100) &&
+             data.linkActive is bool &&
+             data.permission is string &&
+             data.permission in ['collaborator', 'viewer'] &&
+             data.tokenCap is int &&
+             data.tokenCap >= 0 &&
+             data.tokenCap <= 10000000 &&
+             data.tokensUsed is int &&
+             data.tokensUsed >= 0 &&
+             data.tokensUsed <= data.tokenCap &&
+             isValidParticipantList(data.participantIds) &&
+             isValidOptionalString('canvasContent', 0, 100000) &&
+             isValidOptionalString('forkedFromSessionId', 1, 128) &&
+             data.createdAt is timestamp &&
+             (!('updatedAt' in data) || data.updatedAt is timestamp);
+    }
+
+    function isValidMessage(data) {
+      let allowedFields = [
+        'senderId',
+        'senderName',
+        'role',
+        'content',
+        'tokenCost',
+        'chargedToUserId',
+        'createdAt'
+      ];
+      let requiredFields = [
+        'senderId',
+        'senderName',
+        'role',
+        'content',
+        'tokenCost',
+        'chargedToUserId',
+        'createdAt'
+      ];
+
+      return hasOnlyAllowedFields(allowedFields) &&
+             hasRequiredFields(requiredFields) &&
+             validStringLength('senderId', 1, 128) &&
+             validStringLength('senderName', 1, 100) &&
+             data.role is string &&
+             data.role in ['user', 'assistant'] &&
+             validStringLength('content', 1, 20000) &&
+             data.tokenCost is int &&
+             data.tokenCost >= 0 &&
+             data.tokenCost <= 1000000 &&
+             validStringLength('chargedToUserId', 1, 128) &&
+             data.createdAt is timestamp;
+    }
+
+    // ===============================================================
+    // Session Authorization Helpers
+    // ===============================================================
+
+    function canReadSessionData(sessionData) {
+      return isAuthenticated() &&
+             (
+               (sessionData.type == 'personal' && sessionData.ownerId == request.auth.uid) ||
+               (sessionData.type == 'shared' && (
+                 sessionData.ownerId == request.auth.uid ||
+                 request.auth.uid in sessionData.participantIds ||
+                 sessionData.linkActive == true
+               ))
+             );
+    }
+
+    function isCollaboratorOnSessionData(sessionData) {
+      return isAuthenticated() &&
+             sessionData.type == 'shared' &&
+             sessionData.permission == 'collaborator' &&
+             (
+               request.auth.uid in sessionData.participantIds ||
+               sessionData.linkActive == true
+             );
+    }
+
+    // ===============================================================
+    // Collection Rules: users (Private Profile & Quota Ledger - PII Protected)
+    // ===============================================================
+
+    match /users/{userId} {
+      // Strictly restrict read access to the profile owner or admin to prevent PII (email) exposure
+      allow read: if isOwner(userId) || isAdmin();
+
+      // Users can create their own starter profile with initial 0 quotaUsed; admins can provision any valid tier
+      allow create: if isAuthenticated() &&
+                       isValidUser(request.resource.data) &&
+                       isRecent(request.resource.data.createdAt) &&
+                       (
+                         (isOwner(userId) &&
+                          request.resource.data.planTier == 'starter' &&
+                          request.resource.data.quotaTotal == 25000 &&
+                          request.resource.data.quotaUsed == 0) ||
+                         isAdmin()
+                       );
+
+      // Users can update their own profile name and increment quotaUsed within quotaTotal,
+      // but cannot self-escalate planTier or quotaTotal, nor reduce quotaUsed
+      allow update: if isAuthenticated() &&
+                       isValidUser(request.resource.data) &&
+                       areImmutableFieldsUnchanged(['createdAt', 'email']) &&
+                       (
+                         (isOwner(userId) &&
+                          areImmutableFieldsUnchanged(['planTier', 'quotaTotal']) &&
+                          request.resource.data.quotaUsed >= resource.data.quotaUsed) ||
+                         isAdmin()
+                       );
+
+      allow delete: if isAdmin();
+    }
+
+    // ===============================================================
+    // Collection Rules: users_public (Non-PII Collaborator Profiles)
+    // ===============================================================
+
+    match /users_public/{userId} {
+      // Authenticated collaborators can read non-sensitive public profile badges
+      allow read: if isAuthenticated();
+
+      allow create: if isOwner(userId) &&
+                       isValidPublicUser(request.resource.data) &&
+                       isRecent(request.resource.data.createdAt);
+
+      allow update: if isOwner(userId) &&
+                       isValidPublicUser(request.resource.data) &&
+                       areImmutableFieldsUnchanged(['createdAt']);
+
+      allow delete: if isOwner(userId) || isAdmin();
+    }
+
+    // ===============================================================
+    // Collection Rules: sessions (Personal & Shared Multiplayer Workspaces)
+    // ===============================================================
+
+    match /sessions/{sessionId} {
+      allow read: if canReadSessionData(resource.data);
+
+      // Authenticated user can create a session they own starting with 0 tokensUsed
+      allow create: if isAuthenticated() &&
+                       isValidSession(request.resource.data) &&
+                       request.resource.data.ownerId == request.auth.uid &&
+                       request.resource.data.tokensUsed == 0 &&
+                       isRecent(request.resource.data.createdAt) &&
+                       isValidOptionalRecentTimestamp('updatedAt');
+
+      // Session Owner can update session configuration and content;
+      // Collaborators on shared sessions can ONLY update tokensUsed, canvasContent, and updatedAt
+      // while tokensUsed is non-decreasing and <= tokenCap.
+      allow update: if isAuthenticated() &&
+                       isValidSession(request.resource.data) &&
+                       areImmutableFieldsUnchanged(['ownerId', 'createdAt', 'type', 'forkedFromSessionId']) &&
+                       isValidOptionalRecentTimestamp('updatedAt') &&
+                       (
+                         // Owner update path
+                         (resource.data.ownerId == request.auth.uid) ||
+                         // Collaborator update path (strictly locked down to tokensUsed, canvasContent, updatedAt)
+                         (isCollaboratorOnSessionData(resource.data) &&
+                          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['tokensUsed', 'canvasContent', 'updatedAt']) &&
+                          request.resource.data.tokensUsed >= resource.data.tokensUsed &&
+                          request.resource.data.tokensUsed <= resource.data.tokenCap)
+                       );
+
+      // Only the session owner can delete their session
+      allow delete: if isAuthenticated() && resource.data.ownerId == request.auth.uid;
+
+      // ===============================================================
+      // Subcollection Rules: sessions/{sessionId}/messages
+      // ===============================================================
+
+      match /messages/{messageId} {
+        // Verify parent session exists and caller is authorized to read the session
+        allow read: if isAuthenticated() &&
+                       exists(/databases/$(database)/documents/sessions/$(sessionId)) &&
+                       canReadSessionData(get(/databases/$(database)/documents/sessions/$(sessionId)).data);
+
+        // Authorized session owner or collaborator can append messages with their own senderId
+        allow create: if isAuthenticated() &&
+                         exists(/databases/$(database)/documents/sessions/$(sessionId)) &&
+                         isValidMessage(request.resource.data) &&
+                         request.resource.data.senderId == request.auth.uid &&
+                         isRecent(request.resource.data.createdAt) &&
+                         (
+                           get(/databases/$(database)/documents/sessions/$(sessionId)).data.ownerId == request.auth.uid ||
+                           isCollaboratorOnSessionData(get(/databases/$(database)/documents/sessions/$(sessionId)).data)
+                         );
+
+        // Messages are an immutable audit and conversation log once created
+        allow update: if false;
+
+        // Only the parent session owner can delete messages
+        allow delete: if isAuthenticated() &&
+                         exists(/databases/$(database)/documents/sessions/$(sessionId)) &&
+                         get(/databases/$(database)/documents/sessions/$(sessionId)).data.ownerId == request.auth.uid;
+      }
+    }
+
+    // ===============================================================
+    // Default Deny Catch-All
+    // ===============================================================
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
