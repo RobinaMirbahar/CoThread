@@ -4,11 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>CoThread — Go from Solo to Team AI</title>
-  <link rel="icon" type="image/svg+xml" href="./logo.svg?v=ct11" />
+  <link rel="icon" type="image/svg+xml" href="./logo.svg?v=ct12" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="./styles.css?v=ct11" />
+  <link rel="stylesheet" href="./styles.css?v=ct12" />
 </head>
 <body>
   <!-- =========================================================================
@@ -19,7 +19,7 @@
     <header class="cothread-navbar">
       <div class="cothread-nav-left">
         <a href="#" class="cothread-brand-link" id="navBrandLogo" aria-label="CoThread Home">
-          <img src="./logo.svg?v=ct11" class="cothread-logo-coin" width="44" height="44" alt="CoThread Logo" />
+          <img src="./logo.svg?v=ct12" class="cothread-logo-coin" width="44" height="44" alt="CoThread Logo" />
           <span class="cothread-wordmark">CoThread</span>
         </a>
 
@@ -114,7 +114,7 @@
       <div class="cothread-hero-center">
         <!-- Prominent Centerpiece CoThread 3D Coin Logo -->
         <div class="hero-brand-emblem-wrap">
-          <img src="./logo.svg?v=ct11" width="86" height="86" alt="CoThread Coin Logo" class="hero-center-logo-img" />
+          <img src="./logo.svg?v=ct12" width="86" height="86" alt="CoThread Coin Logo" class="hero-center-logo-img" />
           <div class="hero-brand-pill">
             <span class="hero-brand-name">CoThread</span>
           </div>
@@ -254,8 +254,8 @@
           <div class="hero-left-col">
             <div class="claude-style-auth-card" id="heroAuthCard">
               <div class="auth-card-sticker-header">
-                <span class="sticker-badge-yellow">FIREBASE &amp; GOOGLE AUTH</span>
-                <span class="sticker-badge-mono">FIRESTORE DB</span>
+                <button type="button" class="sticker-badge-yellow" id="badgeFirebaseAuthBtn" style="cursor:pointer;">FIREBASE &amp; GOOGLE AUTH</button>
+                <button type="button" class="sticker-badge-mono" data-open-stack-tab="firestore" style="cursor:pointer;">FIRESTORE DB</button>
               </div>
 
               <div class="invite-banner-editorial hidden" id="inviteAuthBanner">
@@ -278,14 +278,13 @@
 
               <div class="editorial-or-divider"><span>OR WORK EMAIL</span></div>
 
-              <form class="hero-email-form" id="heroEmailAuthForm">
+              <form class="hero-email-form" id="heroEmailAuthForm" novalidate>
                 <div class="email-input-group">
                   <input
                     type="email"
                     id="heroEmailInput"
                     class="editorial-email-input"
-                    placeholder="Enter your email (e.g. name@company.com)"
-                    required
+                    placeholder="Enter your email (or click Create / Open below)"
                   />
                 </div>
 
@@ -295,8 +294,7 @@
                       type="text"
                       id="heroNameInput"
                       class="editorial-email-input sm"
-                      placeholder="Your Name"
-                      required
+                      placeholder="Your Name (optional)"
                     />
                     <select id="heroPlanSelect" class="editorial-email-input sm" aria-label="Select Tier">
                       <option value="starter">Starter • 25k ($0)</option>
@@ -306,7 +304,7 @@
                   </div>
                 </div>
 
-                <button type="submit" class="btn-continue-obsidian">
+                <button type="submit" class="btn-continue-obsidian" id="heroSubmitWorkspaceBtn">
                   Create / Open Workspace →
                 </button>
               </form>
@@ -390,7 +388,7 @@
                     <span>🔌 Inspect MCP &amp; ADK</span>
                   </button>
                   <button type="button" class="sc-enter-btn" id="showcaseSignInBtn">
-                    <span>Sign In to Launch ↗</span>
+                    <span>Launch Live Room ↗</span>
                   </button>
                 </div>
               </div>
@@ -412,17 +410,17 @@
         <div class="cothread-orange-pill-loop">
           <div class="loop-inner-track">
             <div class="loop-top-labels">
-              <span class="loop-step-badge">➜ 1. Host `/s/` Link</span>
-              <span class="loop-step-badge">➜ 2. Sponsor Team Quota</span>
+              <button type="button" class="loop-step-badge" data-launch-workspace="pro" style="cursor:pointer;">➜ 1. Host `/s/` Link</button>
+              <button type="button" class="loop-step-badge" data-open-stack-tab="firestore" style="cursor:pointer;">➜ 2. Sponsor Team Quota</button>
             </div>
 
             <div class="loop-center-mascot">
-              <img src="./logo.svg?v=ct11" width="108" height="108" alt="CoThread Logo" />
+              <img src="./logo.svg?v=ct12" width="108" height="108" alt="CoThread Logo" />
             </div>
 
             <div class="loop-bottom-labels">
-              <span class="loop-step-badge">4. Copy to My Chats ⬅</span>
-              <span class="loop-step-badge">3. Co-Prompt Live ⬅</span>
+              <button type="button" class="loop-step-badge" data-launch-workspace="starter" style="cursor:pointer;">4. Copy to My Chats ⬅</button>
+              <button type="button" class="loop-step-badge" data-open-stack-tab="adk" style="cursor:pointer;">3. Co-Prompt Live ⬅</button>
             </div>
           </div>
         </div>
@@ -432,20 +430,20 @@
     <section class="cothread-stat-marquee-section" id="quotaFlowSection">
       <div class="cothread-marquee-wrap" aria-label="CoThread Capabilities Ticker">
         <div class="cothread-marquee-track">
-          <span class="cothread-tag-pill pink">☁️ Cloud Firestore DB</span>
-          <span class="cothread-tag-pill yellow">🤖 Google ADK Orchestrator</span>
-          <span class="cothread-tag-pill teal">🔌 Model Context Protocol (MCP)</span>
-          <span class="cothread-tag-pill">🔥 Firebase Studio (.idx)</span>
-          <span class="cothread-tag-pill pink">⚡ Gemini 3.8 Flash</span>
-          <span class="cothread-tag-pill yellow">🧠 Gemini 4 Argon</span>
-          <span class="cothread-tag-pill teal">🗜️ Flash-Lite Compression</span>
-          <span class="cothread-tag-pill pink">🛡️ Host Quota Cap</span>
-          <span class="cothread-tag-pill yellow">🔀 Copy to My Chats</span>
-          <span class="cothread-tag-pill pink">💡 Idea: @hasnain-kk</span>
-          <span class="cothread-tag-pill pink">☁️ Cloud Firestore DB</span>
-          <span class="cothread-tag-pill yellow">🤖 Google ADK Orchestrator</span>
-          <span class="cothread-tag-pill teal">🔌 Model Context Protocol (MCP)</span>
-          <span class="cothread-tag-pill">🔥 Firebase Studio (.idx)</span>
+          <span class="cothread-tag-pill pink" data-open-stack-tab="firestore">☁️ Cloud Firestore DB</span>
+          <span class="cothread-tag-pill yellow" data-open-stack-tab="adk">🤖 Google ADK Orchestrator</span>
+          <span class="cothread-tag-pill teal" data-open-stack-tab="mcp">🔌 Model Context Protocol (MCP)</span>
+          <span class="cothread-tag-pill" data-open-stack-tab="studio">🔥 Firebase Studio (.idx)</span>
+          <span class="cothread-tag-pill pink" data-launch-workspace="pro">⚡ Gemini 3.8 Flash</span>
+          <span class="cothread-tag-pill yellow" data-launch-workspace="pro">🧠 Gemini 4 Argon</span>
+          <span class="cothread-tag-pill teal" data-open-stack-tab="adk">🗜️ Flash-Lite Compression</span>
+          <span class="cothread-tag-pill pink" data-open-stack-tab="firestore">🛡️ Host Quota Cap</span>
+          <span class="cothread-tag-pill yellow" data-launch-workspace="starter">🔀 Copy to My Chats</span>
+          <a href="https://github.com/hasnain-kk" target="_blank" rel="noopener noreferrer" class="cothread-tag-pill pink">💡 Idea: @hasnain-kk</a>
+          <span class="cothread-tag-pill pink" data-open-stack-tab="firestore">☁️ Cloud Firestore DB</span>
+          <span class="cothread-tag-pill yellow" data-open-stack-tab="adk">🤖 Google ADK Orchestrator</span>
+          <span class="cothread-tag-pill teal" data-open-stack-tab="mcp">🔌 Model Context Protocol (MCP)</span>
+          <span class="cothread-tag-pill" data-open-stack-tab="studio">🔥 Firebase Studio (.idx)</span>
         </div>
       </div>
     </section>
@@ -536,7 +534,7 @@
       <div class="footer-inner">
         <div class="footer-brand-col">
           <div class="brand-wordmark-link" style="display:flex;align-items:center;gap:10px;">
-            <img src="./logo.svg?v=ct11" width="36" height="36" alt="CoThread Logo" />
+            <img src="./logo.svg?v=ct12" width="36" height="36" alt="CoThread Logo" />
             <span class="wordmark-serif">CoThread</span>
           </div>
           <p class="footer-copy">
@@ -560,7 +558,7 @@
     <header class="workspace-top-header">
       <div class="top-header-left">
         <button type="button" class="back-to-site-brand" id="backToWebsiteBtn" title="Return to CoThread Home">
-          <img src="./logo.svg?v=ct11" width="32" height="32" alt="CoThread Logo" />
+          <img src="./logo.svg?v=ct12" width="32" height="32" alt="CoThread Logo" />
           <span class="wordmark-serif sm">CoThread</span>
         </button>
 
@@ -628,14 +626,14 @@
 
         <div class="google-account-list" id="googleAccountList"></div>
 
-        <form class="google-custom-form" id="googleCustomAccountForm">
+        <form class="google-custom-form" id="googleCustomAccountForm" novalidate>
           <div class="form-field">
             <label for="googleCustomName">Full Name</label>
-            <input type="text" id="googleCustomName" class="editorial-input" placeholder="Enter your full name" required />
+            <input type="text" id="googleCustomName" class="editorial-input" placeholder="Enter your full name" />
           </div>
           <div class="form-field">
             <label for="googleCustomEmail">Google / Work Email</label>
-            <input type="email" id="googleCustomEmail" class="editorial-input" placeholder="name@company.com" required />
+            <input type="email" id="googleCustomEmail" class="editorial-input" placeholder="name@company.com" />
           </div>
           <div class="form-field">
             <label for="googleCustomTier">Software Token Quota Plan</label>
@@ -712,9 +710,9 @@
 
   <div class="toast-container" id="toastContainer" aria-live="polite"></div>
 
-  <script src="../src/core/quota-engine.js?v=ct11"></script>
-  <script src="../src/ai/gemini-service.js?v=ct11"></script>
-  <script src="./app.js?v=ct11"></script>
+  <script src="../src/core/quota-engine.js?v=ct12"></script>
+  <script src="../src/ai/gemini-service.js?v=ct12"></script>
+  <script src="./app.js?v=ct12"></script>
 
   <script>
     (function initCoinParallax() {
