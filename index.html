@@ -399,30 +399,96 @@
     </section>
 
     <!-- =========================================================================
-         SECTION 3: THE COTHREAD LOOP & MARQUEE
+         SECTION 3: HOW COTHREAD WORKS (CLEAR 4-STEP ENTERPRISE WORKFLOW)
          ========================================================================= -->
     <section class="cothread-way-section" id="cothreadWaySection">
       <div class="section-container">
-        <h2 class="cothread-center-heading">
-          How CoThread works
-        </h2>
+        <div class="section-header-editorial center">
+          <span class="cothread-section-kicker">ENTERPRISE WORKFLOW &amp; ARCHITECTURE</span>
+          <h2 class="cothread-center-heading">
+            How CoThread works in 4 steps
+          </h2>
+          <p class="cothread-way-lead">
+            Zero client API keys. Shared sessions run on the Hostâ€™s sponsored capâ€”and any teammate can fork to their private quota in one click.
+          </p>
+        </div>
 
-        <div class="cothread-orange-pill-loop">
-          <div class="loop-inner-track">
-            <div class="loop-top-labels">
-              <button type="button" class="loop-step-badge" data-launch-workspace="pro" style="cursor:pointer;">âžœ 1. Host `/s/` Link</button>
-              <button type="button" class="loop-step-badge" data-open-stack-tab="firestore" style="cursor:pointer;">âžœ 2. Sponsor Team Quota</button>
+        <div class="cothread-steps-grid">
+          <!-- Step 1 -->
+          <article class="cothread-step-card">
+            <div class="step-card-top">
+              <span class="step-num-badge pink">STEP 01</span>
+              <span class="step-role-pill">Host â€¢ Pro 250k</span>
             </div>
+            <h3>1. Share a Live <code>/s/</code> Sublink</h3>
+            <p>
+              Start a thread and click <strong>Share &amp; Quota</strong> to generate a live <code>/s/cothread-...</code> link with <strong>Can Prompt</strong> or <strong>View Only</strong> permissions.
+            </p>
+            <div class="step-card-visual">
+              <code>cothread.ai/s/cothread-arch-9x2k</code>
+              <span class="step-live-dot">â— LIVE</span>
+            </div>
+            <button type="button" class="step-action-btn" data-launch-workspace="pro">
+              Host a Live Room â†’
+            </button>
+          </article>
 
-            <div class="loop-center-mascot">
-              <img src="./public/logo.svg?v=ct13" width="108" height="108" alt="CoThread Logo" />
+          <!-- Step 2 -->
+          <article class="cothread-step-card">
+            <div class="step-card-top">
+              <span class="step-num-badge yellow">STEP 02</span>
+              <span class="step-role-pill">Cloud Firestore Guard</span>
             </div>
+            <h3>2. Sponsor the Room Quota</h3>
+            <p>
+              Set a hard <strong>Session Token Cap</strong> (e.g., <code>25,000 tokens</code>). Teammates join with Google OAuthâ€”zero API keys needed.
+            </p>
+            <div class="step-card-visual">
+              <span>Host Pool Cap: <strong>4,820 / 25,000</strong></span>
+              <span class="step-tag-ok">âœ“ Sponsored</span>
+            </div>
+            <button type="button" class="step-action-btn" data-open-stack-tab="firestore">
+              Inspect Firestore Rules â†’
+            </button>
+          </article>
 
-            <div class="loop-bottom-labels">
-              <button type="button" class="loop-step-badge" data-launch-workspace="starter" style="cursor:pointer;">4. Copy to My Chats â¬…</button>
-              <button type="button" class="loop-step-badge" data-open-stack-tab="adk" style="cursor:pointer;">3. Co-Prompt Live â¬…</button>
+          <!-- Step 3 -->
+          <article class="cothread-step-card">
+            <div class="step-card-top">
+              <span class="step-num-badge teal">STEP 03</span>
+              <span class="step-role-pill">Google ADK + MCP</span>
             </div>
-          </div>
+            <h3>3. Co-Prompt Live Together</h3>
+            <p>
+              Collaborators prompt <strong>Gemini 3.8 Flash</strong> &amp; <strong>Gemini 4 Argon</strong> in the same context while <strong>Flash-Lite</strong> compresses history by 41%.
+            </p>
+            <div class="step-card-visual">
+              <span>âš¡ Charged to <strong>Host Quota</strong></span>
+              <span class="step-tag-ok">Guest: 0 Used</span>
+            </div>
+            <button type="button" class="step-action-btn" data-open-stack-tab="adk">
+              Inspect ADK Orchestrator â†’
+            </button>
+          </article>
+
+          <!-- Step 4 -->
+          <article class="cothread-step-card">
+            <div class="step-card-top">
+              <span class="step-num-badge orange">STEP 04</span>
+              <span class="step-role-pill">Private Workspace</span>
+            </div>
+            <h3>4. 1-Click Copy to My Chats</h3>
+            <p>
+              Any teammate clicks <strong>Copy to My Chats</strong> to fork the thread into their private <code>/app</code> workspace billed to their own personal quota.
+            </p>
+            <div class="step-card-visual">
+              <span>ðŸ”’ Billed to <strong>My Starter 25k</strong></span>
+              <span class="step-tag-ok">Independent</span>
+            </div>
+            <button type="button" class="step-action-btn" data-launch-workspace="starter">
+              Try Independent Fork â†’
+            </button>
+          </article>
         </div>
       </div>
     </section>
