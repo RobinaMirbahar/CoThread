@@ -1,7 +1,7 @@
 /**
  * CoThread Core Quota, Auth & Multiplayer Session Engine
  * Universal UMD/CommonJS/Browser module for managing:
- * 1. Software-Assigned User Quotas (Zero User API Keys — Starter 25k, Pro 250k, Enterprise 1M)
+ * 1. Software-Assigned User Quotas (Zero User API Keys - Starter 25k, Pro 250k, Enterprise 1M)
  * 2. Real User Authentication (Email/Password Sign-Up, Login & Google Sign-In)
  * 3. Personal Chats vs. Shared Multiplayer Sessions (/s/:shareId sublinks)
  * 4. Host-Sponsored Subscription & Token Quota Enforcement
@@ -499,7 +499,7 @@ Any collaborator can click **"Copy to Personal Account"** at any time to create 
           title: 'Personal Notes & Architecture Scratchpad',
           lastEditedBy: newUser.shortName,
           updatedAt: new Date().toISOString(),
-          content: `# Welcome to CoThread, ${newUser.shortName}!\n\nYour account has been automatically provisioned with **${tier.monthlyQuota.toLocaleString()} monthly tokens** on the **${tier.name}** plan — no API keys required.`
+          content: `# Welcome to CoThread, ${newUser.shortName}!\n\nYour account has been automatically provisioned with **${tier.monthlyQuota.toLocaleString()} monthly tokens** on the **${tier.name}** plan \u2014 no API keys required.`
         },
         messages: [
           {
@@ -637,7 +637,7 @@ Any collaborator can click **"Copy to Personal Account"** at any time to create 
         tokenCost: 0,
         tokensSaved: 0,
         type: 'PLAN_UPDATED',
-        summary: `${user.shortName} switched plan to ${tier.name} — software quota updated to ${tier.monthlyQuota.toLocaleString()} tokens/month`
+        summary: `${user.shortName} switched plan to ${tier.name} \u2014 software quota updated to ${tier.monthlyQuota.toLocaleString()} tokens/month`
       });
 
       return this.sanitizeUser(user);
@@ -803,7 +803,7 @@ Any collaborator can click **"Copy to Personal Account"** at any time to create 
           tokenCost: cost,
           tokensSaved: saved,
           type: 'HOST_SPONSORED_PROMPT',
-          summary: `${requestingUser.shortName} ran prompt in "${session.title}" — ${cost.toLocaleString()} tokens charged to ${hostUser.shortName}'s Host Pool`
+          summary: `${requestingUser.shortName} ran prompt in "${session.title}" \u2014 ${cost.toLocaleString()} tokens charged to ${hostUser.shortName}'s Host Pool`
         };
         this.state.ledgerEvents.unshift(ledgerEntry);
 
@@ -853,7 +853,7 @@ Any collaborator can click **"Copy to Personal Account"** at any time to create 
         tokenCost: cost,
         tokensSaved: saved,
         type: 'PERSONAL_QUOTA_PROMPT',
-        summary: `${ownerUser.shortName} ran prompt in personal chat "${session.title}" — ${cost.toLocaleString()} tokens charged to ${ownerUser.shortName}'s Personal Quota`
+        summary: `${ownerUser.shortName} ran prompt in personal chat "${session.title}" \u2014 ${cost.toLocaleString()} tokens charged to ${ownerUser.shortName}'s Personal Quota`
       };
       this.state.ledgerEvents.unshift(ledgerEntry);
 
@@ -961,7 +961,7 @@ Any collaborator can click **"Copy to Personal Account"** at any time to create 
           : null,
         participants: isShared ? Array.from(new Set([ownerId, 'user_a', 'user_b', 'user_c'])) : [ownerId],
         canvasDocument: {
-          title: `${title || 'Workspace'} — Live Spec`,
+          title: `${title || 'Workspace'} \u2014 Live Spec`,
           lastEditedBy: owner.shortName,
           updatedAt: new Date().toISOString(),
           content: `# ${title || 'New Workspace'}\n\nStart prompting to collaborate in real time.`
@@ -999,7 +999,7 @@ Any collaborator can click **"Copy to Personal Account"** at any time to create 
         senderName: 'CoThread Quota Engine',
         senderRole: 'System Notice',
         role: 'system',
-        content: `Copied from shared session **"${sourceSession.title}"** into **${newOwner.shortName}'s Personal Account** at ${forkedTimestamp}. This conversation is now a strictly independent personal chat — all new prompts will use **${newOwner.shortName}'s personal subscription & token quota** (${newOwner.personalQuotaUsed.toLocaleString()} / ${newOwner.personalQuotaTotal.toLocaleString()} used), and the original shared session remains untouched.`,
+        content: `Copied from shared session **"${sourceSession.title}"** into **${newOwner.shortName}'s Personal Account** at ${forkedTimestamp}. This conversation is now a strictly independent personal chat \u2014 all new prompts will use **${newOwner.shortName}'s personal subscription & token quota** (${newOwner.personalQuotaUsed.toLocaleString()} / ${newOwner.personalQuotaTotal.toLocaleString()} used), and the original shared session remains untouched.`,
         timestamp: forkedTimestamp,
         tokenCost: 0,
         tokensSaved: 0,
