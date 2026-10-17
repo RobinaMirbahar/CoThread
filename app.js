@@ -204,6 +204,30 @@
         const parsed = JSON.parse(raw);
         if (parsed && parsed.accounts && Array.isArray(parsed.sessions) && parsed.sessions.length > 0) {
           parsed.accounts = { ...DEFAULT_ACCOUNTS, ...parsed.accounts };
+          parsed.typingStatus = null;
+          parsed.sessions.forEach((sess) => {
+            if (!Array.isArray(sess.messages)) return;
+            // Remove any legacy generic fallback bubbles from prior builds
+            const filtered = sess.messages.filter(
+              (m) => !(m && m.kind === 'ai' && typeof m.text === 'string' && m.text.includes('I received your prompt:'))
+            );
+            // Deduplicate consecutive identical human messages left by interrupted turns
+            const deduped = [];
+            for (const msg of filtered) {
+              const prev = deduped[deduped.length - 1];
+              if (
+                prev &&
+                prev.kind === 'human' &&
+                msg.kind === 'human' &&
+                prev.senderId === msg.senderId &&
+                String(prev.text || '').trim().toLowerCase() === String(msg.text || '').trim().toLowerCase()
+              ) {
+                continue;
+              }
+              deduped.push(msg);
+            }
+            sess.messages = deduped;
+          });
           return parsed;
         }
       }
@@ -234,7 +258,8 @@
 
   function saveAndBroadcastState(toastMsg, toastVariant) {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      const persistedState = { ...state, typingStatus: null };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(persistedState));
     } catch (e) {}
     if (bc) {
       try {
@@ -499,24 +524,40 @@
     renderApp();
     scrollChatToBottom(sessionId);
 
-    // Synthesize Gemini AI reply
-    const aiReply = await synthesizeCoThreadAIResponse(session, account, text);
-
-    state.typingStatus = null;
+    // Synthesize Gemini AI reply with a hard 9s safety bound so typingStatus can never stick
+    let aiReply = null;
+    try {
+      aiReply = await Promise.race([
+        synthesizeCoThreadAIResponse(session, account, text),
+        new Promise((resolve) =>
+          setTimeout(
+            () =>
+              resolve(
+                buildLocalSmartFallback(session, account, text)
+              ),
+            9000
+          )
+        )
+      ]);
+    } catch (err) {
+      aiReply = buildLocalSmartFallback(session, account, text);
+    } finally {
+      state.typingStatus = null;
+    }
 
     const aiMsg = {
       id: 'm_ai_' + Date.now(),
       senderId: 'gemini',
       senderName: 'CoThread AI',
-      senderRole: aiReply.isLiveApi ? 'Gemini Live Agent' : 'AI Assistant',
+      senderRole: aiReply && aiReply.isLiveApi ? 'Gemini Live Agent' : 'AI Assistant',
       kind: 'ai',
       modelUsed: state.primaryModel || 'gemini-3.8-flash',
       timestamp: nowTimeLabel(),
-      text: aiReply.text,
-      codeSnippet: aiReply.codeSnippet || null
+      text: (aiReply && aiReply.text) || 'Ready.',
+      codeSnippet: (aiReply && aiReply.codeSnippet) || null
     };
 
-    if (aiReply.interactionId) {
+    if (aiReply && aiReply.interactionId) {
       session.lastInteractionId = aiReply.interactionId;
     }
 
@@ -534,6 +575,51 @@
     }
   }
 
+  function buildLocalSmartFallback(session, triggeringAccount, promptText) {
+    const cleanPrompt = String(promptText || '').replace(/^@gemini\s*/i, '').trim();
+    const aiEngine = window.CoThreadAI || window.GeminiService;
+    if (aiEngine && typeof aiEngine.buildSimulatedCollaborativeReply === 'function') {
+      try {
+        const simText = aiEngine.buildSimulatedCollaborativeReply({
+          session: {
+            ...session,
+            mode: 'shared',
+            hostUser: triggeringAccount
+          },
+          userMessage: {
+            content: cleanPrompt,
+            senderId: triggeringAccount.id,
+            senderName: triggeringAccount.name
+          },
+          senderUser: triggeringAccount,
+          resolvedModel: state.primaryModel || 'gemini-3.8-flash',
+          promptData: {}
+        });
+        if (simText) {
+          let cleanText = simText;
+          let codeSnippet = null;
+          if (typeof aiEngine.extractCanvasArtifact === 'function') {
+            const parsed = aiEngine.extractCanvasArtifact(simText);
+            if (parsed) {
+              cleanText = parsed.cleanText || simText;
+              codeSnippet = parsed.codeSnippet || (parsed.canvasUpdate ? parsed.canvasUpdate.content : null);
+            }
+          }
+          return {
+            text: cleanText,
+            codeSnippet,
+            isLiveApi: false
+          };
+        }
+      } catch (e) {}
+    }
+    return {
+      text: `Here is the collaborative CoThread response for **${triggeringAccount.shortName}**:\n\n- **Shared Context**: Synchronized across ${(session.participants || []).map((p) => state.accounts[p]?.shortName || p).join(', ')}.\n- **Prompt Processed**: "${cleanPrompt}"`,
+      codeSnippet: null,
+      isLiveApi: false
+    };
+  }
+
   async function synthesizeCoThreadAIResponse(session, triggeringAccount, promptText) {
     const cleanPrompt = promptText.replace(/^@gemini\s*/i, '').trim();
     const userApiKey = getSavedGeminiApiKey();
@@ -543,7 +629,7 @@
     if (window.location.protocol.startsWith('http') && !isGitHubPages) {
       try {
         const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 12000);
+        const timer = setTimeout(() => controller.abort(), 8000);
         const res = await fetch(`/api/sessions/${encodeURIComponent(session.id)}/messages`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -593,10 +679,6 @@
           model: state.primaryModel || 'gemini-3.8-flash'
         });
 
-        if (result && result.liveApiNotice && userApiKey) {
-          showToast(`Gemini API Notice: ${result.liveApiNotice}`, 'personal');
-        }
-
         if (result && (result.cleanText || result.text)) {
           return {
             text: result.cleanText || result.text,
@@ -608,15 +690,8 @@
       } catch (e) {}
     }
 
-    // 3. Fallback response
-    await new Promise((resolve) => setTimeout(resolve, 600));
-    return {
-      text: `Hello ${triggeringAccount.shortName}! I received your prompt: "${cleanPrompt}".\n\nSince this is a collaborative CoThread conversation, all participants in this chat (${(session.participants || []).map((p) => state.accounts[p]?.shortName || p).join(', ')}) share this exact AI context. Feel free to continue chatting together!`,
-      codeSnippet: cleanPrompt.toLowerCase().includes('code') || cleanPrompt.toLowerCase().includes('script')
-        ? `// Collaborative CoThread Snippet\nconsole.log("Shared context active for:", "${triggeringAccount.name}");`
-        : null,
-      isLiveApi: false
-    };
+    // 3. Smart fallback response (Architecture Diagram / Code / Context-aware)
+    return buildLocalSmartFallback(session, triggeringAccount, cleanPrompt);
   }
 
   function scrollChatToBottom(sessionId) {
@@ -1458,10 +1533,45 @@
   // BOOT APPLICATION
   // =========================================================
 
+  function recoverUnansweredMessagesOnBoot() {
+    if (!state || !Array.isArray(state.sessions)) return;
+    let changed = false;
+    state.typingStatus = null;
+    state.sessions.forEach((sess) => {
+      if (!Array.isArray(sess.messages) || sess.messages.length === 0) return;
+      const lastMsg = sess.messages[sess.messages.length - 1];
+      if (lastMsg && lastMsg.kind === 'human' && lastMsg.text) {
+        const senderAcc =
+          (state.accounts && state.accounts[lastMsg.senderId]) ||
+          DEFAULT_ACCOUNTS.hasnain ||
+          { id: lastMsg.senderId || 'hasnain', name: lastMsg.senderName || 'Collaborator', shortName: lastMsg.senderName || 'Collaborator' };
+        const reply = buildLocalSmartFallback(sess, senderAcc, lastMsg.text);
+        if (reply && reply.text) {
+          sess.messages.push({
+            id: 'm_ai_rec_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+            senderId: 'gemini',
+            senderName: 'CoThread AI',
+            senderRole: 'AI Assistant',
+            kind: 'ai',
+            modelUsed: state.primaryModel || 'gemini-3.8-flash',
+            timestamp: lastMsg.timestamp || nowTimeLabel(),
+            text: reply.text,
+            codeSnippet: reply.codeSnippet || null
+          });
+          changed = true;
+        }
+      }
+    });
+    if (changed) {
+      saveAndBroadcastState();
+    }
+  }
+
   function bootCoThreadApp() {
     initTheme();
     initGlobalEvents();
     initHeroTypewriterAnimation();
+    recoverUnansweredMessagesOnBoot();
 
     try {
       const params = new URLSearchParams(window.location.search);

@@ -1316,11 +1316,20 @@
         return '';
       };
 
+      const fetchWithTimeout = async (url, options, timeoutMs = 4500) => {
+        const controller = new AbortController();
+        const timerId = setTimeout(() => controller.abort(), timeoutMs);
+        try {
+          return await fetch(url, { ...options, signal: controller.signal });
+        } finally {
+          clearTimeout(timerId);
+        }
+      };
+
+      // Use gemini-3.8-flash for non-streaming browser REST calls so deep-thinking models do not hang 30+ seconds
+      const fastRestModel = 'gemini-3.8-flash';
       const candidateAttempts = [
-        { model: resolvedModel, usePrevId: true },
-        ...(resolvedModel !== 'gemini-3.8-flash'
-          ? [{ model: 'gemini-3.8-flash', usePrevId: false }]
-          : [{ model: 'gemini-3.8-flash', usePrevId: false }]),
+        { model: fastRestModel, usePrevId: false },
       ];
 
       for (const attempt of candidateAttempts) {
@@ -1339,14 +1348,18 @@
             restPayload.previous_interaction_id = session.lastInteractionId;
           }
 
-          const resp = await fetch('https://generativelanguage.googleapis.com/v1beta/interactions', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'x-goog-api-key': String(platformServerKey).trim(),
+          const resp = await fetchWithTimeout(
+            'https://generativelanguage.googleapis.com/v1beta/interactions',
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'x-goog-api-key': String(platformServerKey).trim(),
+              },
+              body: JSON.stringify(restPayload),
             },
-            body: JSON.stringify(restPayload),
-          });
+            4500
+          );
 
           if (resp.ok) {
             const data = await resp.json();
@@ -1376,36 +1389,33 @@
             liveApiNotice = errMsg;
           }
         } catch (fetchErr) {
-          liveApiNotice = fetchErr?.message || 'Network error calling Gemini Interactions API';
+          liveApiNotice = fetchErr?.message || 'Network timeout calling Gemini Interactions API';
         }
       }
-    }
 
-    // 4c. Automatic Vertex AI Express Fallback (`aiplatform.googleapis.com`) for GCP Promotional Credits (e.g. cloud-champion-innovator)
-    if (!usedLiveSdk && platformServerKey && typeof fetch === 'function') {
-      const vertexModelsToTry =
-        resolvedModel === 'gemini-4-argon'
-          ? ['gemini-2.5-pro', 'gemini-2.5-flash']
-          : ['gemini-2.5-flash'];
-      for (const vertexModel of vertexModelsToTry) {
-        if (usedLiveSdk) break;
+      // 4c. Automatic Vertex AI Express Fallback (`aiplatform.googleapis.com`) for GCP Promotional Credits (e.g. cloud-champion-innovator)
+      if (!usedLiveSdk) {
         try {
-          const vertexUrl = `https://aiplatform.googleapis.com/v1/publishers/google/models/${vertexModel}:generateContent?key=${encodeURIComponent(String(platformServerKey).trim())}`;
-          const vertexResp = await fetch(vertexUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              systemInstruction: {
-                parts: [{ text: promptData.systemInstruction }],
-              },
-              contents: [
-                {
-                  role: 'user',
-                  parts: [{ text: promptData.formattedInput }],
+          const vertexUrl = `https://aiplatform.googleapis.com/v1/publishers/google/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(String(platformServerKey).trim())}`;
+          const vertexResp = await fetchWithTimeout(
+            vertexUrl,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                systemInstruction: {
+                  parts: [{ text: promptData.systemInstruction }],
                 },
-              ],
-            }),
-          });
+                contents: [
+                  {
+                    role: 'user',
+                    parts: [{ text: promptData.formattedInput }],
+                  },
+                ],
+              }),
+            },
+            3500
+          );
           if (vertexResp.ok) {
             const vertexData = await vertexResp.json();
             const vertexText = vertexData?.candidates?.[0]?.content?.parts?.[0]?.text || '';
@@ -1421,11 +1431,10 @@
                   extraSavedTokens: 0,
                 };
               }
-              break;
             }
           }
         } catch (_vertexErr) {
-          // Continue to next model or fallback
+          // Continue to local synthesis
         }
       }
     }
