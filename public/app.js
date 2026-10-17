@@ -12,8 +12,8 @@
 (function () {
   'use strict';
 
-  const STORAGE_KEY = 'cothread_firestore_state_v11';
-  const TAB_AUTH_KEY = 'cothread_tab_user_v11';
+  const STORAGE_KEY = 'cothread_firestore_state_v12';
+  const TAB_AUTH_KEY = 'cothread_tab_user_v12';
   const THEME_KEY = 'cothread_theme_ct8';
   const CHANNEL_NAME = 'cothread_realtime';
 
@@ -1668,14 +1668,14 @@ export async function executeAdkCollaborativeTurn() {
 
     const defaultOAuthProfiles = [
       {
-        name: 'Lead Architect (Host)',
-        email: 'architect@cothread.ai',
+        name: 'Robina Mirbahar (Lead • Host)',
+        email: 'robina@cothread.ai',
         planTier: preselectedTier || 'pro',
-        initials: 'LA',
+        initials: 'RM',
         colorClass: 'alex'
       },
       {
-        name: 'Staff Engineer (Team)',
+        name: 'Staff Engineer (Collaborator)',
         email: 'engineer@cothread.ai',
         planTier: 'starter',
         initials: 'SE',
@@ -2382,8 +2382,8 @@ export async function executeAdkCollaborativeTurn() {
 
     // Immediate 1-click workspace entry when user clicks any "Start CoThreading" / "Create / Open Workspace" CTA
     registerOrSignInWithDetails(
-      typedName || 'Lead Architect',
-      'architect@cothread.ai',
+      typedName || 'Robina Mirbahar',
+      'robina@cothread.ai',
       selectedPlan
     );
   }
@@ -2452,8 +2452,8 @@ export async function executeAdkCollaborativeTurn() {
     // Google Custom Account Form
     document.getElementById('googleCustomAccountForm')?.addEventListener('submit', (e) => {
       e.preventDefault();
-      const name = (document.getElementById('googleCustomName')?.value || '').trim() || 'Lead Architect';
-      const email = (document.getElementById('googleCustomEmail')?.value || '').trim() || 'architect@cothread.ai';
+      const name = (document.getElementById('googleCustomName')?.value || '').trim() || 'Robina Mirbahar';
+      const email = (document.getElementById('googleCustomEmail')?.value || '').trim() || 'robina@cothread.ai';
       const tier = document.getElementById('googleCustomTier')?.value || 'pro';
       registerOrSignInWithDetails(name, email, tier);
     });
