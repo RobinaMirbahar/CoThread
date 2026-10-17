@@ -1147,17 +1147,21 @@
       };
     }
 
-    // 4. Server-side platform Gemini credential check (transparent to end users)
+    // 4. Server-side or browser-stored Gemini API credential check
     const platformServerKey =
       apiKey ||
       (typeof process !== 'undefined' && process.env
         ? process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY
+        : null) ||
+      (typeof window !== 'undefined' && window.localStorage
+        ? window.localStorage.getItem('cothread_gemini_api_key')
         : null);
 
     let fullText = '';
     let interactionId = session?.lastInteractionId || null;
     let sdkUsage = null;
     let usedLiveSdk = false;
+    let liveApiNotice = null;
 
     if (platformServerKey && typeof require === 'function') {
       try {
@@ -1256,7 +1260,71 @@
       }
     }
 
-    // 5. High-realism streaming simulation when running in zero-config prototype mode
+    // 4b. Direct Gemini Interactions REST API (`POST /v1beta/interactions`) for Browser / Serverless
+    if (!usedLiveSdk && platformServerKey && typeof fetch === 'function') {
+      try {
+        const restPayload = {
+          model: resolvedModel,
+          input: promptData.formattedInput,
+          system_instruction: promptData.systemInstruction,
+        };
+        if (session?.lastInteractionId && String(session.lastInteractionId).startsWith('v1_')) {
+          restPayload.previous_interaction_id = session.lastInteractionId;
+        }
+
+        const resp = await fetch('https://generativelanguage.googleapis.com/v1beta/interactions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-goog-api-key': String(platformServerKey).trim(),
+          },
+          body: JSON.stringify(restPayload),
+        });
+
+        if (resp.ok) {
+          const data = await resp.json();
+          if (data && data.id) {
+            interactionId = data.id;
+          }
+          let extracted = data?.output_text || '';
+          if (!extracted && Array.isArray(data?.steps)) {
+            const parts = [];
+            for (const step of data.steps) {
+              if (step.type === 'model_output' && Array.isArray(step.content)) {
+                for (const c of step.content) {
+                  if (c.type === 'text' && c.text) {
+                    parts.push(c.text);
+                  }
+                }
+              }
+            }
+            extracted = parts.join('\n');
+          }
+          if (extracted) {
+            fullText = extracted;
+            usedLiveSdk = true;
+            if (data?.usage) {
+              sdkUsage = {
+                inputTokens: data.usage.total_input_tokens || data.usage.input_tokens || 0,
+                outputTokens: data.usage.total_output_tokens || data.usage.output_tokens || 0,
+                totalTokens: data.usage.total_tokens || 0,
+                extraSavedTokens: 0,
+              };
+            }
+          }
+        } else {
+          const errJson = await resp.json().catch(() => null);
+          const errMsg =
+            (Array.isArray(errJson) ? errJson[0]?.error?.message : errJson?.error?.message) ||
+            `HTTP ${resp.status}`;
+          liveApiNotice = errMsg;
+        }
+      } catch (fetchErr) {
+        liveApiNotice = fetchErr?.message || 'Network error calling Gemini Interactions API';
+      }
+    }
+
+    // 5. High-realism streaming simulation when running in zero-config prototype mode or when quota is depleted
     if (!usedLiveSdk || !fullText) {
       fullText = buildSimulatedCollaborativeReply({
         session,
@@ -1337,13 +1405,17 @@
       blocked: false,
       interactionId,
       model: resolvedModel,
+      modelUsed: resolvedModel,
       modelName: SUPPORTED_MODELS[resolvedModel]?.name || resolvedModel,
       modelResolution,
       isLiveApi: usedLiveSdk,
+      liveApiNotice,
       senderTag: promptData.activeSenderTag,
       text: cleanResponseText,
+      replyText: cleanResponseText,
       rawText: fullText,
       cleanText: cleanResponseText,
+      codeSnippet: canvasUpdate ? canvasUpdate.content : null,
       canvasUpdate,
       billingTarget: quotaCheck.billingTarget,
       billingOwnerName: quotaCheck.billingOwnerName,
@@ -1352,7 +1424,10 @@
       promptTokens,
       completionTokens,
       totalTokens,
+      tokenCost: totalTokens,
+      tokensSaved: compressedTokensSaved,
       compressedTokensSaved,
+      compressionStats: promptData.compressionStats,
       quotaStatus: {
         ...quotaCheck,
         usedTokens: updatedUsedTokens,
@@ -1363,6 +1438,32 @@
         ),
       },
     };
+  }
+
+  /**
+   * Wrapper used by `CoThreadADKOrchestrator` (`cothread-adk-agent.js`)
+   */
+  async function generateWorkspaceResponse({
+    session = {},
+    user = {},
+    prompt = '',
+    model = DEFAULT_MODEL,
+    apiKey = null,
+    onChunk = null,
+  } = {}) {
+    return generateCollaborativeResponse({
+      session,
+      userMessage: {
+        content: prompt,
+        text: prompt,
+        senderId: user.id,
+        senderName: user.name || user.shortName,
+      },
+      senderUser: user,
+      model,
+      apiKey,
+      onChunk,
+    });
   }
 
   return {
@@ -1380,5 +1481,6 @@
     buildMultiParticipantPrompt,
     extractCanvasArtifact,
     generateCollaborativeResponse,
+    generateWorkspaceResponse,
   };
 });
