@@ -48,7 +48,7 @@ class CoThreadADKOrchestrator {
   /**
    * Executes a full Google ADK multi-step agent workflow on a Shared or Personal session.
    */
-  async runAgentWorkflow({ session, user, prompt, model = 'gemini-3.8-flash', useCompression = true }) {
+  async runAgentWorkflow({ session, user, prompt, model = 'gemini-3.8-flash', apiKey = null, useCompression = true }) {
     const trace = [];
     const startTime = Date.now();
 
@@ -79,6 +79,7 @@ class CoThreadADKOrchestrator {
       user,
       prompt,
       model,
+      apiKey,
       useCompression
     });
 
