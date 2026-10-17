@@ -1,5 +1,5 @@
 /* ============================================================================
-   COTHREAD DESIGN SYSTEM — COTHREAD NEO-BRUTALIST EDITION
+   COTHREAD DESIGN SYSTEM - COTHREAD NEO-BRUTALIST EDITION
    Palette: CoThread Pink (#FF90E8), Safety Yellow (#FFC900), Teal (#23A094),
             Bright Orange (#FF6B00), Paper Gray (#F4F4F0), Pure Black (#000000)
    Borders: 2px solid #000000 | Shadows: Hard Offset 4px 4px 0px #000000
@@ -1860,7 +1860,7 @@ html[data-theme="dark"] .cothread-edge-btn.cta-edge {
 }
 
 /* ============================================================================
-   4. PRODUCTION WORKSPACE (/app & /s/:shareCode — CLAUDE.AI + CHATGPT.COM STYLE)
+   4. PRODUCTION WORKSPACE (/app & /s/:shareCode - CLAUDE.AI + CHATGPT.COM STYLE)
    ============================================================================ */
 .app-shell {
   width: 100%;
