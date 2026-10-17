@@ -120,22 +120,24 @@ sequenceDiagram
 
 ---
 
-## 4. Tech Stack
+## 4. Full Google Cloud Tech Stack
 
-| Layer | Technology | Purpose |
+| Layer | Technology | Files & Purpose |
 | :--- | :--- | :--- |
-| **AI SDK** | `@google/genai` | Official Google Gen AI SDK managed server-side with master platform credentials |
-| **Gemini Model Suite** | `gemini-3.8-flash`, `gemini-4-argon`, `gemini-3.5-flash-lite` | Multi-tier model routing mapped to SaaS subscription tiers and Host sponsorship |
-| **Authentication & SaaS Ledger** | Google OAuth + Work Email Auth & Software Quota Engine | Assigns `Starter (25k)`, `Pro (250k)`, and `Enterprise (1M)` quotas per account |
-| **Backend Runtime** | Node.js 22 + Express + Real-Time Sync | Sublink routing (`/s/cothread-...`), live presence, role enforcement, and token metering |
-| **Cloud Compute** | **Google Cloud Run** + **Cloud Build** | Serverless container deployment with session affinity on port `8080` |
+| **Database & Rules** | **Cloud Firestore** (`@google-cloud/firestore`) | [`src/db/firestore-db.js`](./src/db/firestore-db.js), [`firestore.rules`](./firestore.rules), [`firestore.indexes.json`](./firestore.indexes.json) — Transactional Host & Personal Token Quota ledger (`users`, `sessions`, `quota_ledger`) |
+| **Multi-Agent Orchestration** | **Google Agent Development Kit (ADK)** | [`src/adk/cothread-adk-agent.js`](./src/adk/cothread-adk-agent.js) — `CoThreadADKOrchestrator` with `ContextCompressionSubAgent` (`gemini-3.5-flash-lite`), `QuotaGuardTool`, and `CollaborativeArchitectSubAgent` (`gemini-3.8-flash` / `gemini-4-argon`) |
+| **Model Context Protocol** | **CoThread MCP Server (JSON-RPC 2.0)** | [`src/mcp/cothread-mcp-server.js`](./src/mcp/cothread-mcp-server.js) — Exposes 5 MCP tools (`cothread_list_sessions`, `cothread_check_quota`, `cothread_create_shared_session`, `cothread_prompt_adk_agent`, `cothread_fork_to_personal`) over `POST /api/mcp` and `--stdio` |
+| **Cloud IDE & Hosting** | **Firebase Studio (`.idx`) + Firebase Hosting** | [`.idx/dev.nix`](./.idx/dev.nix), [`.idx/mcp.json`](./.idx/mcp.json), [`firebase.json`](./firebase.json) — Zero-config Firebase Studio workspace with automatic MCP server registration and Cloud Run rewrites |
+| **AI SDK & Models** | **Official `@google/genai` SDK** | [`src/ai/gemini-service.js`](./src/ai/gemini-service.js) — Server-managed `gemini-3.8-flash`, `gemini-4-argon`, and `gemini-3.5-flash-lite` |
+| **All-Device UI/UX** | **Responsive Neo-Brutalist Web App** | [`public/index.html`](./public/index.html), [`public/styles.css`](./public/styles.css), [`public/app.js`](./public/app.js), [`public/logo.svg`](./public/logo.svg) — Compatible across phones (`320px+` slide-over drawers, `100dvh`, `viewport-fit=cover`), tablets, laptops, and 4K displays |
+| **Cloud Compute** | **Google Cloud Run** + **Cloud Build** | [`Dockerfile`](./Dockerfile), [`cloudbuild.yaml`](./cloudbuild.yaml), [`server.js`](./server.js) — Serverless container deployment on port `8080` |
 
 ---
 
-## 5. Local Development & Setup Instructions
+## 5. Local & Firebase Studio Setup Instructions
 
 ### Prerequisites
-- **Node.js 22+** and `npm`
+- **Node.js 22+** and `npm` (or open directly in **Firebase Studio** via [`.idx/dev.nix`](./.idx/dev.nix))
 - A **Google Gemini API Key** (`GEMINI_API_KEY`) configured once on the backend server (end users never touch API keys)
 
 ### Step 1: Install Dependencies
@@ -147,6 +149,7 @@ npm install
 Create a `.env` file in the root directory (or export variables in your shell):
 ```env
 GEMINI_API_KEY=your_master_platform_gemini_api_key_here
+GOOGLE_CLOUD_PROJECT=your_gcp_project_id
 PORT=8080
 ```
 
@@ -154,13 +157,13 @@ PORT=8080
 ```bash
 npm start
 ```
-Open **`http://localhost:8080`**. Sign in with **Continue with Google** or **Work Email & Password** (or use the instant **Demo Account Switcher** in the header to toggle between **You (Pro 250k Host)** and **Hasnain (Starter 25k Colleague)**).
+Open **`http://localhost:8080`**. Sign in with **Continue with Google** or **Work Email** to provision your Firestore user profile (`users/{uid}`) and launch a live **Shared Session (`/s/cothread-...`)** or **Personal Thread (`/app`)**. Click the **`☁️ Google Stack (Firestore • ADK • MCP)`** badge in the top bar at any time to inspect live Firestore documents, ADK agent traces, and run JSON-RPC 2.0 MCP tools.
 
 ---
 
-## 6. Deploying to Google Cloud Run
+## 6. Deploying to Google Cloud Run & Firebase Hosting
 
-CoThread includes production-ready `Dockerfile`, `.dockerignore`, and `cloudbuild.yaml` manifests configured for Google Cloud Run on port `8080`.
+CoThread includes production-ready [`Dockerfile`](./Dockerfile), [`cloudbuild.yaml`](./cloudbuild.yaml), [`firebase.json`](./firebase.json), and [`firestore.rules`](./firestore.rules) manifests.
 
 ### Option A: One-Command Direct Deployment via `gcloud`
 ```bash
@@ -187,12 +190,13 @@ gcloud builds submit --config cloudbuild.yaml \
 | Evaluation Criterion | How CoThread Excels |
 | :--- | :--- |
 | **Problem & Impact** | Brings true multiplayer collaboration to consumer/enterprise AI web apps (`gemini.google.com` / `chatgpt.com` paradigm) without screenshot copy-pasting or API key sharing. |
-| **Technical Execution & Google Cloud Native** | Built natively on `@google/genai` (`gemini-3.8-flash`, `gemini-4-argon`, `gemini-3.5-flash-lite`) and deployed as a session-affine container on **Google Cloud Run**. |
+| **Full Google Cloud Stack Integration** | Built end-to-end with **Cloud Firestore** (`firestore.rules`), **Google ADK** (`CoThreadADKOrchestrator`), **Model Context Protocol (MCP)** (`cothread-mcp-server`), **Firebase Studio** (`.idx/dev.nix` & `.idx/mcp.json`), **`@google/genai`**, and **Google Cloud Run**. |
 | **Innovation: Software-Assigned Host Quota Engine** | Backend manages the master `GEMINI_API_KEY` and enforces per-account software token quotas (`Starter 25k`, `Pro 250k`, `Enterprise 1M`), allowing Hosts to sponsor guests via `/s/cothread-...` sublinks. |
-| **Security & Governance** | Authenticated access (Google OAuth / Work Email), revocable `/s/cothread-...` sublinks, configurable session token caps, and live `Can Prompt` / `View Only` role enforcement. |
-| **User Experience & Polish** | Real-time presence avatars, live typing indicators, transparent token meters, and one-click **"Continue Independently (Copy to My Chats)"** that seamlessly shifts billing to the user's own account quota. |
+| **Security & Governance** | Authenticated access (Google OAuth / Work Email), Firestore security rules, revocable `/s/cothread-...` sublinks, configurable session token caps, and live `Can Prompt` / `View Only` role enforcement. |
+| **All-Device Responsive Experience** | Works seamlessly on mobile phones (`320px+` slide-over drawers, `100dvh`), tablets, and desktops with real-time presence avatars, transparent token meters, and one-click **"Continue Independently (Copy to My Chats)"**. |
 
 ---
 
 ## License
 Built for the **Google Cloud AI Builder Cup 2026**. MIT License.
+
