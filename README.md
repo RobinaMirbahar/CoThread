@@ -4,15 +4,16 @@
 [![Google GenAI SDK](https://img.shields.io/badge/%40google%2Fgenai-v1.x-34A853?logo=google&logoColor=white)](https://www.npmjs.com/package/@google/genai)
 [![Gemini Models](https://img.shields.io/badge/Models-gemini--3.8--flash%20%7C%20gemini--4--argon%20%7C%20gemini--3.5--flash--lite-8E75B2)](https://ai.google.dev/)
 [![AI Builder Cup 2026](https://img.shields.io/badge/AI_Builder_Cup-2026_Submission-FBBC04)](https://cloud.google.com/)
-[![Project Lead](https://img.shields.io/badge/Project_Lead_%26_Architect-Robina_Mirbahar_(%40RobinaMirbahar)-FF90E8?logo=github&logoColor=black)](https://github.com/RobinaMirbahar)
+[![Project Lead](https://img.shields.io/badge/Project_Lead_%2C_Principal_AI_Architect-Robina_Mirbahar_(%40RobinaMirbahar)-FF90E8?logo=github&logoColor=black)](https://github.com/RobinaMirbahar)
+[![Original Idea & Co-Builder](https://img.shields.io/badge/Original_Idea_%2C_Co--Builder_%26_Collaborator-Muhammad_Hasnain_(%40hasnain--kk)-FFC900?logo=github&logoColor=black)](https://github.com/hasnain-kk)
 
 > **Stop pasting screenshots of AI chats into Slack.**
 > **CoThread** is an enterprise SaaS collaborative AI platform (built like `gemini.google.com` and `chatgpt.com`, but natively multiplayer) powered by **Google Cloud Run**, **Cloud Firestore**, **Google ADK**, **Model Context Protocol (MCP)**, **Firebase Studio**, and the official **`@google/genai`** SDK.
 > Users sign in with **Google OAuth ("Continue with Google")** or **Work Email & Password**—never managing or entering raw API keys. CoThread automatically provisions software-assigned token quotas by subscription tier (`Starter 25k`, `Pro 250k`, `Enterprise 1M`), lets a Host share any live conversation via a secure sublink (`/s/cothread-...`) sponsored by the Host's quota, and lets any colleague click **"Continue Independently (Copy to My Chats)"** to clone the conversation into their private workspace and switch billing to their own account quota.
 
 ### 👩‍💻 Leadership & Engineering Team
-- **Project Lead & Principal AI Architect**: **Robina Mirbahar** ([@RobinaMirbahar](https://github.com/RobinaMirbahar) • `robina@cothread.ai`) — Lead architect and builder of the CoThread Enterprise Collaborative AI Platform, Host-Sponsored Token Quota Engine, Cloud Firestore Security Rules, Google ADK Multi-Agent Orchestrator, and MCP Server.
-- **Co-Builder & Collaborator**: **Muhammad Hasnain** ([@hasnain-kk](https://github.com/hasnain-kk))
+- **Project Lead, Principal AI Architect**: **Robina Mirbahar** ([@RobinaMirbahar](https://github.com/RobinaMirbahar) • `robina@cothread.ai`)
+- **Original Idea, Co-Builder & Collaborator**: **Muhammad Hasnain** ([@hasnain-kk](https://github.com/hasnain-kk) • `hasnainrashi@gmail.com`)
 
 ---
 
