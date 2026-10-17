@@ -1,15 +1,772 @@
-<!DOCTYPE html>
-<html lang="en">
+﻿<!DOCTYPE html>
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8" />
-  <meta http-equiv="refresh" content="0; url=./public/index.html?v=ct8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CoThread â€” Go from Solo to Team AI</title>
   <link rel="icon" type="image/svg+xml" href="./public/logo.svg?v=ct8" />
-  <title>CoThread — Collaborative AI</title>
-  <script>
-    window.location.replace("./public/index.html?v=ct8" + window.location.search.replace(/^\?/, "&") + window.location.hash);
-  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./public/styles.css?v=ct8" />
 </head>
-<body style="background:#F4F4F0;color:#000;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;">
-  <p>Redirecting to <a href="./public/index.html?v=ct8" style="color:#000;font-weight:bold;">CoThread</a>...</p>
+<body>
+  <!-- =========================================================================
+       1. COMPANY WEBSITE AT /
+       ========================================================================= -->
+  <div class="website-root" id="websiteRoot">
+    <!-- Top Sticky Navbar -->
+    <header class="gumroad-navbar">
+      <div class="gumroad-nav-left">
+        <a href="#" class="gumroad-brand-link" id="navBrandLogo" aria-label="CoThread Home">
+          <img src="./public/logo.svg?v=ct8" class="cothread-logo-coin" width="44" height="44" alt="CoThread Logo" />
+          <span class="gumroad-wordmark">CoThread</span>
+        </a>
+
+        <a
+          href="https://github.com/RobinaMirbahar/CoThread"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="gumroad-github-pill"
+          title="View CoThread on GitHub"
+        >
+          <svg width="16" height="16" viewBox="0 0 98 96" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M48.854 0C21.839 0 0 22 0 49.217c0 21.756 13.993 40.172 33.405 46.69 2.427.49 3.316-1.059 3.316-2.362 0-1.141-.08-5.052-.08-9.127-13.59 2.934-16.42-5.867-16.42-5.867-2.184-5.704-5.42-7.17-5.42-7.17-4.448-3.015.324-3.015.324-3.015 4.934.326 7.523 5.052 7.523 5.052 4.367 7.496 11.404 5.378 14.235 4.074.404-3.178 1.699-5.378 3.074-6.6-10.839-1.141-22.243-5.378-22.243-24.283 0-5.378 1.94-9.778 5.014-13.2-.485-1.222-2.184-6.275.486-13.038 0 0 4.125-1.304 13.426 5.052a46.97 46.97 0 0 1 12.214-1.63c4.125 0 8.33.571 12.213 1.63 9.302-6.356 13.427-5.052 13.427-5.052 2.67 6.763.97 11.816.485 13.038 3.155 3.422 5.015 7.822 5.015 13.2 0 18.905-11.404 23.06-22.324 24.283 1.78 1.548 3.316 4.481 3.316 9.126 0 6.6-.08 11.897-.08 13.526 0 1.304.89 2.853 3.316 2.364 19.412-6.52 33.405-24.935 33.405-46.691C97.707 22 75.788 0 48.854 0z"/>
+          </svg>
+          <span>GitHub</span>
+          <span class="star-icon">â˜…</span>
+        </a>
+      </div>
+
+      <nav class="gumroad-nav-links" aria-label="Primary Navigation">
+        <a href="#capabilitiesSection" class="gumroad-nav-pill active">Features</a>
+        <a href="#liveStudioSection" class="gumroad-nav-pill">Live Studio</a>
+        <a href="#cothreadWaySection" class="gumroad-nav-pill">How It Works</a>
+        <a href="#pricingSection" class="gumroad-nav-pill">Pricing</a>
+        <a href="https://github.com/hasnain-kk" target="_blank" rel="noopener noreferrer" class="gumroad-nav-pill idea-pill">ðŸ’¡ @hasnain-kk</a>
+      </nav>
+
+      <div class="gumroad-nav-EdgeActions">
+        <button type="button" class="gumroad-edge-btn theme-edge" id="websiteThemeToggleBtn" title="Toggle Theme">
+          <span id="websiteThemeIcon">â˜€ï¸</span>
+        </button>
+        <button type="button" class="gumroad-edge-btn login-edge" id="navOpenGoogleBtn">
+          Log in
+        </button>
+        <button type="button" class="gumroad-edge-btn cta-edge" id="navTryCoThreadBtn">
+          Start CoThreading
+        </button>
+      </div>
+    </header>
+
+    <!-- =========================================================================
+         CENTERED HERO STAGE (Minimal Copy + Prominent CoThread Logo + Parallax Coins)
+         ========================================================================= -->
+    <section class="gumroad-hero-section" id="heroSection" data-hero-parallax-container>
+      <div class="hero-coins-layer" aria-hidden="true">
+        <div class="hero-coin coin-pos-1" data-parallax-intensity="-0.03" data-scroll-intensity="-0.15">
+          <svg viewBox="0 0 140 140" width="132" height="132">
+            <circle cx="74" cy="74" r="56" fill="#000000" />
+            <circle cx="68" cy="68" r="56" fill="#FF90E8" stroke="#000000" stroke-width="3.5" />
+            <circle cx="68" cy="68" r="44" fill="none" stroke="#000000" stroke-width="2" stroke-dasharray="6 5" />
+            <text x="68" y="64" text-anchor="middle" fill="#000" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="18">250K</text>
+            <text x="68" y="83" text-anchor="middle" fill="#000" font-family="JetBrains Mono, monospace" font-weight="700" font-size="11">HOST QUOTA</text>
+          </svg>
+        </div>
+
+        <div class="hero-coin coin-pos-2" data-parallax-intensity="0.04" data-scroll-intensity="-0.18">
+          <svg viewBox="0 0 156 112" width="142" height="102">
+            <rect x="12" y="14" width="132" height="84" rx="42" fill="#000000" />
+            <rect x="6" y="8" width="132" height="84" rx="42" fill="#FFC900" stroke="#000000" stroke-width="3.5" />
+            <text x="72" y="48" text-anchor="middle" fill="#000" font-family="JetBrains Mono, monospace" font-weight="700" font-size="14">/s/sublink</text>
+            <text x="72" y="68" text-anchor="middle" fill="#000" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="13">LIVE ROOM</text>
+          </svg>
+        </div>
+
+        <div class="hero-coin coin-pos-3" data-parallax-intensity="0.035" data-scroll-intensity="-0.12">
+          <svg viewBox="0 0 140 140" width="126" height="126">
+            <rect x="18" y="18" width="104" height="104" rx="24" transform="rotate(-8 70 70)" fill="#000000" />
+            <rect x="12" y="12" width="104" height="104" rx="24" transform="rotate(-8 64 64)" fill="#23A094" stroke="#000000" stroke-width="3.5" />
+            <text x="64" y="60" text-anchor="middle" fill="#FFF" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="15">GEMINI 4</text>
+            <text x="64" y="79" text-anchor="middle" fill="#FFC900" font-family="JetBrains Mono, monospace" font-weight="700" font-size="12">MULTIPLAYER</text>
+          </svg>
+        </div>
+
+        <div class="hero-coin coin-pos-4" data-parallax-intensity="-0.04" data-scroll-intensity="-0.16">
+          <svg viewBox="0 0 156 124" width="138" height="110">
+            <rect x="14" y="16" width="128" height="88" rx="20" transform="rotate(6 78 60)" fill="#000000" />
+            <rect x="8" y="10" width="128" height="88" rx="20" transform="rotate(6 72 54)" fill="#FF6B00" stroke="#000000" stroke-width="3.5" />
+            <text x="72" y="50" text-anchor="middle" fill="#FFF" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="14">1-CLICK FORK</text>
+            <text x="72" y="70" text-anchor="middle" fill="#FFC900" font-family="JetBrains Mono, monospace" font-weight="700" font-size="12">MY CHATS â†’</text>
+          </svg>
+        </div>
+
+        <div class="hero-coin coin-pos-5" data-parallax-intensity="0.025" data-scroll-intensity="-0.10">
+          <svg viewBox="0 0 130 130" width="110" height="110">
+            <circle cx="68" cy="68" r="48" fill="#000000" />
+            <circle cx="62" cy="62" r="48" fill="#90A8ED" stroke="#000000" stroke-width="3.5" />
+            <text x="62" y="58" text-anchor="middle" fill="#000" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="13">ZERO API</text>
+            <text x="62" y="75" text-anchor="middle" fill="#000" font-family="JetBrains Mono, monospace" font-weight="700" font-size="12">KEYS</text>
+          </svg>
+        </div>
+      </div>
+
+      <div class="gumroad-hero-center">
+        <!-- Prominent Centerpiece CoThread 3D Coin Logo -->
+        <div class="hero-brand-emblem-wrap">
+          <img src="./public/logo.svg?v=ct8" width="86" height="86" alt="CoThread Coin Logo" class="hero-center-logo-img" />
+          <div class="hero-brand-pill">
+            <span class="hero-brand-name">CoThread</span>
+          </div>
+        </div>
+
+        <h1 class="gumroad-hero-title">
+          Go from <span class="gumroad-underline-yellow">solo</span><br />
+          to <span class="gumroad-highlight-pink">team AI.</span>
+        </h1>
+
+        <p class="gumroad-hero-subtitle">
+          Share a live <code>/s/</code> room on your Host Quotaâ€”or click <strong>Copy to My Chats</strong> anytime.
+        </p>
+
+        <div class="gumroad-hero-cta-row">
+          <div class="gumroad-layered-btn-wrap">
+            <div class="gumroad-layer-red" aria-hidden="true"></div>
+            <div class="gumroad-layer-yellow" aria-hidden="true"></div>
+            <button type="button" class="gumroad-layer-main" id="heroStartCoThreadingBtn">
+              Start CoThreading
+            </button>
+          </div>
+
+          <form class="gumroad-hero-search-form" id="heroSublinkForm">
+            <input
+              type="text"
+              id="heroSublinkInput"
+              class="gumroad-hero-search-input"
+              placeholder="Paste /s/ link or work email..."
+              aria-label="Paste shared sublink or enter email"
+            />
+            <button type="submit" class="gumroad-hero-search-btn" title="Join Room or Sign In">
+              â†’
+            </button>
+          </form>
+        </div>
+
+        <div class="gumroad-hero-quick-stickers">
+          <button type="button" class="gumroad-mini-sticker yellow" data-open-stack-tab="firestore">
+            â˜ï¸ Cloud Firestore DB
+          </button>
+          <button type="button" class="gumroad-mini-sticker teal" data-open-stack-tab="adk">
+            ðŸ¤– Google ADK Agent
+          </button>
+          <button type="button" class="gumroad-mini-sticker pink" data-open-stack-tab="mcp">
+            ðŸ”Œ MCP Server (5 Tools)
+          </button>
+          <button type="button" class="gumroad-mini-sticker" style="background:#FFFFFF;" data-open-stack-tab="studio">
+            ðŸ”¥ Firebase Studio (.idx)
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================================
+         SECTION 2: BENTO SHOWCASE (Minimal Copy + Visual Stickers)
+         ========================================================================= -->
+    <section class="editorial-bento-section" id="capabilitiesSection">
+      <div class="section-container">
+        <div class="gumroad-bento-pair">
+          <article class="gumroad-bento-card wide-card bg-white-card">
+            <div class="gbc-content">
+              <h2>Share any AI thread</h2>
+              <p>
+                One <code>/s/</code> link turns solo prompts into a live multiplayer room.
+              </p>
+              <div class="gumroad-checklist">
+                <div class="gc-row">
+                  <span class="gc-pink-check">âœ“</span>
+                  <span>Live team presence &amp; streaming</span>
+                </div>
+                <div class="gc-row">
+                  <span class="gc-pink-check">âœ“</span>
+                  <span>Ask AI or Team Chat (0 tokens)</span>
+                </div>
+              </div>
+            </div>
+            <div class="gbc-sticker-graphic">
+              <div class="neo-sticker-window">
+                <div class="nsw-top"><code>/s/cothread-arch-9x2k</code> <span class="nsw-live">â— 3 LIVE</span></div>
+                <div class="nsw-body">
+                  <div class="nsw-chip pink">Alex (Host â€¢ 250k)</div>
+                  <div class="nsw-chip yellow">Hasnain (Can Prompt)</div>
+                  <div class="nsw-chip teal">Sarah (Canvas)</div>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="gumroad-bento-card narrow-card bg-yellow-card">
+            <h2>Sponsor the room</h2>
+            <p>
+              Guests prompt for free using your configurable Host Cap.
+            </p>
+            <div class="neo-meter-sticker">
+              <div class="nms-label"><span>Host Cap</span> <strong>4,820 / 25,000</strong></div>
+              <div class="nms-bar"><div class="nms-fill" style="width:34%"></div></div>
+              <div class="nms-sub">âœ¦ Zero API keys required</div>
+            </div>
+          </article>
+        </div>
+
+        <div class="gumroad-comparison-duo">
+          <div class="gumroad-comp-card">
+            <div class="floating-speech-tag">
+              Instead of screenshots in Slack...
+            </div>
+            <div class="comp-illustration sad-box">
+              <div class="sad-pill">âŒ Dead static snapshots</div>
+              <div class="sad-pill">âŒ Every user needs an API key</div>
+            </div>
+          </div>
+
+          <div class="gumroad-comp-card highlight-teal">
+            <div class="floating-speech-tag bottom-tag pink-tag">
+              ...co-prompt live on one link!
+            </div>
+            <div class="comp-illustration happy-box">
+              <div class="happy-pill">âš¡ Shared `/s/` room on Host Quota</div>
+              <div class="happy-pill">ðŸ”€ 1-Click <strong>Copy to My Chats</strong></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================================
+         SECTION 2B: INTERACTIVE LIVE STUDIO & SIGN-IN
+         ========================================================================= -->
+    <section class="gumroad-live-studio-section" id="liveStudioSection">
+      <div class="section-container">
+        <div class="section-header-editorial center">
+          <h2 class="gumroad-center-heading">Jump into a live room</h2>
+        </div>
+
+        <div class="hero-container">
+          <div class="hero-left-col">
+            <div class="claude-style-auth-card" id="heroAuthCard">
+              <div class="auth-card-sticker-header">
+                <span class="sticker-badge-yellow">FIREBASE &amp; GOOGLE AUTH</span>
+                <span class="sticker-badge-mono">FIRESTORE DB</span>
+              </div>
+
+              <div class="invite-banner-editorial hidden" id="inviteAuthBanner">
+                <div class="invite-pulse-orb"></div>
+                <div class="invite-banner-copy">
+                  <strong id="inviteBannerTitle">Invited to Shared Session</strong>
+                  <p id="inviteBannerDesc">Sponsored by Host Quota.</p>
+                </div>
+              </div>
+
+              <button type="button" class="btn-continue-google" id="openGoogleChooserBtn">
+                <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true">
+                  <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                  <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26-5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                  <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                  <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                </svg>
+                <span>Continue with Google</span>
+              </button>
+
+              <div class="editorial-or-divider"><span>OR WORK EMAIL</span></div>
+
+              <form class="hero-email-form" id="heroEmailAuthForm">
+                <div class="email-input-group">
+                  <input
+                    type="email"
+                    id="heroEmailInput"
+                    class="editorial-email-input"
+                    placeholder="Enter your email (e.g. name@company.com)"
+                    required
+                  />
+                </div>
+
+                <div class="signup-drawer" id="heroSignupDrawer">
+                  <div class="drawer-row">
+                    <input
+                      type="text"
+                      id="heroNameInput"
+                      class="editorial-email-input sm"
+                      placeholder="Your Name"
+                      required
+                    />
+                    <select id="heroPlanSelect" class="editorial-email-input sm" aria-label="Select Tier">
+                      <option value="starter">Starter â€¢ 25k ($0)</option>
+                      <option value="pro" selected>Pro â€¢ 250k ($20)</option>
+                      <option value="enterprise">Enterprise â€¢ 1M</option>
+                    </select>
+                  </div>
+                </div>
+
+                <button type="submit" class="btn-continue-obsidian">
+                  Create / Open Workspace â†’
+                </button>
+              </form>
+
+              <div class="instant-demo-strip">
+                <div class="demo-strip-pills">
+                  <button type="button" class="demo-launch-pill" data-open-stack-tab="firestore">
+                    <span>â˜ï¸ <strong>Firestore</strong> DB</span>
+                  </button>
+                  <button type="button" class="demo-launch-pill" data-open-stack-tab="adk">
+                    <span>ðŸ¤– <strong>Google ADK</strong></span>
+                  </button>
+                  <button type="button" class="demo-launch-pill" data-open-stack-tab="mcp">
+                    <span>ðŸ”Œ <strong>MCP</strong> Server</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="hero-right-stage">
+            <div class="interactive-showcase-window">
+              <div class="showcase-window-bar">
+                <div class="window-dots">
+                  <span></span><span></span><span></span>
+                </div>
+                <div class="window-route-pill">
+                  <span class="live-green-dot"></span>
+                  <span>cothread.ai/s/cothread-arch-9x2k</span>
+                </div>
+                <div class="window-avatars">
+                  <span class="mini-av alex">CT</span>
+                  <span class="mini-av hasnain">ADK</span>
+                  <span class="mini-av sarah">MCP</span>
+                </div>
+              </div>
+
+              <div class="showcase-quota-strip">
+                <div class="sq-left">
+                  <span class="sq-badge">FIRESTORE + ADK</span>
+                  <span class="sq-text">Host-Sponsored Quota Ledger â€¢ <strong>Cloud Run</strong></span>
+                </div>
+                <div class="sq-right">
+                  <span class="sq-mono">25k CAP</span>
+                  <div class="sq-bar"><div class="sq-fill" style="width: 24%"></div></div>
+                </div>
+              </div>
+
+              <div class="showcase-messages-area">
+                <div class="sc-msg host-msg">
+                  <div class="sc-av alex">H</div>
+                  <div class="sc-bubble">
+                    <div class="sc-meta"><strong>Session Host</strong> <span class="sc-tag">Firestore Sync</span></div>
+                    <p>Created <code>/s/cothread-arch-9x2k</code> backed by Cloud Firestore &amp; Google ADK.</p>
+                  </div>
+                </div>
+
+                <div class="sc-msg guest-msg">
+                  <div class="sc-av hasnain">G</div>
+                  <div class="sc-bubble">
+                    <div class="sc-meta"><strong>Team Collaborator</strong> <span class="sc-tag guest">Sublink Guest</span></div>
+                    <p><span class="mention">@Gemini</span> Compress thread via Flash-Lite and charge shared prompts to the Host cap.</p>
+                  </div>
+                </div>
+
+                <div class="sc-msg ai-msg">
+                  <div class="sc-av ai">âœ¦</div>
+                  <div class="sc-bubble ai-surface">
+                    <div class="sc-meta">
+                      <strong>Google ADK â€¢ Gemini 3.8 Flash</strong>
+                      <span class="sc-quota-pill">âš¡ QuotaGuardTool Verified</span>
+                    </div>
+                    <p>Persisted to Firestore! Click <strong>Copy to My Chats</strong> anytime to fork onto your personal quota.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="showcase-bottom-bar">
+                <div class="sc-actions">
+                  <button type="button" class="sc-copy-btn" data-open-stack-tab="mcp">
+                    <span>ðŸ”Œ Inspect MCP &amp; ADK</span>
+                  </button>
+                  <button type="button" class="sc-enter-btn" id="showcaseSignInBtn">
+                    <span>Sign In to Launch â†—</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================================
+         SECTION 3: THE COTHREAD LOOP & MARQUEE
+         ========================================================================= -->
+    <section class="cothread-way-section" id="cothreadWaySection">
+      <div class="section-container">
+        <h2 class="gumroad-center-heading">
+          How CoThread works
+        </h2>
+
+        <div class="gumroad-orange-pill-loop">
+          <div class="loop-inner-track">
+            <div class="loop-top-labels">
+              <span class="loop-step-badge">âžœ 1. Host `/s/` Link</span>
+              <span class="loop-step-badge">âžœ 2. Sponsor Team Quota</span>
+            </div>
+
+            <div class="loop-center-mascot">
+              <img src="./public/logo.svg?v=ct8" width="108" height="108" alt="CoThread Logo" />
+            </div>
+
+            <div class="loop-bottom-labels">
+              <span class="loop-step-badge">4. Copy to My Chats â¬…</span>
+              <span class="loop-step-badge">3. Co-Prompt Live â¬…</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="gumroad-stat-marquee-section" id="quotaFlowSection">
+      <div class="gumroad-marquee-wrap" aria-label="CoThread Capabilities Ticker">
+        <div class="gumroad-marquee-track">
+          <span class="gumroad-tag-pill pink">â˜ï¸ Cloud Firestore DB</span>
+          <span class="gumroad-tag-pill yellow">ðŸ¤– Google ADK Orchestrator</span>
+          <span class="gumroad-tag-pill teal">ðŸ”Œ Model Context Protocol (MCP)</span>
+          <span class="gumroad-tag-pill">ðŸ”¥ Firebase Studio (.idx)</span>
+          <span class="gumroad-tag-pill pink">âš¡ Gemini 3.8 Flash</span>
+          <span class="gumroad-tag-pill yellow">ðŸ§  Gemini 4 Argon</span>
+          <span class="gumroad-tag-pill teal">ðŸ—œï¸ Flash-Lite Compression</span>
+          <span class="gumroad-tag-pill pink">ðŸ›¡ï¸ Host Quota Cap</span>
+          <span class="gumroad-tag-pill yellow">ðŸ”€ Copy to My Chats</span>
+          <span class="gumroad-tag-pill pink">ðŸ’¡ Idea: @hasnain-kk</span>
+          <span class="gumroad-tag-pill pink">â˜ï¸ Cloud Firestore DB</span>
+          <span class="gumroad-tag-pill yellow">ðŸ¤– Google ADK Orchestrator</span>
+          <span class="gumroad-tag-pill teal">ðŸ”Œ Model Context Protocol (MCP)</span>
+          <span class="gumroad-tag-pill">ðŸ”¥ Firebase Studio (.idx)</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================================
+         SECTION 5: SIMPLE TOKEN PLANS
+         ========================================================================= -->
+    <section class="pricing-section" id="pricingSection">
+      <div class="section-container">
+        <div class="section-header-editorial center">
+          <h2 class="gumroad-center-heading">Simple token plans</h2>
+        </div>
+
+        <div class="pricing-cards-grid">
+          <div class="pricing-card">
+            <div class="pricing-card-top">
+              <div class="pricing-Header-row">
+                <h3>Starter</h3>
+                <span class="tier-coin-badge yellow">FREE</span>
+              </div>
+              <div class="pricing-price">$0 <span>/ mo</span></div>
+              <div class="pricing-quota-highlight">25,000 Tokens</div>
+            </div>
+            <ul class="pricing-features">
+              <li>âœ“ Join shared `/s/` rooms free</li>
+              <li>âœ“ 1-Click Copy to My Chats</li>
+              <li>âœ“ Gemini 3.8 Flash + ADK</li>
+            </ul>
+            <button type="button" class="pricing-cta-btn secondary" data-provision-tier="starter">
+              Start Free (25k) â†’
+            </button>
+          </div>
+
+          <div class="pricing-card featured-pro">
+            <div class="pro-popular-pill">â˜… POPULAR</div>
+            <div class="pricing-card-top">
+              <div class="pricing-Header-row">
+                <h3>Pro Host</h3>
+                <span class="tier-coin-badge black">250K</span>
+              </div>
+              <div class="pricing-price">$20 <span>/ mo</span></div>
+              <div class="pricing-quota-highlight pro-color">250,000 Tokens</div>
+            </div>
+            <ul class="pricing-features">
+              <li>âœ“ Host `/s/` rooms &amp; sponsor guests</li>
+              <li>âœ“ Firestore session token cap controls</li>
+              <li>âœ“ Gemini 4 Argon + 3.8 Flash</li>
+            </ul>
+            <button type="button" class="pricing-cta-btn primary" data-provision-tier="pro">
+              Launch Pro (250k) â†’
+            </button>
+          </div>
+
+          <div class="pricing-card">
+            <div class="pricing-card-top">
+              <div class="pricing-Header-row">
+                <h3>Enterprise</h3>
+                <span class="tier-coin-badge teal">1M+</span>
+              </div>
+              <div class="pricing-price">Custom</div>
+              <div class="pricing-quota-highlight">1,000,000+ Tokens</div>
+            </div>
+            <ul class="pricing-features">
+              <li>âœ“ 1M+ pooled org tokens</li>
+              <li>âœ“ Google Workspace SSO &amp; MCP</li>
+              <li>âœ“ Domain-locked sublinks</li>
+            </ul>
+            <button type="button" class="pricing-cta-btn secondary" data-provision-tier="enterprise">
+              Launch Enterprise (1M) â†’
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="gumroad-closing-banner">
+      <h2>Share your AI thread.</h2>
+      <div class="gumroad-layered-btn-wrap">
+        <div class="gumroad-layer-red" aria-hidden="true"></div>
+        <div class="gumroad-layer-yellow" aria-hidden="true"></div>
+        <button type="button" class="gumroad-layer-main" id="closingStartBtn">
+          Launch CoThread â†’
+        </button>
+      </div>
+    </section>
+
+    <footer class="editorial-footer">
+      <div class="footer-inner">
+        <div class="footer-brand-col">
+          <div class="brand-wordmark-link" style="display:flex;align-items:center;gap:10px;">
+            <img src="./public/logo.svg?v=ct8" width="36" height="36" alt="CoThread Logo" />
+            <span class="wordmark-serif">CoThread</span>
+          </div>
+          <p class="footer-copy">
+            â’¸ 2026 CoThread AI â€¢ Idea by <a href="https://github.com/hasnain-kk" target="_blank" rel="noopener noreferrer" style="color: #FF90E8; text-decoration: underline;">Muhammad Hasnain (@hasnain-kk)</a> â€¢ Built with <a href="https://github.com/RobinaMirbahar" target="_blank" rel="noopener noreferrer" style="color: #FFC900; text-decoration: underline;">Robina Mirbahar (@RobinaMirbahar)</a>
+          </p>
+        </div>
+        <div class="footer-links-col">
+          <button type="button" class="footer-link-btn" data-open-stack-tab="firestore">â˜ï¸ Cloud Firestore</button>
+          <button type="button" class="footer-link-btn" data-open-stack-tab="adk">ðŸ¤– Google ADK</button>
+          <button type="button" class="footer-link-btn" data-open-stack-tab="mcp">ðŸ”Œ MCP Server</button>
+          <button type="button" class="footer-link-btn" data-open-stack-tab="studio">ðŸ”¥ Firebase Studio</button>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- =========================================================================
+       2. PRODUCTION COTHREAD WORKSPACE (/app & /s/:shareCode)
+       ========================================================================= -->
+  <div class="app-shell hidden" id="appShell">
+    <header class="workspace-top-header">
+      <div class="top-header-left">
+        <button type="button" class="back-to-site-brand" id="backToWebsiteBtn" title="Return to CoThread Home">
+          <img src="./public/logo.svg?v=ct8" width="32" height="32" alt="CoThread Logo" />
+          <span class="wordmark-serif sm">CoThread</span>
+        </button>
+
+        <div class="model-selector-pill">
+          <span class="sparkle-icon">âœ¦</span>
+          <select id="headerModelSelect" class="header-model-select" aria-label="Select CoThread AI Model">
+            <option value="gemini-3.8-flash">Gemini 3.8 Flash (ADK)</option>
+            <option value="gemini-4-argon">Gemini 4 Argon (ADK)</option>
+          </select>
+          <span class="flash-lite-tag">Flash-Lite</span>
+        </div>
+      </div>
+
+      <div class="route-sublink-bar" id="routeSublinkBar">
+        <span class="route-lock-icon" id="routeIcon">ðŸŸ¢</span>
+        <span class="route-domain">cothread.ai</span>
+        <span class="route-path" id="routePathText">/s/cothread-arch-9x2k</span>
+        <button type="button" class="route-copy-btn" id="copyCurrentSublinkBtn">
+          Copy Link
+        </button>
+      </div>
+
+      <div class="top-header-right">
+        <div class="sync-status-pill" title="Cloud Firestore &amp; BroadcastChannel Real-Time Sync">
+          <span class="live-pulse-dot"></span>
+          <span id="syncStatusText">Firestore Sync</span>
+        </div>
+
+        <button type="button" class="header-utility-btn demo-sim-btn" id="openGoogleStackModalBtn" title="Inspect Cloud Firestore DB, Google ADK Sub-Agents &amp; MCP Server">
+          <span>ðŸ”Œ Google Stack â€¢ ADK &amp; MCP</span>
+        </button>
+
+        <button type="button" class="header-utility-btn" id="toggleSideBySideBtn" title="Toggle Dual-Pane Multiplayer Workspace">
+          <span>â—« Dual Pane</span>
+        </button>
+
+        <button type="button" class="header-utility-btn" id="appThemeToggleBtn">
+          <span id="appThemeIcon">â˜€ï¸</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="workspace-stage" id="workspaceStage"></main>
+  </div>
+
+  <!-- =========================================================================
+       3. GOOGLE OAUTH ACCOUNT CHOOSER MODAL
+       ========================================================================= -->
+  <div class="modal-backdrop hidden" id="googleChooserBackdrop" role="dialog" aria-modal="true" aria-labelledby="googleChooserTitle">
+    <div class="modal-card google-chooser-modal">
+      <div class="google-modal-top">
+        <svg width="18" height="18" viewBox="0 0 48 48">
+          <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+          <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+          <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+          <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+        </svg>
+        <span>Sign in with Google â€¢ Firebase Auth</span>
+        <button type="button" class="modal-close-btn" id="closeGoogleChooserBtn" aria-label="Close">âœ•</button>
+      </div>
+
+      <div class="google-modal-body">
+        <h3 id="googleChooserTitle">Sign in to CoThread</h3>
+        <p class="google-modal-sub">Backed by <strong>Cloud Firestore</strong> &amp; <strong>Google ADK</strong></p>
+
+        <div class="google-account-list" id="googleAccountList"></div>
+
+        <form class="google-custom-form" id="googleCustomAccountForm">
+          <div class="form-field">
+            <label for="googleCustomName">Full Name</label>
+            <input type="text" id="googleCustomName" class="editorial-input" placeholder="Enter your full name" required />
+          </div>
+          <div class="form-field">
+            <label for="googleCustomEmail">Google / Work Email</label>
+            <input type="email" id="googleCustomEmail" class="editorial-input" placeholder="name@company.com" required />
+          </div>
+          <div class="form-field">
+            <label for="googleCustomTier">Software Token Quota Plan</label>
+            <select id="googleCustomTier" class="editorial-input">
+              <option value="starter">Starter (25,000 Tokens)</option>
+              <option value="pro" selected>Pro Host (250,000 Tokens)</option>
+              <option value="enterprise">Enterprise (1,000,000 Tokens)</option>
+            </select>
+          </div>
+          <div class="modal-footer-actions">
+            <button type="submit" class="btn-primary" style="width:100%;">Continue with Google Account â†’</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       4. SHARE SESSION & HOST QUOTA CONTROLS MODAL (/s/:shareCode)
+       ========================================================================= -->
+  <div class="modal-backdrop hidden" id="shareQuotaModalBackdrop" role="dialog" aria-modal="true" aria-labelledby="shareModalTitle">
+    <div class="modal-card share-quota-modal">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <div class="modal-icon-badge">ðŸ”—</div>
+          <div>
+            <h2 id="shareModalTitle">Share Sublink &amp; Host Quota</h2>
+            <p class="modal-subtitle">Guests prompt using your Host session allowance</p>
+          </div>
+        </div>
+        <button type="button" class="modal-close-btn" id="closeShareModalBtn" aria-label="Close modal">âœ•</button>
+      </div>
+      <div class="modal-body" id="shareModalBody"></div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       5. ACCOUNT & SOFTWARE TOKEN QUOTA SETTINGS MODAL
+       ========================================================================= -->
+  <div class="modal-backdrop hidden" id="accountQuotaModalBackdrop" role="dialog" aria-modal="true" aria-labelledby="accountQuotaModalTitle">
+    <div class="modal-card account-quota-modal">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <div class="modal-icon-badge">âœ¦</div>
+          <div>
+            <h2 id="accountQuotaModalTitle">Account &amp; Token Quota</h2>
+            <p class="modal-subtitle">Cloud Firestore User Record &amp; Quota Ledger</p>
+          </div>
+        </div>
+        <button type="button" class="modal-close-btn" id="closeAccountQuotaModalBtn" aria-label="Close modal">âœ•</button>
+      </div>
+      <div class="modal-body" id="accountQuotaModalBody"></div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       6. GOOGLE STACK INSPECTOR MODAL (FIRESTORE DB + GOOGLE ADK + MCP SERVER + FIREBASE STUDIO)
+       ========================================================================= -->
+  <div class="modal-backdrop hidden" id="googleStackModalBackdrop" role="dialog" aria-modal="true" aria-labelledby="googleStackModalTitle">
+    <div class="modal-card share-quota-modal" style="max-width: 760px;">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <div class="modal-icon-badge" style="background:#FFC900;">ðŸ”Œ</div>
+          <div>
+            <h2 id="googleStackModalTitle">CoThread Google Cloud Stack Inspector</h2>
+            <p class="modal-subtitle">Cloud Firestore DB â€¢ Google ADK Multi-Agent â€¢ MCP Server â€¢ Firebase Studio</p>
+          </div>
+        </div>
+        <button type="button" class="modal-close-btn" id="closeGoogleStackModalBtn" aria-label="Close modal">âœ•</button>
+      </div>
+      <div class="modal-body" id="googleStackModalBody"></div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer" aria-live="polite"></div>
+
+  <script src="./src/core/quota-engine.js?v=ct8"></script>
+  <script src="./src/ai/gemini-service.js?v=ct8"></script>
+  <script src="./public/app.js?v=ct8"></script>
+
+  <script>
+    (function initCoinParallax() {
+      const container = document.querySelector("[data-hero-parallax-container]");
+      if (!container) return;
+      const coins = Array.from(container.querySelectorAll(".hero-coin"));
+      if (!coins.length) return;
+
+      coins.forEach((coin) => {
+        coin.currentMouseX = 0;
+        coin.currentMouseY = 0;
+        coin.targetMouseX = 0;
+        coin.targetMouseY = 0;
+        coin.scrollOffsetY = 0;
+      });
+
+      function lerp(start, end, factor) {
+        return start + (end - start) * factor;
+      }
+
+      function animate() {
+        coins.forEach((coin) => {
+          coin.currentMouseX = lerp(coin.currentMouseX, coin.targetMouseX, 0.1);
+          coin.currentMouseY = lerp(coin.currentMouseY, coin.targetMouseY, 0.1);
+          const combinedY = coin.currentMouseY + coin.scrollOffsetY;
+          coin.style.transform = `translate3d(${coin.currentMouseX}px, ${combinedY}px, 0)`;
+        });
+        requestAnimationFrame(animate);
+      }
+
+      container.addEventListener("mousemove", (event) => {
+        const rect = container.getBoundingClientRect();
+        const deltaX = event.clientX - (rect.left + rect.width / 2);
+        const deltaY = event.clientY - (rect.top + rect.height / 2);
+        coins.forEach((coin) => {
+          const intensity = parseFloat(coin.dataset.parallaxIntensity) || 0.03;
+          coin.targetMouseX = deltaX * intensity;
+          coin.targetMouseY = deltaY * intensity;
+        });
+      });
+
+      window.addEventListener("scroll", () => {
+        const scrollY = window.scrollY;
+        coins.forEach((coin) => {
+          const scrollIntensity = parseFloat(coin.dataset.scrollIntensity) || -0.1;
+          coin.scrollOffsetY = scrollY * scrollIntensity;
+        });
+      });
+
+      requestAnimationFrame(animate);
+    })();
+  </script>
 </body>
 </html>
+
