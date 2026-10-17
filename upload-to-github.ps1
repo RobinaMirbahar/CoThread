@@ -37,7 +37,7 @@ $Me = Invoke-RestMethod -Uri "https://api.github.com/user" -Method Get -Headers 
 $Owner = $Me.login
 Write-Host "   Authenticated as: $Owner ($($Me.html_url))" -ForegroundColor Green
 
-# 3. Create or Get Public Repository 'Aibuildercup'
+# 3. Create or Get Public Repository 'CoThread'
 Write-Host "2. Ensuring public repository '$Owner/$RepoName' exists..." -ForegroundColor Cyan
 $RepoExists = $false
 try {
@@ -68,11 +68,11 @@ if (-not $RepoExists) {
         homepage    = $RepoHomepage
     } | ConvertTo-Json
     $Repo = Invoke-RestMethod -Uri "https://api.github.com/repos/$Owner/$RepoName" -Method Patch -Headers $Headers -Body $PatchBody -ContentType "application/json"
-    Write-Host "   Updated repository description & live homepage ($RepoHomepage) with Project Lead Robina Mirbahar & Original Idea / Co-Builder Muhammad Hasnain" -ForegroundColor Green
+    Write-Host "   Updated repository description & live homepage ($RepoHomepage)" -ForegroundColor Green
 }
 
-# 4. Upload all project files via GitHub Contents API (Zero git.exe dependency!)
-Write-Host "3. Uploading project files from $PSScriptRoot to $Owner/$RepoName..." -ForegroundColor Cyan
+# 4. Upload all project files in ONE single atomic commit via GitHub Git Data API
+Write-Host "3. Uploading project files in a single atomic commit to $Owner/$RepoName..." -ForegroundColor Cyan
 
 $ExcludeDirs = @("node_modules", ".git", ".gemini")
 $ExcludeFiles = @(".env", ".env.local")
@@ -87,31 +87,61 @@ $Files = Get-ChildItem -Path $PSScriptRoot -Recurse -File -Force | Where-Object 
     (-not $skipDir) -and ($ExcludeFiles -notcontains $_.Name)
 }
 
+$Ref = Invoke-RestMethod -Uri "https://api.github.com/repos/$Owner/$RepoName/git/ref/heads/main" -Method Get -Headers $Headers
+$LatestCommitSha = $Ref.object.sha
+$LatestCommit = Invoke-RestMethod -Uri "https://api.github.com/repos/$Owner/$RepoName/git/commits/$LatestCommitSha" -Method Get -Headers $Headers
+$BaseTreeSha = $LatestCommit.tree.sha
+
+$TreeItems = @()
 foreach ($File in $Files) {
     $RelPath = $File.FullName.Substring($PSScriptRoot.Length + 1).Replace("\", "/")
     $Bytes = [System.IO.File]::ReadAllBytes($File.FullName)
     $Base64 = [Convert]::ToBase64String($Bytes)
 
-    $ApiUrl = "https://api.github.com/repos/$Owner/$RepoName/contents/$RelPath"
-    $ExistingSha = $null
-    try {
-        $Existing = Invoke-RestMethod -Uri $ApiUrl -Method Get -Headers $Headers
-        $ExistingSha = $Existing.sha
-    } catch {
-        $ExistingSha = $null
-    }
+    $BlobBody = @{
+        content  = $Base64
+        encoding = "base64"
+    } | ConvertTo-Json -Compress
 
-    $Payload = @{
-        message = "Upload $RelPath (CoThread - AI Builder Cup 2026)"
-        content = $Base64
+    $Blob = Invoke-RestMethod -Uri "https://api.github.com/repos/$Owner/$RepoName/git/blobs" -Method Post -Headers $Headers -Body $BlobBody -ContentType "application/json"
+    $TreeItems += @{
+        path = $RelPath
+        mode = "100644"
+        type = "blob"
+        sha  = $Blob.sha
     }
-    if ($ExistingSha) {
-        $Payload["sha"] = $ExistingSha
-    }
+    Write-Host "   Staged blob: $RelPath" -ForegroundColor Gray
+}
 
-    $BodyJson = $Payload | ConvertTo-Json -Compress
-    Invoke-RestMethod -Uri $ApiUrl -Method Put -Headers $Headers -Body $BodyJson -ContentType "application/json" | Out-Null
-    Write-Host "   Uploaded: $RelPath" -ForegroundColor Gray
+$TreePayload = @{
+    base_tree = $BaseTreeSha
+    tree      = $TreeItems
+} | ConvertTo-Json -Depth 5 -Compress
+
+$NewTree = Invoke-RestMethod -Uri "https://api.github.com/repos/$Owner/$RepoName/git/trees" -Method Post -Headers $Headers -Body $TreePayload -ContentType "application/json"
+
+$CommitPayload = @{
+    message = "Deploy CoThread with fixed GitHub Pages CSS/JS asset paths, .nojekyll, socials & Gemini Agent"
+    tree    = $NewTree.sha
+    parents = @($LatestCommitSha)
+} | ConvertTo-Json -Compress
+
+$NewCommit = Invoke-RestMethod -Uri "https://api.github.com/repos/$Owner/$RepoName/git/commits" -Method Post -Headers $Headers -Body $CommitPayload -ContentType "application/json"
+
+$UpdateRefPayload = @{
+    sha   = $NewCommit.sha
+    force = $true
+} | ConvertTo-Json -Compress
+
+Invoke-RestMethod -Uri "https://api.github.com/repos/$Owner/$RepoName/git/refs/heads/main" -Method Patch -Headers $Headers -Body $UpdateRefPayload -ContentType "application/json" | Out-Null
+Write-Host "   Committed & pushed single atomic commit: $($NewCommit.sha)" -ForegroundColor Green
+
+# Trigger a clean GitHub Pages build
+try {
+    Invoke-RestMethod -Uri "https://api.github.com/repos/$Owner/$RepoName/pages/builds" -Method Post -Headers $Headers | Out-Null
+    Write-Host "   Triggered GitHub Pages build for $RepoHomepage" -ForegroundColor Green
+} catch {
+    Write-Host "   GitHub Pages build automatically queued." -ForegroundColor Yellow
 }
 
 # 5. Add Muhammad Hasnain (hasnain-kk) as a Collaborator
@@ -131,5 +161,5 @@ try {
 Write-Host ""
 Write-Host "==============================================================" -ForegroundColor Green
 Write-Host "SUCCESS! Repository Live at: https://github.com/$Owner/$RepoName" -ForegroundColor Green
-Write-Host "Collaborator Invited:        https://github.com/$CollaboratorUsername" -ForegroundColor Green
+Write-Host "Live Website (GitHub Pages): $RepoHomepage" -ForegroundColor Green
 Write-Host "==============================================================" -ForegroundColor Green

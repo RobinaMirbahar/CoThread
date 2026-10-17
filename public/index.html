@@ -3,121 +3,61 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>CoThread &#x2014; Go from Solo to Team AI</title>
-  <link rel="icon" type="image/svg+xml" href="./logo.svg?v=ct16" />
+  <title>CoThread &#x2014; Collaborative AI Platform</title>
+  <link rel="icon" type="image/svg+xml" href="./logo.svg?v=ct25" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="./styles.css?v=ct16" />
+  <link rel="stylesheet" href="./styles.css?v=ct25" />
 </head>
 <body>
+
   <!-- =========================================================================
-       1. COMPANY WEBSITE AT /
+       1. COMPANY WEBSITE AT / (domain.com)
        ========================================================================= -->
   <div class="website-root" id="websiteRoot">
-    <!-- Top Sticky Navbar -->
+    <!-- Navbar -->
     <header class="cothread-navbar">
       <div class="cothread-nav-left">
         <a href="#" class="cothread-brand-link" id="navBrandLogo" aria-label="CoThread Home">
-          <img src="./logo.svg?v=ct16" class="cothread-logo-coin" width="44" height="44" alt="CoThread Logo" />
+          <img src="./logo.svg?v=ct25" class="cothread-logo-coin" width="44" height="44" alt="CoThread Logo" />
           <span class="cothread-wordmark">CoThread</span>
-        </a>
-
-        <a
-          href="https://github.com/RobinaMirbahar/CoThread"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="cothread-github-pill"
-          title="View CoThread on GitHub"
-        >
-          <svg width="16" height="16" viewBox="0 0 98 96" fill="currentColor" aria-hidden="true">
-            <path fill-rule="evenodd" clip-rule="evenodd" d="M48.854 0C21.839 0 0 22 0 49.217c0 21.756 13.993 40.172 33.405 46.69 2.427.49 3.316-1.059 3.316-2.362 0-1.141-.08-5.052-.08-9.127-13.59 2.934-16.42-5.867-16.42-5.867-2.184-5.704-5.42-7.17-5.42-7.17-4.448-3.015.324-3.015.324-3.015 4.934.326 7.523 5.052 7.523 5.052 4.367 7.496 11.404 5.378 14.235 4.074.404-3.178 1.699-5.378 3.074-6.6-10.839-1.141-22.243-5.378-22.243-24.283 0-5.378 1.94-9.778 5.014-13.2-.485-1.222-2.184-6.275.486-13.038 0 0 4.125-1.304 13.426 5.052a46.97 46.97 0 0 1 12.214-1.63c4.125 0 8.33.571 12.213 1.63 9.302-6.356 13.427-5.052 13.427-5.052 2.67 6.763.97 11.816.485 13.038 3.155 3.422 5.015 7.822 5.015 13.2 0 18.905-11.404 23.06-22.324 24.283 1.78 1.548 3.316 4.481 3.316 9.126 0 6.6-.08 11.897-.08 13.526 0 1.304.89 2.853 3.316 2.364 19.412-6.52 33.405-24.935 33.405-46.691C97.707 22 75.788 0 48.854 0z"/>
-          </svg>
-          <span>GitHub</span>
-          <span class="star-icon">&#x2605;</span>
         </a>
       </div>
 
       <nav class="cothread-nav-links" aria-label="Primary Navigation">
         <a href="#capabilitiesSection" class="cothread-nav-pill active">Platform</a>
-        <a href="#liveStudioSection" class="cothread-nav-pill">Live Studio</a>
-        <a href="#cothreadWaySection" class="cothread-nav-pill">Architecture</a>
-        <a href="#pricingSection" class="cothread-nav-pill">Enterprise Plans</a>
-        <button type="button" class="cothread-nav-pill" data-open-stack-tab="firestore">Cloud Stack &amp; IAM</button>
+        <a href="#cothreadWaySection" class="cothread-nav-pill">How It Works</a>
+        <a href="#pricingSection" class="cothread-nav-pill">Plans</a>
+        <a href="#teamSection" class="cothread-nav-pill">Team</a>
       </nav>
 
       <div class="cothread-nav-EdgeActions">
         <button type="button" class="cothread-edge-btn theme-edge" id="websiteThemeToggleBtn" title="Toggle Theme">
           <span id="websiteThemeIcon">&#x2600;&#xFE0F;</span>
         </button>
-        <button type="button" class="cothread-edge-btn login-edge" id="navOpenGoogleBtn">
+        <button type="button" class="cothread-edge-btn login-edge" id="navOpenLoginBtn">
           Log in
         </button>
-        <button type="button" class="cothread-edge-btn cta-edge" id="navTryCoThreadBtn">
-          Start CoThreading
+        <button type="button" class="cothread-edge-btn cta-edge" id="navOpenChatBtn">
+          Open Chat &#x2192;
         </button>
       </div>
     </header>
 
-    <!-- =========================================================================
-         CENTERED HERO STAGE (Minimal Copy + Prominent CoThread Logo + Parallax Coins)
-         ========================================================================= -->
-    <section class="cothread-hero-section" id="heroSection" data-hero-parallax-container>
-      <div class="hero-coins-layer" aria-hidden="true">
-        <div class="hero-coin coin-pos-1" data-parallax-intensity="-0.03" data-scroll-intensity="-0.15">
-          <svg viewBox="0 0 140 140" width="132" height="132">
-            <circle cx="74" cy="74" r="56" fill="#000000" />
-            <circle cx="68" cy="68" r="56" fill="#FF90E8" stroke="#000000" stroke-width="3.5" />
-            <circle cx="68" cy="68" r="44" fill="none" stroke="#000000" stroke-width="2" stroke-dasharray="6 5" />
-            <text x="68" y="64" text-anchor="middle" fill="#000" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="18">250K</text>
-            <text x="68" y="83" text-anchor="middle" fill="#000" font-family="JetBrains Mono, monospace" font-weight="700" font-size="11">HOST QUOTA</text>
-          </svg>
-        </div>
-
-        <div class="hero-coin coin-pos-2" data-parallax-intensity="0.04" data-scroll-intensity="-0.18">
-          <svg viewBox="0 0 156 112" width="142" height="102">
-            <rect x="12" y="14" width="132" height="84" rx="42" fill="#000000" />
-            <rect x="6" y="8" width="132" height="84" rx="42" fill="#FFC900" stroke="#000000" stroke-width="3.5" />
-            <text x="72" y="48" text-anchor="middle" fill="#000" font-family="JetBrains Mono, monospace" font-weight="700" font-size="14">/s/sublink</text>
-            <text x="72" y="68" text-anchor="middle" fill="#000" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="13">LIVE ROOM</text>
-          </svg>
-        </div>
-
-        <div class="hero-coin coin-pos-3" data-parallax-intensity="0.035" data-scroll-intensity="-0.12">
-          <svg viewBox="0 0 140 140" width="126" height="126">
-            <rect x="18" y="18" width="104" height="104" rx="24" transform="rotate(-8 70 70)" fill="#000000" />
-            <rect x="12" y="12" width="104" height="104" rx="24" transform="rotate(-8 64 64)" fill="#23A094" stroke="#000000" stroke-width="3.5" />
-            <text x="64" y="60" text-anchor="middle" fill="#FFF" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="15">GEMINI 4</text>
-            <text x="64" y="79" text-anchor="middle" fill="#FFC900" font-family="JetBrains Mono, monospace" font-weight="700" font-size="12">MULTIPLAYER</text>
-          </svg>
-        </div>
-
-        <div class="hero-coin coin-pos-4" data-parallax-intensity="-0.04" data-scroll-intensity="-0.16">
-          <svg viewBox="0 0 156 124" width="138" height="110">
-            <rect x="14" y="16" width="128" height="88" rx="20" transform="rotate(6 78 60)" fill="#000000" />
-            <rect x="8" y="10" width="128" height="88" rx="20" transform="rotate(6 72 54)" fill="#FF6B00" stroke="#000000" stroke-width="3.5" />
-            <text x="72" y="50" text-anchor="middle" fill="#FFF" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="14">1-CLICK FORK</text>
-            <text x="72" y="70" text-anchor="middle" fill="#FFC900" font-family="JetBrains Mono, monospace" font-weight="700" font-size="12">MY CHATS &#x2192;</text>
-          </svg>
-        </div>
-
-        <div class="hero-coin coin-pos-5" data-parallax-intensity="0.025" data-scroll-intensity="-0.10">
-          <svg viewBox="0 0 130 130" width="110" height="110">
-            <circle cx="68" cy="68" r="48" fill="#000000" />
-            <circle cx="62" cy="62" r="48" fill="#90A8ED" stroke="#000000" stroke-width="3.5" />
-            <text x="62" y="58" text-anchor="middle" fill="#000" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="13">ZERO API</text>
-            <text x="62" y="75" text-anchor="middle" fill="#000" font-family="JetBrains Mono, monospace" font-weight="700" font-size="12">KEYS</text>
-          </svg>
-        </div>
-      </div>
-
+    <!-- Hero Section -->
+    <section class="cothread-hero-section" id="heroSection">
       <div class="cothread-hero-center">
-        <!-- Prominent Centerpiece CoThread 3D Coin Logo -->
         <div class="hero-brand-emblem-wrap">
-          <img src="./logo.svg?v=ct16" width="86" height="86" alt="CoThread Coin Logo" class="hero-center-logo-img" />
+          <img src="./logo.svg?v=ct21" width="86" height="86" alt="CoThread Coin Logo" class="hero-center-logo-img" />
           <div class="hero-brand-pill">
             <span class="hero-brand-name">CoThread</span>
           </div>
+        </div>
+
+        <div class="hero-live-badge">
+          <span class="live-dot-pulse"></span>
+          <span>Real-time collaborative AI chat</span>
         </div>
 
         <h1 class="cothread-hero-title">
@@ -126,453 +66,104 @@
         </h1>
 
         <p class="cothread-hero-subtitle">
-          Share a live <code>/s/</code> room on your Host Quota&#x2014;or click <strong>Copy to My Chats</strong> anytime.
+          <span class="animated-hero-text" id="heroAnimatedSubtitle">Multiple users prompt Gemini in one shared chat with live presence and history.</span><span class="typing-cursor">|</span>
         </p>
 
         <div class="cothread-hero-cta-row">
           <div class="cothread-layered-btn-wrap">
             <div class="cothread-layer-red" aria-hidden="true"></div>
             <div class="cothread-layer-yellow" aria-hidden="true"></div>
-            <button type="button" class="cothread-layer-main" id="heroStartCoThreadingBtn">
-              Start CoThreading
+            <button type="button" class="cothread-layer-main" id="heroLaunchChatBtn">
+              Start CoThreading &#x2192;
             </button>
           </div>
-
-          <form class="cothread-hero-search-form" id="heroSublinkForm">
-            <input
-              type="text"
-              id="heroSublinkInput"
-              class="cothread-hero-search-input"
-              placeholder="Paste /s/ link or work email..."
-              aria-label="Paste shared sublink or enter email"
-            />
-            <button type="submit" class="cothread-hero-search-btn" title="Join Room or Sign In">
-              &#x2192;
-            </button>
-          </form>
-        </div>
-
-        <div class="cothread-hero-quick-stickers">
-          <button type="button" class="cothread-mini-sticker yellow" data-open-stack-tab="firestore">
-            &#x2601;&#xFE0F; Cloud Firestore DB
-          </button>
-          <button type="button" class="cothread-mini-sticker teal" data-open-stack-tab="adk">
-            &#x1F916; Google ADK Agent
-          </button>
-          <button type="button" class="cothread-mini-sticker pink" data-open-stack-tab="mcp">
-            &#x1F50C; MCP Server (5 Tools)
-          </button>
-          <button type="button" class="cothread-mini-sticker" style="background:#FFFFFF;" data-open-stack-tab="studio">
-            &#x1F525; Firebase Studio (.idx)
-          </button>
         </div>
       </div>
     </section>
 
-    <!-- =========================================================================
-         SECTION 2: BENTO SHOWCASE (Minimal Copy + Visual Stickers)
-         ========================================================================= -->
+    <!-- Capabilities / Bento Section -->
     <section class="editorial-bento-section" id="capabilitiesSection">
       <div class="section-container">
         <div class="cothread-bento-pair">
           <article class="cothread-bento-card wide-card bg-white-card">
             <div class="gbc-content">
-              <h2>Share any AI thread</h2>
+              <h2>Multiplayer Collaborative Chat</h2>
               <p>
-                One <code>/s/</code> link turns solo prompts into a live multiplayer room. Click any role below to enter live:
+                One shared link turns individual AI prompting into a live team session:
               </p>
               <div class="cothread-checklist">
                 <div class="gc-row">
                   <span class="gc-pink-check">&#x2713;</span>
-                  <span>Live team presence &amp; token-by-token streaming</span>
+                  <span>Live presence &amp; active collaborator stack in the top bar</span>
                 </div>
                 <div class="gc-row">
                   <span class="gc-pink-check">&#x2713;</span>
-                  <span>Ask AI (Host Quota) or Team Chat (0 tokens)</span>
+                  <span>Every prompt shows who asked with their name &amp; avatar</span>
                 </div>
-              </div>
-            </div>
-            <div class="gbc-sticker-graphic">
-              <div class="neo-sticker-window">
-                <div class="nsw-top">
-                  <button type="button" id="bentoCopySublinkBtn" style="background:transparent;border:none;color:#FFF;font-family:var(--font-mono);font-size:11.5px;cursor:pointer;text-decoration:underline;" title="Click to copy live sublink">/s/cothread-arch-9x2k &#x1F4CB;</button>
-                  <span class="nsw-live">&#x25CF; 3 LIVE</span>
-                </div>
-                <div class="nsw-body">
-                  <button type="button" class="nsw-chip pink" data-launch-workspace="pro" style="width:100%;text-align:left;cursor:pointer;">
-                    &#x1F451; Robina Mirbahar (Lead Host &#x2022; 250k) &#x2192;
-                  </button>
-                  <button type="button" class="nsw-chip yellow" data-bento-join-guest="true" style="width:100%;text-align:left;cursor:pointer;">
-                    &#x26A1; Muhammad Hasnain (Collaborator &#x2022; Can Prompt) &#x2192;
-                  </button>
-                  <button type="button" class="nsw-chip teal" data-bento-open-canvas="true" style="width:100%;text-align:left;cursor:pointer;">
-                    &#x1F4C4; Live Shared Artifact Canvas (Open Code) &#x2192;
-                  </button>
+                <div class="gc-row">
+                  <span class="gc-pink-check">&#x2713;</span>
+                  <span>Instant 1-click sharing (Public or Private)</span>
                 </div>
               </div>
             </div>
           </article>
 
           <article class="cothread-bento-card narrow-card bg-yellow-card">
-            <h2>Sponsor the room</h2>
+            <h2>Gemini AI Powered</h2>
             <p>
-              Configure your live Host Cap &amp; guest permissions below:
+              Powered by Google GenAI Gemini 3.8 Flash &amp; Gemini 4 Argon. Seamless context retention across all teammates.
             </p>
-            <div class="neo-meter-sticker">
-              <div class="nms-label">
-                <span>Host Session Cap</span>
-                <strong id="bentoCapLabel">4,820 / 25,000 tokens</strong>
-              </div>
-              <div class="nms-bar"><div class="nms-fill" id="bentoCapFill" style="width:19%"></div></div>
-              <input
-                type="range"
-                id="bentoCapSlider"
-                min="5000"
-                max="100000"
-                step="5000"
-                value="25000"
-                aria-label="Configure Host Session Token Cap"
-                style="width:100%;accent-color:#000000;cursor:pointer;margin-top:4px;"
-              />
-              <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:4px;">
-                <span class="nms-sub">&#x2726; Zero API keys</span>
-                <button type="button" id="bentoPermToggleBtn" style="padding:4px 10px;border-radius:999px;border:1.5px solid #000;background:#FF90E8;color:#000;font-size:11px;font-weight:800;cursor:pointer;">
-                  Mode: Can Prompt AI &#x21BB;
-                </button>
-              </div>
+            <div style="margin-top: 18px;">
+              <button type="button" class="pricing-cta-btn primary" id="bentoLaunchChatBtn" style="width: 100%;">
+                Open CoThread Chat &#x2192;
+              </button>
             </div>
           </article>
         </div>
-
-        <div class="cothread-comparison-duo">
-          <div class="cothread-comp-card">
-            <div class="floating-speech-tag">
-              Single-player on Claude, ChatGPT &amp; Gemini...
-            </div>
-            <div class="comp-illustration sad-box">
-              <div class="sad-pill">&#x274C; Pasting dead screenshots into Slack</div>
-              <div class="sad-pill">&#x274C; Teammates locked out of your Pro thread</div>
-            </div>
-          </div>
-
-          <div class="cothread-comp-card highlight-teal">
-            <div class="floating-speech-tag bottom-tag pink-tag">
-              ...or multiplayer live on CoThread!
-            </div>
-            <div class="comp-illustration happy-box">
-              <div class="happy-pill">&#x26A1; Shared `/s/` room on Host Quota</div>
-              <div class="happy-pill">&#x1F500; 1-Click <strong>Copy to My Chats</strong></div>
-            </div>
-          </div>
-        </div>
       </div>
     </section>
 
-    <!-- =========================================================================
-         SECTION 2B: INTERACTIVE LIVE STUDIO & SIGN-IN
-         ========================================================================= -->
-    <section class="cothread-live-studio-section" id="liveStudioSection">
-      <div class="section-container">
-        <div class="section-header-editorial center">
-          <h2 class="cothread-center-heading">Jump into a live room</h2>
-        </div>
-
-        <div class="hero-container">
-          <div class="hero-left-col">
-            <div class="claude-style-auth-card" id="heroAuthCard">
-              <div class="auth-card-sticker-header">
-                <button type="button" class="sticker-badge-yellow" id="badgeFirebaseAuthBtn" style="cursor:pointer;">FIREBASE &amp; GOOGLE AUTH</button>
-                <button type="button" class="sticker-badge-mono" data-open-stack-tab="firestore" style="cursor:pointer;">FIRESTORE DB</button>
-              </div>
-
-              <div class="invite-banner-editorial hidden" id="inviteAuthBanner">
-                <div class="invite-pulse-orb"></div>
-                <div class="invite-banner-copy">
-                  <strong id="inviteBannerTitle">Invited to Shared Session</strong>
-                  <p id="inviteBannerDesc">Sponsored by Host Quota.</p>
-                </div>
-              </div>
-
-              <button type="button" class="btn-continue-google" id="openGoogleChooserBtn">
-                <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true">
-                  <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
-                  <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26-5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
-                  <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
-                  <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
-                </svg>
-                <span>Continue with Google</span>
-              </button>
-
-              <div class="editorial-or-divider"><span>OR WORK EMAIL</span></div>
-
-              <form class="hero-email-form" id="heroEmailAuthForm" novalidate>
-                <div class="email-input-group">
-                  <input
-                    type="email"
-                    id="heroEmailInput"
-                    class="editorial-email-input"
-                    placeholder="Enter your email (or click Create / Open below)"
-                  />
-                </div>
-
-                <div class="signup-drawer" id="heroSignupDrawer">
-                  <div class="drawer-row">
-                    <input
-                      type="text"
-                      id="heroNameInput"
-                      class="editorial-email-input sm"
-                      placeholder="Your Name (optional)"
-                    />
-                    <select id="heroPlanSelect" class="editorial-email-input sm" aria-label="Select Tier">
-                      <option value="starter">Starter &#x2022; 25k ($0)</option>
-                      <option value="pro" selected>Pro &#x2022; 250k ($20)</option>
-                      <option value="enterprise">Enterprise &#x2022; 1M</option>
-                    </select>
-                  </div>
-                </div>
-
-                <button type="submit" class="btn-continue-obsidian" id="heroSubmitWorkspaceBtn">
-                  Create / Open Workspace &#x2192;
-                </button>
-              </form>
-
-              <div class="instant-demo-strip">
-                <div class="demo-strip-pills">
-                  <button type="button" class="demo-launch-pill" data-open-stack-tab="firestore">
-                    <span>&#x2601;&#xFE0F; <strong>Firestore</strong> DB</span>
-                  </button>
-                  <button type="button" class="demo-launch-pill" data-open-stack-tab="adk">
-                    <span>&#x1F916; <strong>Google ADK</strong></span>
-                  </button>
-                  <button type="button" class="demo-launch-pill" data-open-stack-tab="mcp">
-                    <span>&#x1F50C; <strong>MCP</strong> Server</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="hero-right-stage">
-            <div class="interactive-showcase-window">
-              <div class="showcase-window-bar">
-                <div class="window-dots">
-                  <span></span><span></span><span></span>
-                </div>
-                <button type="button" class="window-route-pill" id="showcaseCopyRouteBtn" style="cursor:pointer;" title="Click to copy shared sublink">
-                  <span class="live-green-dot"></span>
-                  <span>cothread.ai/s/cothread-arch-9x2k &#x1F4CB;</span>
-                </button>
-                <div class="window-avatars">
-                  <span class="mini-av alex" title="Robina Mirbahar (Lead Host)">RM</span>
-                  <span class="mini-av hasnain" title="Muhammad Hasnain (Collaborator)">MH</span>
-                  <span class="mini-av sarah" title="Google ADK Orchestrator">&#x2726;</span>
-                </div>
-              </div>
-
-              <div class="showcase-quota-strip">
-                <div class="sq-left">
-                  <span class="sq-badge" id="showcasePermBadge">CAN PROMPT AI</span>
-                  <span class="sq-text">Host Quota Ledger &#x2022; <strong>Robina (250k Pro)</strong></span>
-                </div>
-                <div class="sq-right">
-                  <span class="sq-mono" id="showcaseCapText">4,820 / 25,000</span>
-                  <div class="sq-bar"><div class="sq-fill" id="showcaseCapFill" style="width: 19%"></div></div>
-                </div>
-              </div>
-
-              <div class="showcase-messages-area" id="showcaseMessagesArea" style="max-height: 280px; overflow-y: auto;">
-                <div class="sc-msg host-msg">
-                  <div class="sc-av alex">RM</div>
-                  <div class="sc-bubble">
-                    <div class="sc-meta"><strong>Robina Mirbahar (Lead &#x2022; Host)</strong> <span class="sc-tag">Pro 250k Pool</span></div>
-                    <p>Opened <code>/s/cothread-arch-9x2k</code> backed by Cloud Firestore &amp; Google ADK. Try sending a live prompt below!</p>
-                  </div>
-                </div>
-
-                <div class="sc-msg guest-msg">
-                  <div class="sc-av hasnain">MH</div>
-                  <div class="sc-bubble">
-                    <div class="sc-meta"><strong>Muhammad Hasnain (Collaborator)</strong> <span class="sc-tag guest">Sublink Guest</span></div>
-                    <p><span class="mention">@Gemini</span> Design a fault-tolerant webhook ingestion pipeline on Google Cloud Run in 4 concise bullet points.</p>
-                  </div>
-                </div>
-
-                <div class="sc-msg ai-msg">
-                  <div class="sc-av ai">&#x2726;</div>
-                  <div class="sc-bubble ai-surface">
-                    <div class="sc-meta">
-                      <strong>Google ADK &#x2022; Gemini 4 Argon</strong>
-                      <span class="sc-quota-pill">&#x26A1; 390 tokens &#x2192; Host Quota (Guest: 0)</span>
-                    </div>
-                    <p><strong>1. Stateless Cloud Run Ingress:</strong> Validate HMAC-SHA256 &amp; return <code>202 Accepted</code> in &lt;15ms.<br/><strong>2. Cloud Pub/Sub Buffering:</strong> Decouple 10k+ RPS traffic bursts.<br/><strong>3. Firestore Idempotency:</strong> Deduplicate <code>event_id</code> atomically.<br/><strong>4. Exponential Backoff &amp; DLT:</strong> Auto-route poison messages after 5 retries.</p>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Live Preset Prompt Pills + Interactive Co-Prompt Bar -->
-              <div style="padding: 8px 14px; background: var(--bg-page); border-top: 1.5px dashed var(--border-strong); display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
-                <span style="font-size:10.5px;font-weight:800;font-family:var(--font-mono);color:var(--ink-muted);">TRY LIVE:</span>
-                <button type="button" class="cothread-mini-sticker yellow" data-showcase-preset="Add an exponential backoff retry strategy and Dead Letter Topic configuration." style="padding:3px 9px;font-size:11px;">+ Backoff &amp; DLT</button>
-                <button type="button" class="cothread-mini-sticker pink" data-showcase-preset="Write the Node.js Express handler for this Cloud Run webhook endpoint." style="padding:3px 9px;font-size:11px;">+ Express Handler</button>
-                <button type="button" class="cothread-mini-sticker teal" data-showcase-preset="Compare single-player Claude, ChatGPT & Gemini with CoThread multiplayer." style="padding:3px 9px;font-size:11px;">+ Compare Claude/ChatGPT/Gemini</button>
-              </div>
-
-              <form id="showcasePromptForm" style="padding: 10px 14px; background: var(--bg-elevated); border-top: 2px solid var(--border-strong); display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-                <select id="showcaseSpeakerSelect" aria-label="Select Speaker" style="height:38px;padding:0 8px;border-radius:8px;border:2px solid #000;font-size:12px;font-weight:700;background:var(--ct-yellow);color:#000;">
-                  <option value="guest">As Collaborator (Hasnain &#x2022; Sponsored)</option>
-                  <option value="host">As Host (Robina &#x2022; 250k Pro)</option>
-                </select>
-                <input
-                  type="text"
-                  id="showcasePromptInput"
-                  placeholder="Type a live prompt to Gemini..."
-                  aria-label="Type a live prompt to Gemini"
-                  style="flex:1;min-width:160px;height:38px;padding:0 12px;border-radius:8px;border:2px solid #000;font-size:13px;font-weight:600;background:#FFF;color:#000;"
-                />
-                <button type="submit" style="height:38px;padding:0 14px;border-radius:8px;border:2px solid #000;background:#000;color:#FFF;font-size:12.5px;font-weight:800;cursor:pointer;">
-                  Ask AI &#x2192;
-                </button>
-              </form>
-
-              <div class="showcase-bottom-bar">
-                <div class="sc-actions" style="width:100%;justify-content:space-between;">
-                  <button type="button" class="sc-copy-btn" id="showcaseForkPersonalBtn">
-                    <span>&#x1F500; Copy to My Chats (Personal Quota)</span>
-                  </button>
-                  <button type="button" class="sc-enter-btn" id="showcaseSignInBtn">
-                    <span>Open Full Workspace &#x2197;</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- =========================================================================
-         SECTION 3: HOW COTHREAD WORKS (CLEAR 4-STEP ENTERPRISE WORKFLOW)
-         ========================================================================= -->
+    <!-- 3-Step Workflow -->
     <section class="cothread-way-section" id="cothreadWaySection">
       <div class="section-container">
         <div class="section-header-editorial center">
-          <span class="cothread-section-kicker">ENTERPRISE WORKFLOW &amp; ARCHITECTURE</span>
-          <h2 class="cothread-center-heading">
-            How CoThread works in 4 steps
-          </h2>
-          <p class="cothread-way-lead">
-            Zero client API keys. Shared sessions run on the Host&#x2019;s sponsored cap&#x2014;and any teammate can fork to their private quota in one click.
-          </p>
+          <span class="cothread-section-kicker">HOW IT WORKS</span>
+          <h2 class="cothread-center-heading">CoThread in 3 simple steps</h2>
         </div>
 
-        <div class="cothread-steps-grid">
-          <!-- Step 1 -->
+        <div class="cothread-steps-grid" style="grid-template-columns: repeat(3, 1fr);">
           <article class="cothread-step-card">
             <div class="step-card-top">
-              <span class="step-num-badge pink">STEP 01</span>
-              <span class="step-role-pill">Host &#x2022; Pro 250k</span>
+              <span class="step-num-badge pink">01</span>
             </div>
-            <h3>1. Share a Live <code>/s/</code> Sublink</h3>
-            <p>
-              Start a thread and click <strong>Share &amp; Quota</strong> to generate a live <code>/s/cothread-...</code> link with <strong>Can Prompt</strong> or <strong>View Only</strong> permissions.
-            </p>
-            <div class="step-card-visual">
-              <code>cothread.ai/s/cothread-arch-9x2k</code>
-              <span class="step-live-dot">&#x25CF; LIVE</span>
-            </div>
-            <button type="button" class="step-action-btn" data-launch-workspace="pro">
-              Host a Live Room &#x2192;
-            </button>
+            <h3>1. Create or Open a Chat</h3>
+            <p>Start a new conversation with Gemini just like your standard AI chat portal.</p>
           </article>
 
-          <!-- Step 2 -->
           <article class="cothread-step-card">
             <div class="step-card-top">
-              <span class="step-num-badge yellow">STEP 02</span>
-              <span class="step-role-pill">Cloud Firestore Guard</span>
+              <span class="step-num-badge yellow">02</span>
             </div>
-            <h3>2. Sponsor the Room Quota</h3>
-            <p>
-              Set a hard <strong>Session Token Cap</strong> (e.g., <code>25,000 tokens</code>). Teammates join with Google OAuth&#x2014;zero API keys needed.
-            </p>
-            <div class="step-card-visual">
-              <span>Host Pool Cap: <strong>4,820 / 25,000</strong></span>
-              <span class="step-tag-ok">&#x2713; Sponsored</span>
-            </div>
-            <button type="button" class="step-action-btn" data-open-stack-tab="firestore">
-              Inspect Firestore Rules &#x2192;
-            </button>
+            <h3>2. Share with Teammates</h3>
+            <p>Click <strong>&#x1F517; Share</strong> to copy your invite link (Public or Private) and send it to your team.</p>
           </article>
 
-          <!-- Step 3 -->
           <article class="cothread-step-card">
             <div class="step-card-top">
-              <span class="step-num-badge teal">STEP 03</span>
-              <span class="step-role-pill">Google ADK + MCP</span>
+              <span class="step-num-badge teal">03</span>
             </div>
-            <h3>3. Co-Prompt Live Together</h3>
-            <p>
-              Collaborators prompt <strong>Gemini 3.8 Flash</strong> &amp; <strong>Gemini 4 Argon</strong> in the same context while <strong>Flash-Lite</strong> compresses history by 41%.
-            </p>
-            <div class="step-card-visual">
-              <span>&#x26A1; Charged to <strong>Host Quota</strong></span>
-              <span class="step-tag-ok">Guest: 0 Used</span>
-            </div>
-            <button type="button" class="step-action-btn" data-open-stack-tab="adk">
-              Inspect ADK Orchestrator &#x2192;
-            </button>
-          </article>
-
-          <!-- Step 4 -->
-          <article class="cothread-step-card">
-            <div class="step-card-top">
-              <span class="step-num-badge orange">STEP 04</span>
-              <span class="step-role-pill">Private Workspace</span>
-            </div>
-            <h3>4. 1-Click Copy to My Chats</h3>
-            <p>
-              Any teammate clicks <strong>Copy to My Chats</strong> to fork the thread into their private <code>/app</code> workspace billed to their own personal quota.
-            </p>
-            <div class="step-card-visual">
-              <span>&#x1F512; Billed to <strong>My Starter 25k</strong></span>
-              <span class="step-tag-ok">Independent</span>
-            </div>
-            <button type="button" class="step-action-btn" data-launch-workspace="starter">
-              Try Independent Fork &#x2192;
-            </button>
+            <h3>3. Chat Together in Real Time</h3>
+            <p>See who joins live with teammate presence avatars. Everyone prompts the same shared AI in real time.</p>
           </article>
         </div>
       </div>
     </section>
 
-    <section class="cothread-stat-marquee-section" id="quotaFlowSection">
-      <div class="cothread-marquee-wrap" aria-label="CoThread Capabilities Ticker">
-        <div class="cothread-marquee-track">
-          <span class="cothread-tag-pill pink" data-open-stack-tab="firestore">&#x2601;&#xFE0F; Cloud Firestore DB</span>
-          <span class="cothread-tag-pill yellow" data-open-stack-tab="adk">&#x1F916; Google ADK Orchestrator</span>
-          <span class="cothread-tag-pill teal" data-open-stack-tab="mcp">&#x1F50C; Model Context Protocol (MCP)</span>
-          <span class="cothread-tag-pill" data-open-stack-tab="studio">&#x1F525; Firebase Studio (.idx)</span>
-          <span class="cothread-tag-pill pink" data-launch-workspace="pro">&#x26A1; Gemini 3.8 Flash</span>
-          <span class="cothread-tag-pill yellow" data-launch-workspace="pro">&#x1F9E0; Gemini 4 Argon</span>
-          <span class="cothread-tag-pill teal" data-open-stack-tab="adk">&#x1F5DC;&#xFE0F; Flash-Lite Compression</span>
-          <span class="cothread-tag-pill pink" data-open-stack-tab="firestore">&#x1F6E1;&#xFE0F; Host Quota Cap</span>
-          <span class="cothread-tag-pill yellow" data-launch-workspace="starter">&#x1F500; Copy to My Chats</span>
-          <span class="cothread-tag-pill teal" data-open-stack-tab="firestore">&#x1F512; Firestore IAM Security Rules</span>
-          <span class="cothread-tag-pill pink" data-open-stack-tab="firestore">&#x2601;&#xFE0F; Cloud Firestore DB</span>
-          <span class="cothread-tag-pill yellow" data-open-stack-tab="adk">&#x1F916; Google ADK Orchestrator</span>
-          <span class="cothread-tag-pill teal" data-open-stack-tab="mcp">&#x1F50C; Model Context Protocol (MCP)</span>
-          <span class="cothread-tag-pill" data-open-stack-tab="studio">&#x1F525; Firebase Studio (.idx)</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- =========================================================================
-         SECTION 5: SIMPLE TOKEN PLANS
-         ========================================================================= -->
+    <!-- Pricing Section -->
     <section class="pricing-section" id="pricingSection">
       <div class="section-container">
         <div class="section-header-editorial center">
-          <h2 class="cothread-center-heading">Simple token plans</h2>
+          <h2 class="cothread-center-heading">Simple, Transparent Plans</h2>
         </div>
 
         <div class="pricing-cards-grid">
@@ -583,15 +174,15 @@
                 <span class="tier-coin-badge yellow">FREE</span>
               </div>
               <div class="pricing-price">$0 <span>/ mo</span></div>
-              <div class="pricing-quota-highlight">25,000 Tokens</div>
+              <div class="pricing-quota-highlight">Unlimited Chats</div>
             </div>
             <ul class="pricing-features">
-              <li>&#x2713; Join shared `/s/` rooms free</li>
-              <li>&#x2713; 1-Click Copy to My Chats</li>
-              <li>&#x2713; Gemini 3.8 Flash + ADK</li>
+              <li>&#x2713; Full collaborative chat access</li>
+              <li>&#x2713; Live teammate presence avatars</li>
+              <li>&#x2713; Gemini 3.8 Flash</li>
             </ul>
-            <button type="button" class="pricing-cta-btn secondary" data-provision-tier="starter">
-              Start Free (25k) &#x2192;
+            <button type="button" class="pricing-cta-btn secondary" data-action="go-to-chat">
+              Get Started Free &#x2192;
             </button>
           </div>
 
@@ -599,19 +190,19 @@
             <div class="pro-popular-pill">&#x2605; POPULAR</div>
             <div class="pricing-card-top">
               <div class="pricing-Header-row">
-                <h3>Pro Host</h3>
-                <span class="tier-coin-badge black">250K</span>
+                <h3>Pro Team</h3>
+                <span class="tier-coin-badge black">PRO</span>
               </div>
               <div class="pricing-price">$20 <span>/ mo</span></div>
-              <div class="pricing-quota-highlight pro-color">250,000 Tokens</div>
+              <div class="pricing-quota-highlight pro-color">Advanced AI</div>
             </div>
             <ul class="pricing-features">
-              <li>&#x2713; Host `/s/` rooms &amp; sponsor guests</li>
-              <li>&#x2713; Firestore session token cap controls</li>
               <li>&#x2713; Gemini 4 Argon + 3.8 Flash</li>
+              <li>&#x2713; Unlimited collaborative teammates</li>
+              <li>&#x2713; Priority response times</li>
             </ul>
-            <button type="button" class="pricing-cta-btn primary" data-provision-tier="pro">
-              Launch Pro (250k) &#x2192;
+            <button type="button" class="pricing-cta-btn primary" data-action="go-to-chat">
+              Launch Pro &#x2192;
             </button>
           </div>
 
@@ -619,18 +210,18 @@
             <div class="pricing-card-top">
               <div class="pricing-Header-row">
                 <h3>Enterprise</h3>
-                <span class="tier-coin-badge teal">1M+</span>
+                <span class="tier-coin-badge teal">CUSTOM</span>
               </div>
               <div class="pricing-price">Custom</div>
-              <div class="pricing-quota-highlight">1,000,000+ Tokens</div>
+              <div class="pricing-quota-highlight">Organization</div>
             </div>
             <ul class="pricing-features">
-              <li>&#x2713; 1M+ pooled org tokens</li>
-              <li>&#x2713; Google Workspace SSO &amp; MCP</li>
-              <li>&#x2713; Domain-locked sublinks</li>
+              <li>&#x2713; Dedicated model instances</li>
+              <li>&#x2713; Organization SSO &amp; Security</li>
+              <li>&#x2713; Custom SLA</li>
             </ul>
-            <button type="button" class="pricing-cta-btn secondary" data-provision-tier="enterprise">
-              Launch Enterprise (1M) &#x2192;
+            <button type="button" class="pricing-cta-btn secondary" data-action="go-to-chat">
+              Contact Sales &#x2192;
             </button>
           </div>
         </div>
@@ -766,87 +357,150 @@
       </div>
     </section>
 
-    <section class="cothread-closing-banner">
-      <h2>Share your AI thread.</h2>
-      <div class="cothread-layered-btn-wrap">
-        <div class="cothread-layer-red" aria-hidden="true"></div>
-        <div class="cothread-layer-yellow" aria-hidden="true"></div>
-        <button type="button" class="cothread-layer-main" id="closingStartBtn">
-          Launch CoThread &#x2192;
-        </button>
-      </div>
-    </section>
-
+    <!-- Footer -->
     <footer class="editorial-footer">
       <div class="footer-inner">
         <div class="footer-brand-col">
           <div class="brand-wordmark-link" style="display:flex;align-items:center;gap:10px;">
-            <img src="./logo.svg?v=ct23" width="36" height="36" alt="CoThread Logo" />
+            <img src="./logo.svg?v=ct21" width="36" height="36" alt="CoThread Logo" />
             <span class="wordmark-serif">CoThread</span>
           </div>
-          <p class="footer-copy">
-            &#x24B8; 2026 CoThread Enterprise AI &#x2022; Project Lead, Principal AI Architect: <a href="https://github.com/RobinaMirbahar" target="_blank" rel="noopener noreferrer" style="color: #FFC900; text-decoration: underline;">Robina Mirbahar (@RobinaMirbahar)</a> &#x2022; Original Idea, Co-Builder &amp; Collaborator: <a href="https://github.com/hasnain-kk" target="_blank" rel="noopener noreferrer" style="color: #FF90E8; text-decoration: underline;">Muhammad Hasnain (@hasnain-kk)</a>
-          </p>
+          <div class="footer-copy footer-credit-text">
+            <div class="credit-line">
+              &#x24B8; 2026 CoThread Enterprise AI &bull; Project Lead, Principal AI Architect: <a href="https://github.com/RobinaMirbahar" target="_blank" rel="noopener noreferrer" class="credit-link">Robina Mirbahar (@RobinaMirbahar)</a>
+            </div>
+            <div class="credit-line">
+              Original Idea, Co-Builder &amp; Collaborator: <a href="https://github.com/hasnain-kk" target="_blank" rel="noopener noreferrer" class="credit-link">Muhammad Hasnain (@hasnain-kk)</a>
+            </div>
+          </div>
         </div>
         <div class="footer-links-col">
-          <button type="button" class="footer-link-btn" data-open-stack-tab="firestore">&#x2601;&#xFE0F; Cloud Firestore</button>
-          <button type="button" class="footer-link-btn" data-open-stack-tab="adk">&#x1F916; Google ADK</button>
-          <button type="button" class="footer-link-btn" data-open-stack-tab="mcp">&#x1F50C; MCP Server</button>
-          <button type="button" class="footer-link-btn" data-open-stack-tab="studio">&#x1F525; Firebase Studio</button>
+          <button type="button" class="footer-link-btn" data-action="go-to-chat">&#x1F4AC; Launch Chat</button>
         </div>
       </div>
     </footer>
   </div>
 
   <!-- =========================================================================
-       2. PRODUCTION COTHREAD WORKSPACE (/app & /s/:shareCode)
+       2. DUMMY LOGIN & SIGNUP PORTAL (Shown at /chat if not logged in)
+       ========================================================================= -->
+  <div class="auth-portal-root hidden" id="authPortal">
+    <div class="auth-portal-card">
+      <div class="auth-portal-header">
+        <button type="button" class="auth-back-home-btn" id="authBackHomeBtn" title="Back to Homepage">&larr; Back to Home</button>
+        <img src="./logo.svg?v=ct21" width="56" height="56" alt="CoThread Logo" class="auth-logo" />
+        <h1 class="auth-title">CoThread</h1>
+        <p class="auth-subtitle">Real-time collaborative AI chat</p>
+      </div>
+
+      <div class="auth-invite-banner hidden" id="authInviteNotice">
+        <span>&#x1F517;</span>
+        <span id="authInviteNoticeText">You were invited to join a collaborative chat!</span>
+      </div>
+
+      <div class="auth-tabs">
+        <button type="button" class="auth-tab-btn active" id="tabLoginBtn">Log In</button>
+        <button type="button" class="auth-tab-btn" id="tabSignupBtn">Sign Up</button>
+      </div>
+
+      <!-- Login Form -->
+      <form id="dummyLoginForm" class="auth-form">
+        <div class="form-group">
+          <label for="loginEmail">Email address</label>
+          <input type="email" id="loginEmail" class="auth-input" placeholder="e.g. hasnain@cothread.ai" required />
+        </div>
+        <div class="form-group">
+          <label for="loginPassword">Password</label>
+          <input type="password" id="loginPassword" class="auth-input" placeholder="&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;" value="demo123" />
+        </div>
+        <button type="submit" class="auth-submit-btn">Log In to Chat &rarr;</button>
+      </form>
+
+      <!-- Signup Form -->
+      <form id="dummySignupForm" class="auth-form hidden">
+        <div class="form-group">
+          <label for="signupName">Full Name</label>
+          <input type="text" id="signupName" class="auth-input" placeholder="e.g. Muhammad Hasnain" required />
+        </div>
+        <div class="form-group">
+          <label for="signupEmail">Email address</label>
+          <input type="email" id="signupEmail" class="auth-input" placeholder="e.g. hasnain@cothread.ai" required />
+        </div>
+        <div class="form-group">
+          <label for="signupPassword">Password</label>
+          <input type="password" id="signupPassword" class="auth-input" placeholder="&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;" value="demo123" />
+        </div>
+        <button type="submit" class="auth-submit-btn">Create Account &rarr;</button>
+      </form>
+
+      <!-- Quick 1-Click Test Personas (for pair testing in multiple tabs) -->
+      <div class="auth-divider">
+        <span>or 1-click test login</span>
+      </div>
+      <div class="quick-test-profiles">
+        <button type="button" class="quick-profile-btn" data-test-name="Muhammad Hasnain" data-test-email="hasnain@cothread.ai">
+          <span class="avatar-circle hasnain">MH</span>
+          <div class="quick-profile-info">
+            <strong>Muhammad Hasnain</strong>
+            <small>hasnain@cothread.ai</small>
+          </div>
+        </button>
+        <button type="button" class="quick-profile-btn" data-test-name="Sarah Chen" data-test-email="sarah@cothread.ai">
+          <span class="avatar-circle sarah">SC</span>
+          <div class="quick-profile-info">
+            <strong>Sarah Chen</strong>
+            <small>sarah@cothread.ai</small>
+          </div>
+        </button>
+        <button type="button" class="quick-profile-btn" data-test-name="Alex Rivera" data-test-email="alex@cothread.ai">
+          <span class="avatar-circle alex">AR</span>
+          <div class="quick-profile-info">
+            <strong>Alex Rivera</strong>
+            <small>alex@cothread.ai</small>
+          </div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       3. PRODUCTION COTHREAD WORKSPACE (/chat or domain.com/chat)
        ========================================================================= -->
   <div class="app-shell hidden" id="appShell">
-    <header class="workspace-top-header">
+    <header class="workspace-top-header" id="workspaceTopHeader">
       <div class="top-header-left">
-        <button type="button" class="back-to-site-brand" id="backToWebsiteBtn" title="Return to CoThread Home">
-          <img src="./logo.svg?v=ct23" width="32" height="32" alt="CoThread Logo" />
+        <button type="button" class="sidebar-toggle-btn" id="sidebarToggleBtn" title="Toggle Sidebar" aria-label="Toggle Sidebar">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+
+        <button type="button" class="back-to-site-brand" id="backToWebsiteBtn" title="Return to Company Website">
+          <img src="./logo.svg?v=ct21" width="30" height="30" alt="CoThread Logo" />
           <span class="wordmark-serif sm">CoThread</span>
         </button>
 
-        <div class="model-selector-pill">
-          <span class="sparkle-icon">&#x2726;</span>
-          <select id="headerModelSelect" class="header-model-select" aria-label="Select CoThread AI Model">
-            <option value="gemini-3.8-flash">Gemini 3.8 Flash (ADK)</option>
-            <option value="gemini-4-argon">Gemini 4 Argon (ADK)</option>
-          </select>
-          <span class="flash-lite-tag">Flash-Lite</span>
-        </div>
-      </div>
-
-      <div class="route-sublink-bar" id="routeSublinkBar">
-        <span class="route-lock-icon" id="routeIcon">&#x1F7E2;</span>
-        <span class="route-domain">cothread.ai</span>
-        <span class="route-path" id="routePathText">/s/cothread-arch-9x2k</span>
-        <button type="button" class="route-copy-btn" id="copyCurrentSublinkBtn">
-          Copy Link
-        </button>
+        <span class="header-chat-title" id="headerChatTitle">New Chat</span>
       </div>
 
       <div class="top-header-right">
-        <div class="sync-status-pill" title="Cloud Firestore &amp; BroadcastChannel Real-Time Sync">
-          <span class="live-pulse-dot"></span>
-          <span id="syncStatusText">Firestore Sync</span>
-        </div>
+        <!-- Live Collaborators Presence Stack (Owner filtered OUT!) -->
+        <div class="presence-avatar-stack" id="headerPresenceStack" title="Collaborators in this chat"></div>
 
-        <button type="button" class="header-utility-btn" id="headerGeminiKeyBtn" title="Configure Gemini Chat Agent &amp; API Key">
+        <!-- Gemini Chat Agent & API Key Button -->
+        <button type="button" class="share-chat-action-btn" id="headerGeminiKeyBtn" title="Configure Gemini Chat Agent &amp; API Key" style="background: var(--surface-card); color: var(--ink-primary); border: 1px solid var(--border-subtle);">
           <span id="headerGeminiKeyStatus">&#x2726; Gemini Agent</span>
         </button>
 
-        <button type="button" class="header-utility-btn demo-sim-btn" id="openGoogleStackModalBtn" title="Inspect Cloud Firestore DB, Google ADK Sub-Agents &amp; MCP Server">
-          <span>&#x1F50C; Google Stack &#x2022; ADK &amp; MCP</span>
+        <!-- Share Button in Top Right on Desktop & Mobile -->
+        <button type="button" class="share-chat-action-btn" id="headerShareBtn" title="Share Chat">
+          <span>&#x1F517; Share</span>
         </button>
 
-        <button type="button" class="header-utility-btn" id="toggleSideBySideBtn" title="Toggle Dual-Pane Multiplayer Workspace">
-          <span>&#x25EB; Dual Pane</span>
-        </button>
-
-        <button type="button" class="header-utility-btn" id="appThemeToggleBtn">
+        <!-- Theme Toggle -->
+        <button type="button" class="header-utility-btn" id="appThemeToggleBtn" title="Toggle Theme">
           <span id="appThemeIcon">&#x2600;&#xFE0F;</span>
         </button>
       </div>
@@ -856,144 +510,106 @@
   </div>
 
   <!-- =========================================================================
-       3. GOOGLE OAUTH ACCOUNT CHOOSER MODAL
+       4. SHARE MODAL (Private Collaboration vs Public Copy-to-Chat)
        ========================================================================= -->
-  <div class="modal-backdrop hidden" id="googleChooserBackdrop" role="dialog" aria-modal="true" aria-labelledby="googleChooserTitle">
-    <div class="modal-card google-chooser-modal">
-      <div class="google-modal-top">
-        <svg width="18" height="18" viewBox="0 0 48 48">
-          <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
-          <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
-          <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
-          <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
-        </svg>
-        <span>Sign in with Google &#x2022; Firebase Auth</span>
-        <button type="button" class="modal-close-btn" id="closeGoogleChooserBtn" aria-label="Close">&#x2715;</button>
-      </div>
-
-      <div class="google-modal-body">
-        <h3 id="googleChooserTitle">Sign in to CoThread</h3>
-        <p class="google-modal-sub">Backed by <strong>Cloud Firestore</strong> &amp; <strong>Google ADK</strong></p>
-
-        <div class="google-account-list" id="googleAccountList"></div>
-
-        <form class="google-custom-form" id="googleCustomAccountForm" novalidate>
-          <div class="form-field">
-            <label for="googleCustomName">Full Name</label>
-            <input type="text" id="googleCustomName" class="editorial-input" placeholder="Enter your full name" />
-          </div>
-          <div class="form-field">
-            <label for="googleCustomEmail">Google / Work Email</label>
-            <input type="email" id="googleCustomEmail" class="editorial-input" placeholder="name@company.com" />
-          </div>
-          <div class="form-field">
-            <label for="googleCustomTier">Software Token Quota Plan</label>
-            <select id="googleCustomTier" class="editorial-input">
-              <option value="starter">Starter (25,000 Tokens)</option>
-              <option value="pro" selected>Pro Host (250,000 Tokens)</option>
-              <option value="enterprise">Enterprise (1,000,000 Tokens)</option>
-            </select>
-          </div>
-          <div class="modal-footer-actions">
-            <button type="submit" class="btn-primary" style="width:100%;">Continue with Google Account &#x2192;</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-
-  <!-- =========================================================================
-       4. SHARE SESSION & HOST QUOTA CONTROLS MODAL (/s/:shareCode)
-       ========================================================================= -->
-  <div class="modal-backdrop hidden" id="shareQuotaModalBackdrop" role="dialog" aria-modal="true" aria-labelledby="shareModalTitle">
-    <div class="modal-card share-quota-modal">
+  <div class="modal-backdrop hidden" id="shareModalBackdrop">
+    <div class="modal-card share-dialog-card">
       <div class="modal-header">
-        <div class="modal-title-group">
-          <div class="modal-icon-badge">&#x1F517;</div>
-          <div>
-            <h2 id="shareModalTitle">Share Sublink &amp; Host Quota</h2>
-            <p class="modal-subtitle">Guests prompt using your Host session allowance</p>
-          </div>
+        <div class="modal-title-cluster">
+          <span class="sparkle-icon">&#x1F517;</span>
+          <h3>Share Chat</h3>
         </div>
-        <button type="button" class="modal-close-btn" id="closeShareModalBtn" aria-label="Close modal">&#x2715;</button>
+        <button type="button" class="modal-close-btn" id="closeShareModalBtn">&#x2715;</button>
       </div>
-      <div class="modal-body" id="shareModalBody"></div>
-    </div>
-  </div>
+      <div class="modal-body share-modal-body">
+        <div class="share-mode-tabs">
+          <button type="button" class="share-tab-btn active" id="tabSharePrivateBtn">
+            &#x1F512; Private Collaboration
+          </button>
+          <button type="button" class="share-tab-btn" id="tabSharePublicBtn">
+            &#x1F310; Public (Copy to Chat)
+          </button>
+        </div>
 
-  <!-- =========================================================================
-       5. ACCOUNT & SOFTWARE TOKEN QUOTA SETTINGS MODAL
-       ========================================================================= -->
-  <div class="modal-backdrop hidden" id="accountQuotaModalBackdrop" role="dialog" aria-modal="true" aria-labelledby="accountQuotaModalTitle">
-    <div class="modal-card account-quota-modal">
-      <div class="modal-header">
-        <div class="modal-title-group">
-          <div class="modal-icon-badge">&#x2726;</div>
-          <div>
-            <h2 id="accountQuotaModalTitle">Account &amp; Token Quota</h2>
-            <p class="modal-subtitle">Cloud Firestore User Record &amp; Quota Ledger</p>
-          </div>
-        </div>
-        <button type="button" class="modal-close-btn" id="closeAccountQuotaModalBtn" aria-label="Close modal">&#x2715;</button>
-      </div>
-      <div class="modal-body" id="accountQuotaModalBody"></div>
-    </div>
-  </div>
-
-  <!-- =========================================================================
-       6. GOOGLE STACK INSPECTOR MODAL (FIRESTORE DB + GOOGLE ADK + MCP SERVER + FIREBASE STUDIO)
-       ========================================================================= -->
-  <div class="modal-backdrop hidden" id="googleStackModalBackdrop" role="dialog" aria-modal="true" aria-labelledby="googleStackModalTitle">
-    <div class="modal-card share-quota-modal" style="max-width: 760px;">
-      <div class="modal-header">
-        <div class="modal-title-group">
-          <div class="modal-icon-badge" style="background:#FFC900;">&#x1F50C;</div>
-          <div>
-            <h2 id="googleStackModalTitle">CoThread Google Cloud Stack Inspector</h2>
-            <p class="modal-subtitle">Cloud Firestore DB &#x2022; Google ADK Multi-Agent &#x2022; MCP Server &#x2022; Firebase Studio</p>
-          </div>
-        </div>
-        <button type="button" class="modal-close-btn" id="closeGoogleStackModalBtn" aria-label="Close modal">&#x2715;</button>
-      </div>
-      <div class="modal-body" id="googleStackModalBody"></div>
-    </div>
-  </div>
-
-  <!-- =========================================================================
-       7. GEMINI CHAT AGENT & API KEY MODAL
-       ========================================================================= -->
-  <div class="modal-backdrop hidden" id="geminiAgentModalBackdrop" role="dialog" aria-modal="true" aria-labelledby="geminiAgentModalTitle">
-    <div class="modal-card share-quota-modal" style="max-width: 620px;">
-      <div class="modal-header">
-        <div class="modal-title-group">
-          <div class="modal-icon-badge" style="background:#FF90E8;">&#x2726;</div>
-          <div>
-            <h2 id="geminiAgentModalTitle">Gemini Chat Agent Settings</h2>
-            <p class="modal-subtitle">Live Gemini Interactions API (<code>/v1beta/interactions</code>) &amp; ADK</p>
-          </div>
-        </div>
-        <button type="button" class="modal-close-btn" id="closeGeminiAgentModalBtn" aria-label="Close modal">&#x2715;</button>
-      </div>
-      <div class="modal-body">
-        <div class="form-section">
-          <label class="form-label" for="geminiApiKeyInput">
-            <span>Google Gemini API Key (<code>GEMINI_API_KEY</code>)</span>
-            <span id="geminiKeySavedBadge" style="color:var(--ink-muted);font-weight:700;">Using CoThread ADK Agent</span>
-          </label>
-          <form id="geminiAgentKeyForm" class="share-link-box" style="margin-bottom:8px;">
-            <input
-              type="password"
-              id="geminiApiKeyInput"
-              class="share-link-input"
-              placeholder="Paste your GEMINI_API_KEY (AIzaSy...)..."
-              autocomplete="off"
-            />
-            <button type="submit" class="btn-primary">Save Key</button>
-            <button type="button" class="btn-secondary" id="clearGeminiKeyBtn">Clear</button>
-          </form>
-          <p class="form-help">
-            Stored only in your browser&#x2019;s <code>localStorage</code> (never uploaded to GitHub). Connects directly to <code>gemini-3.8-flash</code> and <code>gemini-4-argon</code> with automatic fallback to the CoThread ADK Architect if API credits are depleted.
+        <!-- Private Collaboration Section -->
+        <div class="share-pane-content" id="sharePanePrivate">
+          <p class="share-modal-desc">
+            Invite teammates by email to collaborate live in this chat with real-time presence.
           </p>
+          <form id="shareInviteEmailForm" class="share-email-form">
+            <input
+              type="email"
+              id="shareInviteEmailInput"
+              class="share-email-input"
+              placeholder="Enter collaborator email (e.g. sarah@cothread.ai)..."
+              required
+            />
+            <button type="submit" class="share-invite-submit-btn">
+              Invite &amp; Copy Link
+            </button>
+          </form>
+
+          <div class="share-collaborators-list" id="shareCollaboratorsList"></div>
+
+          <div class="share-notice-box">
+            &#x2139;&#xFE0F; If they have an account, they join directly. If not, they sign up and then collaborate immediately.
+          </div>
+        </div>
+
+        <!-- Public Copy-to-Chat Section -->
+        <div class="share-pane-content hidden" id="sharePanePublic">
+          <p class="share-modal-desc">
+            Non-CoThread public link. Anyone with this link can view this chat and <strong>Copy to their own Chat</strong> without modifying your shared thread.
+          </p>
+          <div class="share-url-row">
+            <input type="text" id="sharePublicLinkInput" class="share-url-input" readonly />
+            <button type="button" class="share-modal-copy-btn" id="sharePublicCopyBtn">
+              <span>Copy Public Link</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       5. GEMINI CHAT AGENT & API KEY MODAL
+       ========================================================================= -->
+  <div class="modal-backdrop hidden" id="geminiAgentModalBackdrop">
+    <div class="modal-card share-dialog-card">
+      <div class="modal-header">
+        <div class="modal-title-cluster">
+          <span class="sparkle-icon">&#x2726;</span>
+          <h3>Gemini Chat Agent Settings</h3>
+        </div>
+        <button type="button" class="modal-close-btn" id="closeGeminiAgentModalBtn">&#x2715;</button>
+      </div>
+      <div class="modal-body share-modal-body">
+        <p class="share-modal-desc">
+          Connect your personal <strong>Google Gemini API Key</strong> to run live multi-turn interactions with <code>gemini-3.8-flash</code> and <code>gemini-4-argon</code> via the Gemini Interactions API (<code>/v1beta/interactions</code>). Your key is stored only in your browser&#x2019;s local storage and is never uploaded to GitHub.
+        </p>
+        <form id="geminiAgentKeyForm" class="share-email-form" style="margin-bottom: 14px;">
+          <input
+            type="password"
+            id="geminiApiKeyInput"
+            class="share-email-input"
+            placeholder="Paste your GEMINI_API_KEY (AIzaSy...)..."
+            autocomplete="off"
+          />
+          <button type="submit" class="share-invite-submit-btn">
+            Save API Key
+          </button>
+        </form>
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px;">
+          <span id="geminiKeySavedBadge" style="font-size: 12.5px; font-weight: 600; color: var(--ink-muted);">
+            Status: Using CoThread ADK Collaborative Agent
+          </span>
+          <button type="button" id="clearGeminiKeyBtn" class="acct-btn" style="padding: 6px 12px; font-size: 12px; width: auto;">
+            Clear Key
+          </button>
+        </div>
+        <div class="share-notice-box">
+          &#x2726; <strong>Multi-Participant Context:</strong> The Gemini Chat Agent automatically formats every teammate&#x2019;s name and role (<code>[Host]</code> vs <code>[Collaborator]</code>), maintains stateful <code>previous_interaction_id</code> turns, and seamlessly falls back to the CoThread ADK Architect if API credits are depleted.
         </div>
       </div>
     </div>
@@ -1001,60 +617,8 @@
 
   <div class="toast-container" id="toastContainer" aria-live="polite"></div>
 
-  <script src="../src/core/quota-engine.js?v=ct23"></script>
-  <script src="../src/ai/gemini-service.js?v=ct23"></script>
-  <script src="./app.js?v=ct23"></script>
-
-  <script>
-    (function initCoinParallax() {
-      const container = document.querySelector("[data-hero-parallax-container]");
-      if (!container) return;
-      const coins = Array.from(container.querySelectorAll(".hero-coin"));
-      if (!coins.length) return;
-
-      coins.forEach((coin) => {
-        coin.currentMouseX = 0;
-        coin.currentMouseY = 0;
-        coin.targetMouseX = 0;
-        coin.targetMouseY = 0;
-        coin.scrollOffsetY = 0;
-      });
-
-      function lerp(start, end, factor) {
-        return start + (end - start) * factor;
-      }
-
-      function animate() {
-        coins.forEach((coin) => {
-          coin.currentMouseX = lerp(coin.currentMouseX, coin.targetMouseX, 0.1);
-          coin.currentMouseY = lerp(coin.currentMouseY, coin.targetMouseY, 0.1);
-          const combinedY = coin.currentMouseY + coin.scrollOffsetY;
-          coin.style.transform = `translate3d(${coin.currentMouseX}px, ${combinedY}px, 0)`;
-        });
-        requestAnimationFrame(animate);
-      }
-
-      container.addEventListener("mousemove", (event) => {
-        const rect = container.getBoundingClientRect();
-        const deltaX = event.clientX - (rect.left + rect.width / 2);
-        const deltaY = event.clientY - (rect.top + rect.height / 2);
-        coins.forEach((coin) => {
-          const intensity = parseFloat(coin.dataset.parallaxIntensity) || 0.03;
-          coin.targetMouseX = deltaX * intensity;
-          coin.targetMouseY = deltaY * intensity;
-        });
-      });
-
-      window.addEventListener("scroll", () => {
-        const scrollY = window.scrollY;
-        coins.forEach((coin) => {
-          const scrollIntensity = parseFloat(coin.dataset.scrollIntensity) || -0.1;
-          coin.scrollOffsetY = scrollY * scrollIntensity;
-        });
-      });
-
-      requestAnimationFrame(animate);
-    })();
-  </script>
+  <script src="../src/core/quota-engine.js?v=ct25"></script>
+  <script src="../src/ai/gemini-service.js?v=ct25"></script>
+  <script src="./app.js?v=ct25"></script>
 </body>
 </html>
