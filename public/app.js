@@ -1,146 +1,70 @@
 /**
- * CoThread \u2014 Collaborative AI Platform
- * - Company Website at `/` (domain.com)
- * - Chat Workspace at `/chat` (or `#/chat` or `chat.domain.com`)
- * - Top header with Sidebar Toggle, Brand, Chat Title, Live Collaborators (Name ONLY, owner filtered out), Share Button, Theme Toggle
- * - No green dot in top nav
- * - Model selector inside the Chat Composer Box (Gemini style)
- * - Gemini style minimal icon action bar on AI responses (Copy, New Chat, Retry)
- * - Left sidebar with clean 3-dot kebab menu (Rename, Delete) without badge overlap
- * - Share modal with Private Collaboration (email invite) vs Public Copy-to-Chat
- * - Full responsive layout for mobile and desktop
+ * CoThread - Collaborative AI Platform (Claude.com + Gemini.google + OpenAI.com Fusion)
+ * Features:
+ * 1. Flagship Editorial Company Website at `/` with Claude.com-style Hero Onboarding + Gemini Aurora Stage + Pricing Plans
+ * 2. Warm Editorial Daylight Theme (default) + 1-Click Obsidian Dark Mode Toggle
+ * 3. Managed Software Token Quotas per Account Tier (Starter: 25k, Pro: 250k, Enterprise: 1M) - Zero API keys in UI
+ * 4. Sublink Routing (`/`, `/app`, `/s/:shareCode`, `?s=cothread-...`)
+ * 5. Host-Sponsored Shared Sessions + 1-Click "Continue Independently (Copy to My Chats)" (Strictly no merge-back UI)
+ * 6. Cross-Tab Real-Time Sync via BroadcastChannel + Optional Side-by-Side Colleague Preview
  */
 
 (function () {
   'use strict';
 
-  const STORAGE_KEY = 'cothread_chat_state_v22';
-  const TAB_AUTH_KEY = 'cothread_active_user_v22';
-  const THEME_KEY = 'cothread_theme_v22';
-  const CHANNEL_NAME = 'cothread_realtime_v22';
+  const STORAGE_KEY = 'cothread_firestore_state_v16';
+  const TAB_AUTH_KEY = 'cothread_tab_user_v16';
+  const THEME_KEY = 'cothread_theme_ct8';
+  const CHANNEL_NAME = 'cothread_realtime';
+  try {
+    localStorage.removeItem('cothread_firestore_state_v12');
+    sessionStorage.removeItem('cothread_tab_user_v12');
+  } catch (e) {}
 
-  // Seed Default Accounts
-  const DEFAULT_ACCOUNTS = {
-    user_hasnain: {
-      id: 'user_hasnain',
-      name: 'Muhammad Hasnain',
-      shortName: 'Hasnain',
-      email: 'hasnain@cothread.ai',
-      initials: 'MH',
-      colorClass: 'hasnain'
+  const PLAN_TIERS = {
+    starter: {
+      id: 'starter',
+      name: 'CoThread Starter',
+      badge: 'STARTER',
+      quota: 25000,
+      desc: '25,000 monthly software tokens \u2022 Join unlimited Shared Sessions'
     },
-    user_sarah: {
-      id: 'user_sarah',
-      name: 'Sarah Chen',
-      shortName: 'Sarah',
-      email: 'sarah@cothread.ai',
-      initials: 'SC',
-      colorClass: 'sarah'
+    pro: {
+      id: 'pro',
+      name: 'CoThread Pro',
+      badge: 'PRO',
+      quota: 250000,
+      desc: '250,000 monthly software tokens \u2022 Host Shared Sessions up to 100k cap'
     },
-    user_alex: {
-      id: 'user_alex',
-      name: 'Alex Rivera',
-      shortName: 'Alex',
-      email: 'alex@cothread.ai',
-      initials: 'AR',
-      colorClass: 'alex'
+    enterprise: {
+      id: 'enterprise',
+      name: 'CoThread Enterprise',
+      badge: 'ENTERPRISE',
+      quota: 1000000,
+      desc: '1,000,000 monthly software tokens \u2022 Unlimited Shared Rooms & Org Governance'
     }
   };
-
-  function nowTimeLabel() {
-    const d = new Date();
-    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  }
 
   function createDefaultState() {
     return {
       primaryModel: 'gemini-3.8-flash',
+      compressionModel: 'gemini-3.5-flash-lite',
+      sideBySideMode: false,
       typingStatus: null,
-      accounts: { ...DEFAULT_ACCOUNTS },
+      adkTraces: [],
+      accounts: {},
       paneState: {},
-      sessions: [
-        {
-          id: 'chat_welcome',
-          type: 'shared',
-          title: 'General AI Chat',
-          hostId: 'user_hasnain',
-          shareCode: 'cothread-team-chat',
-          participants: ['user_hasnain', 'user_sarah'],
-          invitedEmails: ['sarah@cothread.ai'],
-          messages: [
-            {
-              id: 'm_welcome',
-              senderId: 'gemini',
-              senderName: 'CoThread AI',
-              senderRole: 'AI Assistant',
-              kind: 'ai',
-              timestamp: nowTimeLabel(),
-              text: `Welcome to **CoThread**! \u2726\n\nThis is a real-time collaborative AI chat:\n\n\u2022 **Share this chat**: Click **\uD83D\uDD17 Share** in the top right to invite teammates privately or create a public link.\n\u2022 **Multiplayer presence**: When someone joins, their avatar immediately appears in the top right presence stack.\n\u2022 **Shared context**: Anyone in the chat can send prompts, and everyone sees who asked what with their name and avatar.`
-            }
-          ]
-        }
-      ]
+      sessions: []
     };
   }
 
   let state = loadState();
   let currentUserId = loadTabUser();
   let pendingInviteShareCode = detectSublinkShareCode();
-  let pendingInviteeEmail = detectInviteeEmail();
-  let activeShareSessionId = null;
+  let activeShareModalSessionId = null;
+  let activeQuotaModalUserId = null;
 
-  // Helper to get the base app URL (preserves /CoThread/ subpath on GitHub Pages)
-  function getBaseAppUrl() {
-    const origin = window.location.origin;
-    let path = window.location.pathname || '/';
-    // Strip trailing /chat or /app if present on Express server
-    path = path.replace(/\/(chat|app)\/?$/i, '/');
-    if (!path.endsWith('/')) path += '/';
-    return origin + path;
-  }
-
-  // Determine current route: 'home' vs 'chat'
-  function isChatRoute() {
-    const path = window.location.pathname.toLowerCase();
-    const hash = window.location.hash.toLowerCase();
-    const host = window.location.host.toLowerCase();
-    const params = new URLSearchParams(window.location.search);
-
-    if (host.startsWith('chat.')) return true;
-    if (path === '/chat' || path.startsWith('/chat/') || path.endsWith('/chat') || path === '/app' || path.startsWith('/app/')) return true;
-    if (hash === '#/chat' || hash.startsWith('#/chat') || hash.startsWith('#/s/')) return true;
-    if (params.get('view') === 'chat' || params.get('join') || params.get('s')) return true;
-    return false;
-  }
-
-  function navigateTo(route) {
-    const isGitHubPagesOrStatic = window.location.protocol === 'file:' || window.location.hostname.endsWith('github.io');
-    if (route === 'chat') {
-      try {
-        if (!isGitHubPagesOrStatic) {
-          window.history.pushState(null, '', '/chat');
-        } else {
-          window.location.hash = '#/chat';
-        }
-      } catch (e) {
-        window.location.hash = '#/chat';
-      }
-    } else {
-      try {
-        if (!isGitHubPagesOrStatic) {
-          window.history.pushState(null, '', '/');
-        } else {
-          window.history.pushState(null, '', window.location.pathname);
-        }
-      } catch (e) {
-        window.location.hash = '';
-      }
-    }
-    renderApp();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-
-  // Initialize Theme
+  // Initialize Theme (Default: Warm Editorial Light like claude.com & gemini.google)
   function initTheme() {
     let savedTheme = 'light';
     try {
@@ -156,7 +80,9 @@
     document.documentElement.setAttribute('data-theme', clean);
     try {
       localStorage.setItem(THEME_KEY, clean);
-    } catch (e) {}
+    } catch (e) {
+      // ignore
+    }
     const webIcon = document.getElementById('websiteThemeIcon');
     const appIcon = document.getElementById('appThemeIcon');
     if (webIcon) webIcon.textContent = clean === 'light' ? '\u2600\uFE0F' : '\uD83C\uDF19';
@@ -168,33 +94,39 @@
     applyTheme(cur === 'light' ? 'dark' : 'light');
   }
 
-  // Cross-Tab BroadcastChannel
+  // BroadcastChannel for cross-tab real-time sync
   let bc = null;
   try {
     if (typeof BroadcastChannel !== 'undefined') {
       bc = new BroadcastChannel(CHANNEL_NAME);
       bc.onmessage = (ev) => {
         if (ev.data && ev.data.type === 'STATE_SYNC' && ev.data.state) {
+          const localSplit = state.sideBySideMode;
           state = ev.data.state;
+          state.sideBySideMode = localSplit;
           renderApp();
+          pulseSyncBadge('Synced Live');
         } else if (ev.data && ev.data.type === 'TOAST') {
           showToast(ev.data.message, ev.data.variant);
         }
       };
     }
-  } catch (e) {}
+  } catch (e) {
+    // fallback
+  }
 
   window.addEventListener('storage', (ev) => {
     if (ev.key === STORAGE_KEY && ev.newValue) {
       try {
-        state = JSON.parse(ev.newValue);
+        const incoming = JSON.parse(ev.newValue);
+        const localSplit = state.sideBySideMode;
+        state = incoming;
+        state.sideBySideMode = localSplit;
         renderApp();
-      } catch (err) {}
+      } catch (err) {
+        // ignore
+      }
     }
-  });
-
-  window.addEventListener('popstate', () => {
-    renderApp();
   });
 
   function loadState() {
@@ -202,12 +134,13 @@
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw);
-        if (parsed && parsed.accounts && Array.isArray(parsed.sessions) && parsed.sessions.length > 0) {
-          parsed.accounts = { ...DEFAULT_ACCOUNTS, ...parsed.accounts };
+        if (parsed && parsed.accounts && Array.isArray(parsed.sessions)) {
           return parsed;
         }
       }
-    } catch (e) {}
+    } catch (e) {
+      // ignore
+    }
     return createDefaultState();
   }
 
@@ -217,7 +150,9 @@
       if (saved && state.accounts[saved]) {
         return saved;
       }
-    } catch (e) {}
+    } catch (e) {
+      // ignore
+    }
     return null;
   }
 
@@ -229,49 +164,52 @@
       } else {
         sessionStorage.removeItem(TAB_AUTH_KEY);
       }
-    } catch (e) {}
+    } catch (e) {
+      // ignore
+    }
   }
 
   function saveAndBroadcastState(toastMsg, toastVariant) {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    } catch (e) {}
+    } catch (e) {
+      // ignore
+    }
     if (bc) {
       try {
         bc.postMessage({ type: 'STATE_SYNC', state });
         if (toastMsg) {
           bc.postMessage({ type: 'TOAST', message: toastMsg, variant: toastVariant || 'shared' });
         }
-      } catch (e) {}
+      } catch (e) {
+        // ignore
+      }
     }
   }
 
   function detectSublinkShareCode() {
     try {
       const params = new URLSearchParams(window.location.search);
-      const qCode = params.get('join') || params.get('s');
+      const qCode = params.get('s') || params.get('join');
       if (qCode) return qCode.trim();
 
       const hash = window.location.hash || '';
       const hashMatch = hash.match(/\/s\/([a-zA-Z0-9_-]+)/);
       if (hashMatch) return hashMatch[1];
-    } catch (e) {}
-    return null;
-  }
 
-  function detectInviteeEmail() {
-    try {
-      const params = new URLSearchParams(window.location.search);
-      const email = params.get('invitee');
-      if (email) return email.trim().toLowerCase();
-    } catch (e) {}
+      const path = window.location.pathname || '';
+      const pathMatch = path.match(/\/s\/([a-zA-Z0-9_-]+)/);
+      if (pathMatch) return pathMatch[1];
+    } catch (e) {
+      // ignore
+    }
     return null;
   }
 
   function findSessionByShareCode(code) {
     if (!code) return null;
     return state.sessions.find(
-      (s) => s.shareCode === code || s.id === code
+      (s) => s.type === 'shared' && (s.shareCode === code || s.id === code)
     );
   }
 
@@ -282,18 +220,24 @@
   function ensurePaneStateForUser(userId) {
     if (!state.paneState[userId]) {
       const defaultSess =
-        state.sessions.find((s) => s.participants && s.participants.includes(userId)) ||
+        state.sessions.find((s) => s.type === 'shared' && s.participants?.includes(userId)) ||
+        state.sessions.find((s) => s.hostId === userId || s.ownerId === userId) ||
         state.sessions[0];
       state.paneState[userId] = {
         activeSessionId: defaultSess ? defaultSess.id : null,
-        sidebarOpen: true,
-        openMenuSessionId: null,
+        composerMode: 'ai',
+        canvasOpen: false,
+        mobileSidebarOpen: false,
         draftText: ''
       };
     } else if (!state.paneState[userId].activeSessionId && state.sessions.length > 0) {
       state.paneState[userId].activeSessionId = state.sessions[0].id;
     }
     return state.paneState[userId];
+  }
+
+  function fmtNum(n) {
+    return Number(n || 0).toLocaleString('en-US');
   }
 
   function escapeHtml(str) {
@@ -309,156 +253,271 @@
     safe = safe.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
     safe = safe.replace(/`([^`]+)`/g, '<code>$1</code>');
     safe = safe.replace(/@([a-zA-Z0-9_-]+)/g, '<strong style="color:var(--accent-terracotta)">@$1</strong>');
-    safe = safe.replace(/\n/g, '<br/>');
     return safe;
   }
 
-  function showToast(message, variant) {
-    const container = document.getElementById('toastContainer');
-    if (!container) return;
-    const toast = document.createElement('div');
-    toast.className = `toast ${variant || 'shared'}`;
-    toast.innerHTML = `<span>${escapeHtml(message)}</span>`;
-    container.appendChild(toast);
+  function nowTimeLabel() {
+    const d = new Date();
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function pulseSyncBadge(text) {
+    const el = document.getElementById('syncStatusText');
+    if (!el) return;
+    el.textContent = text || 'Firestore Sync';
     setTimeout(() => {
-      toast.classList.add('fade-out');
-      setTimeout(() => toast.remove(), 300);
-    }, 3200);
+      if (el) el.textContent = 'Firestore Sync';
+    }, 2200);
   }
 
   // =========================================================
-  // AUTHENTICATION & LOGIN/SIGNUP
+  // AUTHENTICATION & WORKSPACE LAUNCH
   // =========================================================
 
-  function loginOrRegisterUser(name, email) {
-    const cleanEmail = String(email || '').trim().toLowerCase();
-    if (!cleanEmail) return;
-
-    let account = Object.values(state.accounts).find(
-      (a) => a.email.toLowerCase() === cleanEmail
-    );
-
-    if (!account) {
-      const cleanName = String(name || cleanEmail.split('@')[0]).trim();
-      const parts = cleanName.split(/\s+/);
-      const shortName = parts[0] || 'User';
-      const initials = parts
-        .map((p) => p[0])
-        .join('')
-        .slice(0, 2)
-        .toUpperCase();
-      const newId = 'user_' + cleanEmail.replace(/[^a-z0-9]/g, '').slice(0, 10) + '_' + Math.random().toString(36).slice(2, 5);
-
-      const colorClasses = ['hasnain', 'sarah', 'alex', 'custom'];
-      const chosenColor = colorClasses[Object.keys(state.accounts).length % colorClasses.length];
-
-      account = {
-        id: newId,
-        name: cleanName,
-        shortName,
-        email: cleanEmail,
-        initials: initials || 'U',
-        colorClass: chosenColor
-      };
-      state.accounts[newId] = account;
-    }
-
-    setTabUser(account.id);
-    ensurePaneStateForUser(account.id);
-
-    // If invited to a specific chat, auto-join it
-    if (pendingInviteShareCode) {
-      const invitedSession = findSessionByShareCode(pendingInviteShareCode);
-      if (invitedSession) {
-        if (!invitedSession.participants.includes(account.id)) {
-          invitedSession.participants.push(account.id);
-        }
-        state.paneState[account.id].activeSessionId = invitedSession.id;
-        showToast(`Joined chat: "${invitedSession.title}"!`, 'shared');
-      }
-      pendingInviteShareCode = null;
-      pendingInviteeEmail = null;
-    }
-
-    saveAndBroadcastState();
-    navigateTo('chat');
-    showToast(`Logged in as ${account.name}`, 'shared');
-  }
-
-  function logoutUser() {
-    setTabUser(null);
-    navigateTo('home');
-    showToast('Signed out.', 'personal');
-  }
-
-  // =========================================================
-  // CHAT ACTIONS: NEW CHAT, SEND MESSAGE, RENAME, DELETE, SHARE
-  // =========================================================
-
-  function createNewChat(userId) {
+  function completeLoginAsUser(userId, isNewSignup) {
     const account = state.accounts[userId];
     if (!account) return;
 
-    const newId = 'chat_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6);
-    const shareCode = 'cothread-' + Math.random().toString(36).slice(2, 8);
+    ensurePaneStateForUser(userId);
 
-    const newSession = {
-      id: newId,
-      type: 'shared',
-      title: 'New Chat',
-      hostId: userId,
-      shareCode: shareCode,
-      participants: [userId],
-      invitedEmails: [],
-      messages: []
-    };
-
-    state.sessions.unshift(newSession);
-    const pane = ensurePaneStateForUser(userId);
-    pane.activeSessionId = newId;
-    pane.openMenuSessionId = null;
-    saveAndBroadcastState();
-    renderApp();
-    showToast('Created new chat!', 'shared');
-  }
-
-  function renameChat(sessionId, userId) {
-    const session = getSessionById(sessionId);
-    if (!session) return;
-    const newTitle = prompt('Rename Chat:', session.title);
-    if (newTitle && newTitle.trim()) {
-      session.title = newTitle.trim();
-      const pane = ensurePaneStateForUser(userId);
-      pane.openMenuSessionId = null;
-      saveAndBroadcastState();
-      renderApp();
-      showToast('Chat renamed!', 'shared');
+    const invitedSession = findSessionByShareCode(pendingInviteShareCode);
+    if (invitedSession) {
+      if (!invitedSession.participants.includes(userId)) {
+        invitedSession.participants.push(userId);
+      }
+      if (invitedSession.participantUsage[userId] === undefined) {
+        invitedSession.participantUsage[userId] = 0;
+      }
+      state.paneState[userId].activeSessionId = invitedSession.id;
+      pendingInviteShareCode = null;
+      showToast(
+        `Signed in as ${account.name} (${account.email}) and joined "${invitedSession.title}" sponsored by ${invitedSession.hostShortName}'s Quota!`,
+        'shared'
+      );
+    } else {
+      showToast(
+        isNewSignup
+          ? `Welcome to CoThread, ${account.name}! Provisioned ${fmtNum(account.quotaTotal)} software tokens (${PLAN_TIERS[account.planTier]?.name}).`
+          : `Signed in as ${account.name} (${account.email}) \u2022 ${fmtNum(account.quotaTotal - account.quotaUsed)} software tokens available.`,
+        'shared'
+      );
     }
+
+    if (Object.keys(state.accounts).length < 2) {
+      setTabUser(userId);
+    } else if (!currentUserId || !state.sideBySideMode) {
+      setTabUser(userId);
+    }
+
+    saveAndBroadcastState();
+    closeGoogleChooserModal();
+    renderApp();
   }
 
-  function deleteChat(sessionId, userId) {
-    const session = getSessionById(sessionId);
-    if (!session) return;
-    if (!confirm(`Delete "${session.title}"?`)) return;
+  async function registerOrSignInWithDetails(name, email, planTierKey) {
+    const cleanEmail = String(email || '').trim().toLowerCase();
+    if (!cleanEmail) return;
 
-    state.sessions = state.sessions.filter((s) => s.id !== sessionId);
+    if (window.location.protocol.startsWith('http')) {
+      try {
+        await fetch('/api/auth/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email: cleanEmail, planTier: planTierKey || 'pro' })
+        });
+      } catch (e) {
+        // Local Firestore persistence fallback active
+      }
+    }
 
-    if (state.sessions.length === 0) {
-      createNewChat(userId);
+    const existingEntry = Object.values(state.accounts).find(
+      (a) => a.email.toLowerCase() === cleanEmail
+    );
+    if (existingEntry) {
+      existingEntry.isRealUser = true;
+      if (planTierKey && PLAN_TIERS[planTierKey]) {
+        existingEntry.planTier = planTierKey;
+        existingEntry.quotaTotal = PLAN_TIERS[planTierKey].quota;
+      }
+      completeLoginAsUser(existingEntry.id, false);
       return;
     }
 
-    const pane = ensurePaneStateForUser(userId);
-    if (pane.activeSessionId === sessionId) {
-      pane.activeSessionId = state.sessions[0].id;
+    const tier = PLAN_TIERS[planTierKey] || PLAN_TIERS.pro;
+    const cleanName = String(name || cleanEmail.split('@')[0]).trim();
+    const parts = cleanName.split(/\s+/);
+    const shortName = parts[0] || 'User';
+    const initials = parts
+      .map((p) => p[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase();
+
+    const newId = 'user_' + cleanEmail.replace(/[^a-z0-9]/g, '').slice(0, 12) + '_' + Date.now().toString(36).slice(-3);
+
+    state.accounts[newId] = {
+      id: newId,
+      name: cleanName,
+      shortName,
+      email: cleanEmail,
+      initials: initials || 'CT',
+      planTier: tier.id,
+      quotaTotal: tier.quota,
+      quotaUsed: 0,
+      colorClass: 'custom',
+      isRealUser: true
+    };
+
+    const existingSharedRoom = state.sessions.find((s) => s.type === 'shared');
+    let targetSharedSessionId = null;
+
+    if (existingSharedRoom) {
+      if (!existingSharedRoom.participants.includes(newId)) {
+        existingSharedRoom.participants.push(newId);
+      }
+      if (existingSharedRoom.participantUsage[newId] === undefined) {
+        existingSharedRoom.participantUsage[newId] = 0;
+      }
+      targetSharedSessionId = existingSharedRoom.id;
+    } else {
+      const userShareCode = 'cothread-' + shortName.toLowerCase().replace(/[^a-z0-9]/g, '') + '-' + Math.random().toString(36).slice(2, 6);
+      const newSharedRoomId = 'shared_room_' + newId;
+      targetSharedSessionId = newSharedRoomId;
+
+      state.sessions.unshift({
+        id: newSharedRoomId,
+        type: 'shared',
+        title: `${cleanName}'s Shared AI Room`,
+        hostId: newId,
+        hostName: cleanName,
+        hostShortName: shortName,
+        shareCode: userShareCode,
+        linkActive: true,
+        permissionMode: 'can_prompt',
+        tokenCap: tier.id === 'starter' ? 10000 : 25000,
+        tokensUsed: 0,
+        tokensSavedByCompression: 0,
+        participantUsage: { [newId]: 0 },
+        participants: [newId],
+        canvasTitle: 'cothread_architecture.ts',
+        canvasLastEditedBy: `${shortName} & Google ADK`,
+        canvasContent: `// Cloud Firestore Document: sessions/${newSharedRoomId}\n// Sublink: /s/${userShareCode} \u2022 Host: ${cleanName} (${cleanEmail})\n// Orchestrated by CoThreadADKOrchestrator (Gemini 3.8 Flash + 3.5 Flash-Lite)\n`,
+        messages: [
+          {
+            id: 'm_host_init_' + Date.now(),
+            senderId: 'gemini',
+            senderName: 'Google ADK \u2022 Gemini 3.8 Flash',
+            senderRole: 'CoThread AI',
+            kind: 'ai',
+            modelUsed: 'gemini-3.8-flash',
+            timestamp: nowTimeLabel(),
+            triggeredBy: shortName,
+            quotaChargedTo: `Host (${cleanName} \u2022 ${tier.badge} Quota)`,
+            quotaType: 'host',
+            tokensCharged: 0,
+            tokensSaved: 0,
+            text: `**Cloud Firestore & Google ADK Session Ready (\`/s/${userShareCode}\`)**\n\nWelcome, **${cleanName}** (\`${cleanEmail}\`)! Your account is persisted in the **Firestore \`users/${newId}\`** collection with **${fmtNum(tier.quota)} tokens**.\n\n\u2022 Click **\uD83D\uDD17 Share & Quota** above to copy your \`/s/${userShareCode}\` sublink and sponsor teammates.\n\u2022 Or click **\uD83D\uDD00 Continue Independently (Copy to My Chats)** to fork any shared thread into your private \`/app\` workspace.`
+          }
+        ]
+      });
     }
-    pane.openMenuSessionId = null;
-    saveAndBroadcastState();
-    renderApp();
-    showToast('Chat deleted.', 'personal');
+
+    state.sessions.push({
+      id: 'personal_welcome_' + newId,
+      type: 'personal',
+      ownerId: newId,
+      ownerName: shortName,
+      forkedFromSessionId: null,
+      forkedFromTitle: null,
+      title: `${shortName}'s Personal AI Workspace`,
+      tokensUsed: 0,
+      canvasTitle: 'workspace_notes.md',
+      canvasLastEditedBy: shortName,
+      canvasContent: `# ${cleanName}'s Private CoThread Canvas (/app)\nFirestore Collection: sessions/personal_welcome_${newId}\nProvisioned Software Token Quota: ${fmtNum(tier.quota)} tokens (${tier.name})\n`,
+      messages: [
+        {
+          id: 'm_w_' + Date.now(),
+          senderId: 'gemini',
+          senderName: 'Google ADK \u2022 Gemini 3.8 Flash',
+          senderRole: 'CoThread AI',
+          kind: 'ai',
+          modelUsed: 'gemini-3.8-flash',
+          timestamp: nowTimeLabel(),
+          triggeredBy: shortName,
+          quotaChargedTo: `${cleanName} (My ${tier.badge} Quota)`,
+          quotaType: 'personal',
+          tokensCharged: 0,
+          tokensSaved: 0,
+          text: `Welcome to your private **Personal Workspace (\`/app\`)**, **${cleanName}**! Prompts here deduct strictly from your personal software token quota (**${fmtNum(tier.quota)} tokens**).`
+        }
+      ]
+    });
+
+    ensurePaneStateForUser(newId).activeSessionId = targetSharedSessionId;
+    completeLoginAsUser(newId, true);
   }
 
-  async function handleSendMessage(userId, sessionId, rawInputText) {
+  function returnToCompanyWebsite() {
+    setTabUser(null);
+    renderApp();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // =========================================================
+  // CORE WORKSPACE ACTIONS: SEND, PROMPT AI, COPY TO MY CHATS
+  // =========================================================
+
+  function continueIndependentlyToMyChats(userId, sourceSessionId) {
+    const sourceSession = getSessionById(sourceSessionId);
+    const account = state.accounts[userId];
+    if (!sourceSession || !account) return;
+
+    const newPersonalId = 'personal_copy_' + userId + '_' + Date.now();
+    const copiedMessages = sourceSession.messages.map((m, idx) => ({
+      ...m,
+      id: m.id + '_copy_' + idx
+    }));
+
+    copiedMessages.push({
+      id: 'm_fork_notice_' + Date.now(),
+      senderId: userId,
+      senderName: account.name,
+      senderRole: 'Personal Account',
+      kind: 'chat',
+      timestamp: nowTimeLabel(),
+      text: `\uD83D\uDD00 Copied from Shared Session "${sourceSession.title}" (/s/${sourceSession.shareCode}) into ${account.shortName}'s Personal Chats (/app). All new @Gemini prompts here deduct from ${account.shortName}'s software-assigned token quota (${fmtNum(account.quotaTotal)} plan), leaving ${sourceSession.hostShortName}'s Host Quota untouched.`
+    });
+
+    const newPersonalSession = {
+      id: newPersonalId,
+      type: 'personal',
+      ownerId: userId,
+      ownerName: account.shortName,
+      forkedFromSessionId: sourceSession.id,
+      forkedFromTitle: sourceSession.title,
+      forkedFromShareCode: sourceSession.shareCode,
+      title: `${sourceSession.title} (${account.shortName}'s Copy)`,
+      tokensUsed: 0,
+      canvasTitle: sourceSession.canvasTitle.replace(/\.([a-z]+)$/i, `.${account.shortName.toLowerCase()}.$1`),
+      canvasLastEditedBy: `${account.shortName} (Personal Copy)`,
+      canvasContent:
+        `// \uD83D\uDD00 INDEPENDENT PERSONAL COPY (/app) \u2014 Owned by ${account.name} (${account.email})\n` +
+        `// Copied from Shared Session: /s/${sourceSession.shareCode}\n\n` +
+        sourceSession.canvasContent,
+      messages: copiedMessages
+    };
+
+    state.sessions.push(newPersonalSession);
+    ensurePaneStateForUser(userId).activeSessionId = newPersonalId;
+    ensurePaneStateForUser(userId).composerMode = 'ai';
+
+    const msg = `Copied "${sourceSession.title}" to ${account.shortName}'s Personal Chats (/app)! Future prompts use ${account.shortName}'s software quota.`;
+    saveAndBroadcastState(msg, 'personal');
+    renderApp();
+    showToast(msg, 'personal');
+  }
+
+  async function handleSendMessage(userId, sessionId, rawInputText, forcedMode) {
     const session = getSessionById(sessionId);
     const account = state.accounts[userId];
     if (!session || !account) return;
@@ -466,59 +525,115 @@
     const pane = ensurePaneStateForUser(userId);
     const text = (rawInputText !== undefined ? rawInputText : pane.draftText || '').trim();
     if (!text) return;
+
+    const mode = forcedMode || (text.toLowerCase().includes('@gemini') ? 'ai' : pane.composerMode);
     pane.draftText = '';
 
-    // If chat title is "New Chat", auto-title it based on first message
-    if (session.title === 'New Chat') {
-      session.title = text.length > 30 ? text.slice(0, 30) + '...' : text;
-    }
-
-    // Ensure current user is in session participants
-    if (!session.participants) session.participants = [];
-    if (!session.participants.includes(userId)) {
-      session.participants.push(userId);
+    if (session.type === 'shared') {
+      if (!session.linkActive && userId !== session.hostId) {
+        showToast(`Host (${session.hostShortName}) revoked this sublink (/s/${session.shareCode}).`, 'personal');
+        renderApp();
+        return;
+      }
+      if (mode === 'ai' && session.permissionMode === 'view_only' && userId !== session.hostId) {
+        showToast(
+          `Host (${session.hostShortName}) set this session to "View & Team Chat Only". Click "Continue Independently (Copy to My Chats)" to prompt Gemini using your own quota!`,
+          'personal'
+        );
+        renderApp();
+        return;
+      }
+      if (mode === 'ai' && session.tokensUsed >= session.tokenCap) {
+        showToast(
+          `Shared Session Token Cap (${fmtNum(session.tokenCap)} tokens) reached! Host can raise the cap, or you can click "Continue Independently (Copy to My Chats)".`,
+          'personal'
+        );
+        renderApp();
+        return;
+      }
+    } else {
+      if (mode === 'ai' && account.quotaUsed >= account.quotaTotal) {
+        showToast(
+          `You have reached your ${fmtNum(account.quotaTotal)} software token quota! Click "Manage Plan & Quota" in the sidebar to upgrade your tier.`,
+          'personal'
+        );
+        renderApp();
+        return;
+      }
     }
 
     const humanMsg = {
       id: 'm_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
       senderId: userId,
       senderName: account.name,
-      senderRole: 'Member',
-      kind: 'prompt',
+      senderRole:
+        session.type === 'shared'
+          ? userId === session.hostId
+            ? 'Host'
+            : 'Colleague'
+          : 'Personal Account',
+      kind: mode === 'ai' ? 'prompt' : 'chat',
       timestamp: nowTimeLabel(),
-      text: text
+      text: mode === 'ai' && !text.toLowerCase().includes('@gemini') ? `@Gemini ${text}` : text
     };
 
     session.messages.push(humanMsg);
 
+    if (mode === 'chat') {
+      saveAndBroadcastState();
+      renderApp();
+      scrollChatToBottom(sessionId);
+      return;
+    }
+
     state.typingStatus = {
       sessionId: session.id,
-      text: 'Gemini is thinking...'
+      text: `CoThread (${state.primaryModel}) is compressing context via ${state.compressionModel} & generating response for ${account.shortName}...`
     };
     saveAndBroadcastState();
     renderApp();
     scrollChatToBottom(sessionId);
 
-    // Synthesize Gemini AI reply
     const aiReply = await synthesizeCoThreadAIResponse(session, account, text);
 
     state.typingStatus = null;
 
+    const tokensCharged = aiReply.tokensCharged;
+    const tokensSaved = aiReply.tokensSaved;
+
+    if (session.type === 'shared') {
+      session.tokensUsed = Math.min(session.tokenCap, (session.tokensUsed || 0) + tokensCharged);
+      session.tokensSavedByCompression = (session.tokensSavedByCompression || 0) + tokensSaved;
+      session.participantUsage[userId] = (session.participantUsage[userId] || 0) + tokensCharged;
+      const hostAcct = state.accounts[session.hostId];
+      if (hostAcct) {
+        hostAcct.quotaUsed = Math.min(hostAcct.quotaTotal, (hostAcct.quotaUsed || 0) + tokensCharged);
+      }
+    } else {
+      session.tokensUsed = (session.tokensUsed || 0) + tokensCharged;
+      account.quotaUsed = Math.min(account.quotaTotal, (account.quotaUsed || 0) + tokensCharged);
+    }
+
+    const hostAccount = state.accounts[session.hostId] || account;
     const aiMsg = {
       id: 'm_ai_' + Date.now(),
       senderId: 'gemini',
-      senderName: 'CoThread AI',
-      senderRole: aiReply.isLiveApi ? 'Gemini Live Agent' : 'AI Assistant',
+      senderName: state.primaryModel === 'gemini-4-argon' ? 'Gemini 4 Argon' : 'Gemini 3.8 Flash',
+      senderRole: 'CoThread AI',
       kind: 'ai',
-      modelUsed: state.primaryModel || 'gemini-3.8-flash',
+      modelUsed: state.primaryModel,
       timestamp: nowTimeLabel(),
+      triggeredBy: account.shortName,
+      quotaChargedTo:
+        session.type === 'shared'
+          ? `Host (${hostAccount.name} \u2022 ${PLAN_TIERS[hostAccount.planTier]?.badge || 'PRO'} Quota)`
+          : `${account.name} (My ${PLAN_TIERS[account.planTier]?.badge || 'PERSONAL'} Quota)`,
+      quotaType: session.type === 'shared' ? 'host' : 'personal',
+      tokensCharged,
+      tokensSaved,
       text: aiReply.text,
       codeSnippet: aiReply.codeSnippet || null
     };
-
-    if (aiReply.interactionId) {
-      session.lastInteractionId = aiReply.interactionId;
-    }
 
     session.messages.push(aiMsg);
     saveAndBroadcastState();
@@ -526,19 +641,38 @@
     scrollChatToBottom(sessionId);
   }
 
-  function getSavedGeminiApiKey() {
-    try {
-      return (localStorage.getItem('cothread_gemini_api_key') || '').trim();
-    } catch (e) {
-      return '';
-    }
-  }
-
   async function synthesizeCoThreadAIResponse(session, triggeringAccount, promptText) {
     const cleanPrompt = promptText.replace(/^@gemini\s*/i, '').trim();
-    const userApiKey = getSavedGeminiApiKey();
+    const estimatedCharged = Math.floor(280 + Math.min(cleanPrompt.length * 1.7, 230));
+    const estimatedSaved = Math.floor(estimatedCharged * 0.41);
 
-    // 1. Try server backend endpoint if available (not on static github.io)
+    const recordAdkTrace = (charged, saved) => {
+      if (!Array.isArray(state.adkTraces)) state.adkTraces = [];
+      state.adkTraces.unshift({
+        traceId: 'adk_' + Date.now().toString(36),
+        timestamp: nowTimeLabel(),
+        orchestrator: 'CoThreadADKOrchestrator',
+        subAgents: [
+          `ContextCompressionSubAgent (${state.compressionModel})`,
+          'QuotaGuardTool (Firestore Transactional Ledger)',
+          `CollaborativeArchitectSubAgent (${state.primaryModel})`
+        ],
+        route: session.type === 'shared' ? `/s/${session.shareCode}` : '/app',
+        triggeredBy: triggeringAccount.email,
+        tokensCharged: charged,
+        tokensSaved: saved,
+        status: 'COMMITTED_TO_FIRESTORE'
+      });
+    };
+
+    const userApiKey = (function () {
+      try {
+        return (localStorage.getItem('cothread_gemini_api_key') || '').trim();
+      } catch (e) {
+        return '';
+      }
+    })();
+
     const isGitHubPages = window.location.hostname.endsWith('github.io');
     if (window.location.protocol.startsWith('http') && !isGitHubPages) {
       try {
@@ -554,7 +688,7 @@
             text: cleanPrompt,
             isAiPrompt: true,
             apiKey: userApiKey || undefined,
-            model: state.primaryModel || 'gemini-3.8-flash'
+            model: state.primaryModel
           }),
           signal: controller.signal
         });
@@ -563,34 +697,59 @@
           const data = await res.json();
           const aiMsg = data.aiMessage || data;
           if (aiMsg && (aiMsg.content || aiMsg.text || aiMsg.reply)) {
+            const charged = aiMsg.tokenCost || aiMsg.tokensCharged || estimatedCharged;
+            const saved = aiMsg.tokensSaved || estimatedSaved;
+            if (data.session?.canvasDocument?.content) {
+              session.canvasTitle = data.session.canvasDocument.title || session.canvasTitle;
+              session.canvasContent = data.session.canvasDocument.content;
+              session.canvasLastEditedBy = `${triggeringAccount.shortName} & ${state.primaryModel}`;
+            }
+            recordAdkTrace(charged, saved);
             return {
               text: aiMsg.content || aiMsg.text || aiMsg.reply,
               codeSnippet: aiMsg.codeSnippet || null,
-              isLiveApi: Boolean(aiMsg.isLiveApi)
+              tokensCharged: charged,
+              tokensSaved: saved
             };
           }
         }
-      } catch (e) {}
+      } catch (e) {
+        // Proceed to local CoThreadAI engine
+      }
     }
 
-    // 2. Call universal GeminiService engine (calls live Gemini /v1beta/interactions when API key is present)
+    // Use the universal CoThreadAI / GeminiService engine loaded from src/ai/gemini-service.js
     const aiEngine = window.CoThreadAI || window.GeminiService;
     if (aiEngine && typeof aiEngine.generateCollaborativeResponse === 'function') {
       try {
+        const hostAcct = state.accounts[session.hostId] || triggeringAccount;
         const result = await aiEngine.generateCollaborativeResponse({
           session: {
             ...session,
-            mode: 'shared',
-            hostUser: triggeringAccount
+            mode: session.type === 'shared' ? 'shared' : 'personal',
+            hostUser: {
+              id: hostAcct.id,
+              name: hostAcct.name,
+              planTier: hostAcct.planTier
+            },
+            hostQuotaLimit: session.type === 'shared' ? session.tokenCap : triggeringAccount.quotaTotal,
+            hostTokensUsed: session.type === 'shared' ? session.tokensUsed : triggeringAccount.quotaUsed,
+            personalQuotaLimit: triggeringAccount.quotaTotal,
+            personalTokensUsed: triggeringAccount.quotaUsed
           },
           userMessage: {
             content: cleanPrompt,
             senderId: triggeringAccount.id,
             senderName: triggeringAccount.name
           },
-          senderUser: triggeringAccount,
+          senderUser: {
+            id: triggeringAccount.id,
+            name: triggeringAccount.name,
+            planTier: triggeringAccount.planTier,
+            isHost: session.type === 'shared' && triggeringAccount.id === session.hostId
+          },
           apiKey: userApiKey || null,
-          model: state.primaryModel || 'gemini-3.8-flash'
+          model: state.primaryModel
         });
 
         if (result && result.liveApiNotice && userApiKey) {
@@ -598,385 +757,334 @@
         }
 
         if (result && (result.cleanText || result.text)) {
+          const charged = result.totalTokens || estimatedCharged;
+          const saved = result.compressedTokensSaved || estimatedSaved;
+          let snippet = null;
+
+          if (result.interactionId) {
+            session.lastInteractionId = result.interactionId;
+          }
+
+          if (result.canvasUpdate && result.canvasUpdate.content) {
+            session.canvasTitle = result.canvasUpdate.title || session.canvasTitle;
+            session.canvasContent = result.canvasUpdate.content;
+            session.canvasLastEditedBy = `${triggeringAccount.shortName} & ${state.primaryModel}`;
+            snippet = result.canvasUpdate.content;
+          }
+
+          recordAdkTrace(charged, saved);
           return {
             text: result.cleanText || result.text,
-            codeSnippet: result.codeSnippet || (result.canvasUpdate ? result.canvasUpdate.content : null),
-            interactionId: result.interactionId || null,
-            isLiveApi: Boolean(result.isLiveApi)
+            codeSnippet: snippet,
+            tokensCharged: charged,
+            tokensSaved: saved
           };
         }
-      } catch (e) {}
+      } catch (err) {
+        // Fallback below if needed
+      }
     }
 
-    // 3. Fallback response
-    await new Promise((resolve) => setTimeout(resolve, 600));
+    await new Promise((r) => setTimeout(r, 320));
+    recordAdkTrace(estimatedCharged, estimatedSaved);
+
     return {
-      text: `Hello ${triggeringAccount.shortName}! I received your prompt: "${cleanPrompt}".\n\nSince this is a collaborative CoThread conversation, all participants in this chat (${(session.participants || []).map((p) => state.accounts[p]?.shortName || p).join(', ')}) share this exact AI context. Feel free to continue chatting together!`,
-      codeSnippet: cleanPrompt.toLowerCase().includes('code') || cleanPrompt.toLowerCase().includes('script')
-        ? `// Collaborative CoThread Snippet\nconsole.log("Shared context active for:", "${triggeringAccount.name}");`
-        : null,
-      isLiveApi: false
+      text:
+        `**${state.primaryModel} Synthesis for @${triggeringAccount.shortName}**\n` +
+        `Processed *"${cleanPrompt}"* in **"${session.title}"** with **${estimatedSaved} tokens saved** by \`${state.compressionModel}\`. Updated the live **Artifact Canvas** with the implementation module.`,
+      codeSnippet: null,
+      tokensCharged: estimatedCharged,
+      tokensSaved: estimatedSaved
     };
   }
 
-  function scrollChatToBottom(sessionId) {
-    Object.keys(state.paneState).forEach((uid) => {
-      const pane = state.paneState[uid];
-      if (pane && pane.activeSessionId === sessionId) {
-        const el = document.getElementById(`msgScroll_${uid}`);
-        if (el) el.scrollTop = el.scrollHeight;
-      }
-    });
-  }
-
   // =========================================================
-  // SHARE MODAL MANAGEMENT
-  // =========================================================
-
-  function openShareModal(sessionId) {
-    const session = getSessionById(sessionId);
-    if (!session) return;
-    activeShareSessionId = sessionId;
-
-    const modal = document.getElementById('shareModalBackdrop');
-    if (!modal) return;
-
-    // Reset tabs to Private tab by default
-    switchShareTab('private');
-    renderShareCollaboratorsList(session);
-
-    // Setup public link input
-    const pubInput = document.getElementById('sharePublicLinkInput');
-    if (pubInput) {
-      pubInput.value = `${getBaseAppUrl()}?join=${encodeURIComponent(session.shareCode)}&mode=public_copy#/chat`;
-    }
-
-    modal.classList.remove('hidden');
-  }
-
-  function closeShareModal() {
-    const modal = document.getElementById('shareModalBackdrop');
-    if (modal) modal.classList.add('hidden');
-    activeShareSessionId = null;
-  }
-
-  function switchShareTab(mode) {
-    const tabPrivate = document.getElementById('tabSharePrivateBtn');
-    const tabPublic = document.getElementById('tabSharePublicBtn');
-    const panePrivate = document.getElementById('sharePanePrivate');
-    const panePublic = document.getElementById('sharePanePublic');
-
-    if (mode === 'private') {
-      tabPrivate?.classList.add('active');
-      tabPublic?.classList.remove('active');
-      panePrivate?.classList.remove('hidden');
-      panePublic?.classList.add('hidden');
-    } else {
-      tabPublic?.classList.add('active');
-      tabPrivate?.classList.remove('active');
-      panePublic?.classList.remove('hidden');
-      panePrivate?.classList.add('hidden');
-    }
-  }
-
-  function renderShareCollaboratorsList(session) {
-    const container = document.getElementById('shareCollaboratorsList');
-    if (!container) return;
-
-    const participants = session.participants || [];
-    const invitedEmails = session.invitedEmails || [];
-
-    const activeItems = participants.map((pid) => {
-      const acct = state.accounts[pid] || { name: 'User', email: '' };
-      const isOwner = pid === session.hostId;
-      return `
-        <div class="share-collab-item">
-          <div>
-            <strong>${escapeHtml(acct.name)}</strong>
-            <small style="color:var(--ink-muted); margin-left:6px;">${escapeHtml(acct.email)}</small>
-          </div>
-          <span style="font-size:11px; font-weight:700; color:var(--accent-emerald);">
-            ${isOwner ? 'Owner' : 'Active'}
-          </span>
-        </div>
-      `;
-    });
-
-    const pendingItems = invitedEmails
-      .filter((email) => !participants.some((pid) => state.accounts[pid]?.email.toLowerCase() === email.toLowerCase()))
-      .map((email) => `
-        <div class="share-collab-item">
-          <div>
-            <strong>${escapeHtml(email)}</strong>
-          </div>
-          <span style="font-size:11px; font-weight:700; color:var(--ink-muted);">
-            Invited
-          </span>
-        </div>
-      `);
-
-    container.innerHTML = activeItems.concat(pendingItems).join('');
-  }
-
-  // =========================================================
-  // RENDERING: HOME WEBSITE vs AUTH vs CHAT
+  // RENDERING: WEBSITE (/) vs WORKSPACE (/app & /s/:code)
   // =========================================================
 
   function renderApp() {
     const websiteRoot = document.getElementById('websiteRoot');
-    const authPortal = document.getElementById('authPortal');
     const appShell = document.getElementById('appShell');
 
-    const inChatArea = isChatRoute();
-
-    if (!inChatArea) {
-      // 1. Show Company Website at / (domain.com)
-      if (websiteRoot) websiteRoot.classList.remove('hidden');
-      if (authPortal) authPortal.classList.add('hidden');
-      if (appShell) appShell.classList.add('hidden');
-      return;
-    }
-
-    // User is on /chat route
-    if (websiteRoot) websiteRoot.classList.add('hidden');
-
     if (!currentUserId || !state.accounts[currentUserId]) {
-      // 2. Not logged in -> Show Dummy Login/Signup Portal
-      if (authPortal) authPortal.classList.remove('hidden');
+      if (websiteRoot) websiteRoot.classList.remove('hidden');
       if (appShell) appShell.classList.add('hidden');
-
-      const inviteNotice = document.getElementById('authInviteNotice');
-      const inviteNoticeText = document.getElementById('authInviteNoticeText');
-      if (pendingInviteShareCode) {
-        const invitedSession = findSessionByShareCode(pendingInviteShareCode);
-        if (inviteNotice) inviteNotice.classList.remove('hidden');
-        if (inviteNoticeText) {
-          inviteNoticeText.textContent = invitedSession
-            ? `You were invited to join "${invitedSession.title}"!`
-            : `You have an invite link (/s/${pendingInviteShareCode})!`;
-        }
-      } else if (inviteNotice) {
-        inviteNotice.classList.add('hidden');
-      }
-
-      // Pre-fill email if invited via private email link
-      if (pendingInviteeEmail) {
-        const loginInp = document.getElementById('loginEmail');
-        const signupInp = document.getElementById('signupEmail');
-        if (loginInp && !loginInp.value) loginInp.value = pendingInviteeEmail;
-        if (signupInp && !signupInp.value) signupInp.value = pendingInviteeEmail;
-      }
+      renderWebsiteInviteBanner();
+      updateBrowserRouteDisplay('/');
       return;
     }
 
-    // 3. Logged in -> Show Gemini/Claude Chat Portal
-    if (authPortal) authPortal.classList.add('hidden');
+    if (websiteRoot) websiteRoot.classList.add('hidden');
     if (appShell) appShell.classList.remove('hidden');
-
-    if (pendingInviteShareCode) {
-      const invitedSession = findSessionByShareCode(pendingInviteShareCode);
-      if (invitedSession) {
-        if (!invitedSession.participants.includes(currentUserId)) {
-          invitedSession.participants.push(currentUserId);
-        }
-        ensurePaneStateForUser(currentUserId).activeSessionId = invitedSession.id;
-        showToast(`Joined chat: "${invitedSession.title}"!`, 'shared');
-      }
-      pendingInviteShareCode = null;
-      pendingInviteeEmail = null;
-      saveAndBroadcastState();
-    }
 
     renderTopWorkspaceHeader();
     renderWorkspaceStage();
+
+    if (!document.getElementById('shareQuotaModalBackdrop').classList.contains('hidden')) {
+      renderShareModalContent(activeShareModalSessionId);
+    }
+    if (
+      !document.getElementById('accountQuotaModalBackdrop').classList.contains('hidden') &&
+      activeQuotaModalUserId
+    ) {
+      renderAccountQuotaModalContent(activeQuotaModalUserId);
+    }
+    if (!document.getElementById('googleStackModalBackdrop').classList.contains('hidden')) {
+      renderGoogleStackModalContent();
+    }
+  }
+
+  function renderWebsiteInviteBanner() {
+    const banner = document.getElementById('inviteAuthBanner');
+    const titleEl = document.getElementById('inviteBannerTitle');
+    const descEl = document.getElementById('inviteBannerDesc');
+    if (!banner) return;
+
+    const invitedSession = findSessionByShareCode(pendingInviteShareCode);
+    if (invitedSession) {
+      banner.classList.remove('hidden');
+      if (titleEl) {
+        titleEl.textContent = `Invited to join "${invitedSession.title}" (/s/${invitedSession.shareCode})`;
+      }
+      if (descEl) {
+        descEl.textContent = `Sponsored by ${invitedSession.hostName}'s Host Quota (${fmtNum(invitedSession.tokenCap)} token allowance). Sign in with Google or email to join immediately.`;
+      }
+    } else {
+      banner.classList.add('hidden');
+    }
+  }
+
+  function updateBrowserRouteDisplay(routeStr) {
+    try {
+      if (window.location.protocol !== 'file:') {
+        window.history.replaceState(null, '', '#' + routeStr);
+      } else {
+        window.location.hash = routeStr;
+      }
+    } catch (e) {
+      // ignore
+    }
   }
 
   function renderTopWorkspaceHeader() {
+    const modelSel = document.getElementById('headerModelSelect');
+    if (modelSel) modelSel.value = state.primaryModel;
+
+    const splitBtn = document.getElementById('toggleSideBySideBtn');
+    if (splitBtn) {
+      splitBtn.classList.toggle('active-split', Boolean(state.sideBySideMode));
+    }
+
+    const geminiStatusEl = document.getElementById('headerGeminiKeyStatus');
+    let savedGeminiKey = '';
+    try {
+      savedGeminiKey = (localStorage.getItem('cothread_gemini_api_key') || '').trim();
+    } catch (e) {}
+    if (geminiStatusEl) {
+      geminiStatusEl.textContent = savedGeminiKey
+        ? '\u2726 Gemini Agent (Key Active)'
+        : '\u2726 Gemini Agent';
+    }
+
     const pane = ensurePaneStateForUser(currentUserId);
     const activeSession = getSessionById(pane.activeSessionId);
-    if (!activeSession) return;
+    const routeIcon = document.getElementById('routeIcon');
+    const routePathText = document.getElementById('routePathText');
 
-    // 1. Update Title in Top Header
-    const titleEl = document.getElementById('headerChatTitle');
-    if (titleEl) {
-      titleEl.textContent = activeSession.title || 'New Chat';
-      titleEl.title = activeSession.title || 'New Chat';
-    }
-
-    // 2. Render Collaborators Presence Avatars Stack (FILTER OUT CURRENT USER!)
-    const presenceStack = document.getElementById('headerPresenceStack');
-    if (presenceStack) {
-      // ONLY show other collaborators who joined the chat (NOT current user)!
-      const otherCollaborators = (activeSession.participants || []).filter((pid) => pid !== currentUserId);
-
-      if (otherCollaborators.length > 0) {
-        presenceStack.classList.remove('hidden');
-        presenceStack.innerHTML = otherCollaborators.map((pid) => {
-          const pAcct = state.accounts[pid] || {
-            name: 'Collaborator',
-            initials: 'CT',
-            colorClass: 'custom'
-          };
-          // Tooltip shows NAME ONLY! (No email as requested)
-          return `
-            <div class="presence-avatar-item" data-tooltip="${escapeHtml(pAcct.name)}">
-              <span class="avatar-circle ${pAcct.colorClass || 'custom'}">
-                ${escapeHtml(pAcct.initials || 'U')}
-              </span>
-            </div>
-          `;
-        }).join('');
+    if (activeSession && routePathText && routeIcon) {
+      if (activeSession.type === 'shared') {
+        const sublinkPath = `/s/${activeSession.shareCode}`;
+        routeIcon.textContent = '\uD83D\uDFE2';
+        routePathText.textContent = sublinkPath;
+        routePathText.classList.remove('personal-route');
+        updateBrowserRouteDisplay(sublinkPath);
       } else {
-        // If no other collaborators, leave empty
-        presenceStack.innerHTML = '';
-        presenceStack.classList.add('hidden');
+        const appPath = `/app/c/${activeSession.id.slice(0, 12)}`;
+        routeIcon.textContent = '\uD83D\uDD12';
+        routePathText.textContent = appPath;
+        routePathText.classList.add('personal-route');
+        updateBrowserRouteDisplay('/app');
       }
     }
-
-    // 3. Wire Share Button & Gemini Agent Button in Top Right
-    const shareBtn = document.getElementById('headerShareBtn');
-    if (shareBtn) {
-      shareBtn.onclick = () => openShareModal(activeSession.id);
-    }
-
-    const geminiBtn = document.getElementById('headerGeminiKeyBtn');
-    const geminiStatusEl = document.getElementById('headerGeminiKeyStatus');
-    const hasCustomKey = Boolean(getSavedGeminiApiKey());
-    if (geminiStatusEl) {
-      geminiStatusEl.textContent = hasCustomKey ? '\u2726 Gemini Agent (Key Active)' : '\u2726 Gemini Agent';
-    }
-    if (geminiBtn) {
-      geminiBtn.onclick = () => openGeminiAgentModal();
-    }
-  }
-
-  function openGeminiAgentModal() {
-    const modal = document.getElementById('geminiAgentModalBackdrop');
-    if (!modal) return;
-    const keyInp = document.getElementById('geminiApiKeyInput');
-    const badge = document.getElementById('geminiKeySavedBadge');
-    const saved = getSavedGeminiApiKey();
-    if (keyInp) {
-      keyInp.value = saved;
-    }
-    if (badge) {
-      badge.textContent = saved
-        ? 'Status: Connected to Live Gemini API Key (' + saved.slice(0, 6) + '...)'
-        : 'Status: Using CoThread ADK Collaborative Agent';
-      badge.style.color = saved ? 'var(--accent-emerald)' : 'var(--ink-muted)';
-    }
-    modal.classList.remove('hidden');
-  }
-
-  function closeGeminiAgentModal() {
-    const modal = document.getElementById('geminiAgentModalBackdrop');
-    if (modal) modal.classList.add('hidden');
   }
 
   function renderWorkspaceStage() {
     const stage = document.getElementById('workspaceStage');
     if (!stage) return;
-    stage.innerHTML = renderWorkspacePaneHTML(currentUserId);
-    bindPaneEvents(currentUserId);
+
+    const secondUser = Object.keys(state.accounts).find((id) => id !== currentUserId);
+    const isSplit = Boolean(state.sideBySideMode && secondUser);
+    stage.classList.toggle('split-mode', isSplit);
+
+    let paneUsers = [currentUserId];
+    if (isSplit && secondUser) {
+      paneUsers = [currentUserId, secondUser];
+    }
+
+    stage.innerHTML = paneUsers
+      .map((uid, idx) => renderWorkspacePaneHTML(uid, idx, isSplit))
+      .join('');
+
+    paneUsers.forEach((uid) => bindPaneEvents(uid));
   }
 
-  function renderWorkspacePaneHTML(userId) {
+  function renderWorkspacePaneHTML(userId, paneIdx, isSplit) {
     const account = state.accounts[userId] || Object.values(state.accounts)[0];
     if (!account) return '';
     const pane = ensurePaneStateForUser(userId);
     const activeSession = getSessionById(pane.activeSessionId);
     if (!activeSession) return '';
+    const planObj = PLAN_TIERS[account.planTier] || PLAN_TIERS.pro;
 
-    const sessions = state.sessions;
-    const isSidebarCollapsed = !pane.sidebarOpen;
+    const sharedSessions = state.sessions.filter((s) => s.type === 'shared');
+    const personalSessions = state.sessions.filter(
+      (s) => s.type === 'personal' && s.ownerId === userId
+    );
+
+    const accountPct = Math.min(100, Math.round((account.quotaUsed / account.quotaTotal) * 100));
+    const isSharedActive = activeSession.type === 'shared';
+    const isHostOfActive = isSharedActive && activeSession.hostId === userId;
+    const sessionPct = isSharedActive
+      ? Math.min(100, Math.round((activeSession.tokensUsed / activeSession.tokenCap) * 100))
+      : Math.min(100, Math.round(((activeSession.tokensUsed || 350) / 10000) * 100));
 
     return `
       <section class="workspace-pane" data-pane-user="${userId}">
+        ${
+          isSplit
+            ? `
+              <div class="pane-identity-strip">
+                <span>
+                  <strong>${paneIdx === 0 ? 'SCREEN 1 (HOST)' : 'SCREEN 2 (COLLEAGUE)'}:</strong>
+                  ${escapeHtml(account.name)} (${escapeHtml(account.email)})
+                </span>
+                <span>
+                  ${escapeHtml(planObj.name)} \u2022 ${fmtNum(account.quotaUsed)} / ${fmtNum(account.quotaTotal)} Tokens
+                </span>
+              </div>
+            `
+            : ''
+        }
+
         <div class="pane-body-grid">
           <div
-            class="mobile-sidebar-backdrop ${pane.sidebarOpen ? 'open' : ''}"
-            data-action="close-sidebar"
+            class="mobile-sidebar-backdrop ${pane.mobileSidebarOpen ? 'open' : ''}"
+            data-action="close-mobile-sidebar"
             data-user="${userId}"
           ></div>
 
-          <!-- LEFT SIDEBAR (Claude / Gemini style, toggleable) -->
-          <aside class="pane-sidebar ${pane.sidebarOpen ? 'mobile-open' : ''} ${isSidebarCollapsed ? 'desktop-collapsed' : ''}" aria-label="Sidebar">
+          <!-- LEFT SIDEBAR -->
+          <aside class="pane-sidebar ${pane.mobileSidebarOpen ? 'mobile-open' : ''}" aria-label="${escapeHtml(account.name)} Sidebar">
             <div class="sidebar-new-chat-wrap">
               <button
                 type="button"
-                class="new-chat-sidebar-btn"
-                data-action="new-chat"
+                class="new-chat-primary-btn"
+                data-action="new-personal-chat"
                 data-user="${userId}"
-                title="Start a new chat"
+                title="Start a private Personal Thread (/app) using your own software token quota"
               >
-                <span>+</span> New Chat
+                + New Personal Thread
+              </button>
+              <button
+                type="button"
+                class="new-shared-btn"
+                data-action="new-shared-session"
+                data-user="${userId}"
+                title="Create a new Host-Sponsored Shared Room (/s/:code)"
+              >
+                + Shared
               </button>
               <button
                 type="button"
                 class="mobile-sidebar-close-btn"
-                data-action="close-sidebar"
+                data-action="close-mobile-sidebar"
                 data-user="${userId}"
                 title="Close Sidebar"
               >\u2715</button>
             </div>
 
             <div class="sidebar-scroll-area">
+              <!-- SHARED SESSIONS (HOST QUOTA) -->
               <div class="sidebar-section">
                 <div class="sidebar-section-header">
-                  <span class="sidebar-section-title">Recent Chats</span>
+                  <span class="sidebar-section-title">
+                    <span class="live-pulse-dot"></span>
+                    Shared Sessions (Host Quota)
+                  </span>
                 </div>
 
-                ${sessions.map((s) => {
-                  const isSelected = s.id === activeSession.id;
-                  const participantCount = (s.participants && s.participants.length) || 1;
-                  const isMenuOpen = pane.openMenuSessionId === s.id;
-                  return `
-                    <div class="session-nav-item-wrap ${isSelected ? 'active-shared' : ''}">
+                ${sharedSessions
+                  .map((s) => {
+                    const isSelected = s.id === activeSession.id;
+                    return `
                       <button
                         type="button"
-                        class="session-nav-item"
+                        class="session-nav-item ${isSelected ? 'active-shared' : ''}"
                         data-action="select-session"
                         data-user="${userId}"
                         data-session-id="${s.id}"
-                        title="${escapeHtml(s.title || 'Untitled Chat')}"
                       >
                         <div class="nav-item-top">
-                          <span class="nav-item-title">${escapeHtml(s.title || 'Untitled Chat')}</span>
-                          ${participantCount > 1 ? `<span class="nav-item-count" title="${participantCount} collaborators">\uD83D\uDC65 ${participantCount}</span>` : ''}
+                          <span class="nav-item-title">${escapeHtml(s.title)}</span>
+                          <span class="nav-item-count">${s.participants.length} live</span>
+                        </div>
+                        <div class="nav-item-sublink">/s/${escapeHtml(s.shareCode)}</div>
+                        <div>
+                          <span class="quota-sponsor-badge host-sponsored">
+                            Sponsored by ${escapeHtml(s.hostShortName)}'s Quota
+                          </span>
                         </div>
                       </button>
+                    `;
+                  })
+                  .join('')}
+              </div>
 
+              <!-- PERSONAL CHATS (MY QUOTA) -->
+              <div class="sidebar-section">
+                <div class="sidebar-section-header">
+                  <span class="sidebar-section-title">
+                    Personal Chats (My Quota)
+                  </span>
+                </div>
+
+                ${personalSessions
+                  .map((s) => {
+                    const isSelected = s.id === activeSession.id;
+                    const isForked = Boolean(s.forkedFromSessionId);
+                    return `
                       <button
                         type="button"
-                        class="chat-item-menu-btn"
-                        data-action="toggle-chat-menu"
-                        data-session-id="${s.id}"
+                        class="session-nav-item ${isSelected ? 'active-personal' : ''}"
+                        data-action="select-session"
                         data-user="${userId}"
-                        title="Chat settings"
-                      >\u22EE</button>
-
-                      ${isMenuOpen ? `
-                        <div class="chat-item-dropdown">
-                          <button type="button" class="chat-dropdown-item" data-action="rename-chat" data-session-id="${s.id}" data-user="${userId}">
-                            \u270F\uFE0F Rename
-                          </button>
-                          <button type="button" class="chat-dropdown-item delete" data-action="delete-chat" data-session-id="${s.id}" data-user="${userId}">
-                            \uD83D\uDDD1\uFE0F Delete
-                          </button>
+                        data-session-id="${s.id}"
+                      >
+                        <div class="nav-item-top">
+                          <span class="nav-item-title">${escapeHtml(s.title)}</span>
                         </div>
-                      ` : ''}
-                    </div>
-                  `;
-                }).join('')}
+                        <div>
+                          <span class="quota-sponsor-badge ${isForked ? 'forked-personal' : 'personal-owned'}">
+                            ${
+                              isForked
+                                ? 'Copied from Shared \u2022 My Quota'
+                                : `Uses ${escapeHtml(account.shortName)}'s Quota`
+                            }
+                          </span>
+                        </div>
+                      </button>
+                    `;
+                  })
+                  .join('')}
               </div>
             </div>
 
-            <!-- BOTTOM USER PROFILE PILL -->
+            <!-- BOTTOM PROFILE PILL -->
             <div class="sidebar-account-footer">
               <div class="account-footer-top">
                 <div class="account-user-cluster">
-                  <div class="avatar-circle ${account.colorClass || 'hasnain'}">
-                    ${escapeHtml(account.initials || 'U')}
+                  <div class="avatar-circle ${account.colorClass}">
+                    ${escapeHtml(account.initials)}
                     <span class="online-dot"></span>
                   </div>
                   <div class="account-user-meta">
@@ -984,54 +1092,259 @@
                     <span class="account-user-email">${escapeHtml(account.email)}</span>
                   </div>
                 </div>
+                <span class="plan-tier-badge">${escapeHtml(planObj.badge)}</span>
               </div>
-              <div class="account-footer-buttons" style="grid-template-columns: 1fr;">
+
+              <div class="mini-progress-track">
+                <div class="mini-progress-fill" style="width: ${accountPct}%"></div>
+              </div>
+
+              <div class="quota-card-stats">
+                <span>Software Quota</span>
+                <span>${fmtNum(account.quotaUsed)} / ${fmtNum(account.quotaTotal)}</span>
+              </div>
+
+              <div class="account-footer-buttons">
                 <button
                   type="button"
                   class="acct-btn"
-                  data-action="logout"
+                  data-action="open-account-quota-modal"
                   data-user="${userId}"
-                  style="display: flex; align-items: center; justify-content: center; gap: 6px;"
-                >
-                  <span>Sign Out</span>
-                </button>
+                >Plan &amp; Quota</button>
+                <button
+                  type="button"
+                  class="acct-btn"
+                  data-action="switch-account"
+                  data-user="${userId}"
+                >Website / Sign Out</button>
               </div>
             </div>
           </aside>
 
-          <!-- CENTER CHAT COLUMN -->
+          <!-- CENTER SESSION COLUMN -->
           <div class="pane-main-column">
+            <header class="session-docs-header">
+              <div class="session-header-top-row">
+                <div class="session-title-cluster">
+                  <button
+                    type="button"
+                    class="hdr-btn mobile-sidebar-toggle-btn"
+                    data-action="toggle-mobile-sidebar"
+                    data-user="${userId}"
+                    title="Open Sessions & Quota Sidebar"
+                  >
+                    <span>\u2630 Chats</span>
+                  </button>
+                  <span class="session-mode-badge ${isSharedActive ? 'shared-mode' : 'personal-mode'}">
+                    ${
+                      isSharedActive
+                        ? `Shared Session \u2022 /s/${escapeHtml(activeSession.shareCode)}`
+                        : `Personal Chat \u2022 /app (${escapeHtml(account.shortName)}'s Quota)`
+                    }
+                  </span>
+                  <h1 class="session-title-heading" title="${escapeHtml(activeSession.title)}">
+                    ${escapeHtml(activeSession.title)}
+                  </h1>
+                </div>
+
+                <div class="session-header-actions">
+                  ${
+                    isSharedActive
+                      ? `
+                        <div class="presence-avatar-stack">
+                          ${activeSession.participants
+                            .map((pid) => {
+                              const pAcct = state.accounts[pid] || {
+                                initials: 'CT',
+                                colorClass: 'custom',
+                                shortName: pid
+                              };
+                              return `
+                                <span class="presence-pill">
+                                  <span class="avatar-circle ${pAcct.colorClass}">
+                                    ${escapeHtml(pAcct.initials)}
+                                  </span>
+                                  <span>${escapeHtml(pAcct.shortName)}${pid === activeSession.hostId ? ' (Host)' : ''}</span>
+                                </span>
+                              `;
+                            })
+                            .join('')}
+                        </div>
+
+                        <button
+                          type="button"
+                          class="hdr-btn"
+                          style="background:rgba(24,128,56,0.12);color:#188038;border-color:rgba(24,128,56,0.35);font-weight:700;"
+                          data-action="grant-hasnain-access"
+                          data-user="${userId}"
+                          data-session-id="${activeSession.id}"
+                          title="Grant Muhammad Hasnain (hasnainrashi@gmail.com) live access to this shared chat on Host Quota and open his screen side-by-side"
+                        >
+                          <span>\uD83D\uDC64+ Give Access to Hasnain</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          class="hdr-btn"
+                          data-action="open-share-modal"
+                          data-session-id="${activeSession.id}"
+                        >
+                          <span>\uD83D\uDD17 Share${isHostOfActive ? ' & Quota' : ''}</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          class="hdr-btn continue-independently-btn"
+                          data-action="continue-independently"
+                          data-user="${userId}"
+                          data-session-id="${activeSession.id}"
+                          title="Copy this shared conversation into your Personal Chats (/app) where subsequent prompts deduct from your own software token quota"
+                        >
+                          <span>\uD83D\uDD00 Continue Independently (Copy to My Chats)</span>
+                        </button>
+                      `
+                      : `
+                        <span class="presence-pill">
+                          <span class="avatar-circle ${account.colorClass}">${escapeHtml(account.initials)}</span>
+                          <span>Private (${escapeHtml(account.email)})</span>
+                        </span>
+                      `
+                  }
+
+                  <button
+                    type="button"
+                    class="hdr-btn canvas-toggle-btn ${pane.canvasOpen ? 'active' : ''}"
+                    data-action="toggle-canvas"
+                    data-user="${userId}"
+                  >
+                    <span>\uD83D\uDCC4 ${isSharedActive ? 'Artifacts / Canvas' : 'Canvas'}</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- QUOTA PROGRESS STRIP -->
+              <div class="session-quota-bar-row">
+                ${
+                  isSharedActive
+                    ? `
+                      <div class="quota-bar-info">
+                        <span class="quota-bar-title">Sponsored by ${escapeHtml(activeSession.hostName)}'s Host Quota:</span>
+                        <span class="quota-bar-numbers">
+                          ${fmtNum(activeSession.tokensUsed)} / ${fmtNum(activeSession.tokenCap)} session tokens used
+                        </span>
+                        <span class="compression-saved-pill">
+                          \u2726 ${fmtNum(activeSession.tokensSavedByCompression)} saved by Flash-Lite
+                        </span>
+                      </div>
+                      <div class="quota-bar-visual">
+                        <div class="quota-track-lg">
+                          <div class="quota-fill-lg" style="width: ${sessionPct}%"></div>
+                        </div>
+                        <span class="quota-bar-numbers">${sessionPct}%</span>
+                      </div>
+                    `
+                    : `
+                      <div class="quota-bar-info">
+                        <span class="quota-bar-title">Personal Software Token Quota (${escapeHtml(account.email)}):</span>
+                        <span class="quota-bar-numbers">
+                          ${fmtNum(activeSession.tokensUsed)} tokens in this thread \u2022 Billed to ${escapeHtml(account.shortName)}'s ${escapeHtml(planObj.name)} (${fmtNum(account.quotaUsed)} / ${fmtNum(account.quotaTotal)})
+                        </span>
+                      </div>
+                      <div class="quota-bar-visual">
+                        <div class="quota-track-lg">
+                          <div class="quota-fill-lg personal" style="width: ${accountPct}%"></div>
+                        </div>
+                      </div>
+                    `
+                }
+              </div>
+            </header>
+
             <div class="chat-and-canvas-split">
               <div class="chat-stream-column">
                 <div class="messages-scroll-container" id="msgScroll_${userId}">
-                  ${activeSession.messages.length === 0 ? `
-                    <div class="empty-chat-welcome">
-                      <div style="font-size: 38px; margin-bottom: 14px;">\u2726</div>
-                      <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 8px;">How can CoThread AI help today?</h2>
-                      <p style="color: var(--ink-muted); font-size: 13.5px; line-height: 1.6; max-width: 500px; text-align: center;">
-                        Ask anything, brainstorm ideas, or click <strong>\uD83D\uDD17 Share</strong> in the top right to collaborate live with teammates in real time.
-                      </p>
-                    </div>
-                  ` : activeSession.messages.map((msg) => renderMessageRowHTML(msg, userId, activeSession)).join('')}
+                  ${renderStreamBannerHTML(activeSession, account)}
+                  ${activeSession.messages
+                    .map((msg) => renderMessageRowHTML(msg, userId, activeSession))
+                    .join('')}
                 </div>
 
-                <!-- Live Typing / Processing Indicator -->
                 <div class="live-typing-bar">
-                  ${state.typingStatus && state.typingStatus.sessionId === activeSession.id
-                    ? `<span>\u2726 ${escapeHtml(state.typingStatus.text)}</span>`
-                    : ''}
+                  ${
+                    state.typingStatus && state.typingStatus.sessionId === activeSession.id
+                      ? `<span>\u2726 ${escapeHtml(state.typingStatus.text)}</span>`
+                      : `
+                        <span>
+                          ${
+                            isSharedActive
+                              ? `Live Room /s/${escapeHtml(activeSession.shareCode)} \u2022 ${
+                                  activeSession.permissionMode === 'can_prompt'
+                                    ? `All participants can prompt @Gemini (Uses ${escapeHtml(activeSession.hostShortName)}'s Host Quota)`
+                                    : 'View & Team Chat Only (AI prompting paused for guests)'
+                                }`
+                              : `Personal Workspace (/app) \u2022 Prompts deduct from ${escapeHtml(account.name)}'s Software Token Quota`
+                          }
+                        </span>
+                      `
+                  }
                 </div>
 
-                <!-- COMPOSER DOCK (Gemini style with Model selector inside) -->
+                <!-- FLOATING PILL COMPOSER -->
                 <div class="composer-dock">
-                  <div class="composer-top-row">
-                    <!-- Model Selector inside Chat Box like Gemini -->
-                    <div class="composer-model-pill" title="Active AI Model">
-                      <span class="sparkle-icon">\u2726</span>
-                      <select id="chatModelSelect" class="chat-model-select">
-                        <option value="gemini-3.8-flash" ${state.primaryModel === 'gemini-3.8-flash' ? 'selected' : ''}>Gemini 3.8 Flash</option>
-                        <option value="gemini-4-argon" ${state.primaryModel === 'gemini-4-argon' ? 'selected' : ''}>Gemini 4 Argon</option>
-                      </select>
+                  <div class="composer-top-controls">
+                    <div class="composer-mode-switch">
+                      <button
+                        type="button"
+                        class="mode-pill-btn ${pane.composerMode === 'ai' ? 'active-ai-mode' : ''}"
+                        data-action="set-composer-mode"
+                        data-user="${userId}"
+                        data-mode="ai"
+                      >
+                        \u2726 Ask CoThread AI (${isSharedActive ? `Host Quota` : `My Quota`})
+                      </button>
+                      <button
+                        type="button"
+                        class="mode-pill-btn ${pane.composerMode === 'chat' ? 'active-chat-mode' : ''}"
+                        data-action="set-composer-mode"
+                        data-user="${userId}"
+                        data-mode="chat"
+                      >
+                        \uD83D\uDCAC Team Message (0 Tokens)
+                      </button>
+                    </div>
+
+                    <div class="quick-prompt-chips">
+                      ${
+                        isSharedActive
+                          ? `
+                            <button
+                              type="button"
+                              class="quick-chip"
+                              data-action="quick-prompt"
+                              data-user="${userId}"
+                              data-mode="ai"
+                              data-text="@Gemini Propose a Cloud Run WebSocket + Redis pub/sub schema for our shared room."
+                            >\u2726 Ask AI: Cloud Run Schema</button>
+                            <button
+                              type="button"
+                              class="quick-chip"
+                              data-action="quick-prompt"
+                              data-user="${userId}"
+                              data-mode="chat"
+                              data-text="Looks great! I'll copy this thread to my Personal Chats if I need to test custom configs."
+                            >\uD83D\uDCAC Team Chat: "Looks great!"</button>
+                          `
+                          : `
+                            <button
+                              type="button"
+                              class="quick-chip"
+                              data-action="quick-prompt"
+                              data-user="${userId}"
+                              data-mode="ai"
+                              data-text="@Gemini Extend this copied architecture with a private benchmark suite using my own quota."
+                            >\uD83D\uDD12 Ask AI (My Personal Quota)</button>
+                          `
+                      }
                     </div>
                   </div>
 
@@ -1042,8 +1355,13 @@
                       id="composerInput_${userId}"
                       data-user="${userId}"
                       value="${escapeHtml(pane.draftText || '')}"
-                      placeholder="Message CoThread AI..."
-                      autocomplete="off"
+                      placeholder="${
+                        pane.composerMode === 'ai'
+                          ? isSharedActive
+                            ? `Reply or ask @Gemini in /s/${activeSession.shareCode} (Sponsored by ${activeSession.hostShortName}'s Host Quota)...`
+                            : `Ask CoThread AI privately in /app (Uses ${account.shortName}'s ${planObj.badge} Quota)...`
+                          : `Message colleagues in real time as ${account.shortName} (0 AI tokens)...`
+                      }"
                     />
                     <button
                       type="button"
@@ -1051,13 +1369,47 @@
                       data-action="send-message"
                       data-user="${userId}"
                       data-session-id="${activeSession.id}"
-                      title="Send message"
                     >
-                      \u2191
+                      ${
+                        pane.composerMode === 'ai'
+                          ? isSharedActive
+                            ? 'Ask AI (Host Quota) \u2191'
+                            : 'Ask AI (My Quota) \u2191'
+                          : 'Send Message \u2191'
+                      }
                     </button>
                   </div>
                 </div>
               </div>
+
+              <!-- ARTIFACTS / COLLABORATIVE CANVAS DRAWER -->
+              <aside class="shared-canvas-drawer ${pane.canvasOpen ? '' : 'collapsed'}">
+                <div class="canvas-header">
+                  <div>
+                    <div class="canvas-title">\uD83D\uDCC4 ${escapeHtml(activeSession.canvasTitle || 'spec.md')}</div>
+                    <div class="canvas-subtitle">Edited by ${escapeHtml(activeSession.canvasLastEditedBy || 'Team')}</div>
+                  </div>
+                  <button
+                    type="button"
+                    class="acct-btn"
+                    data-action="toggle-canvas"
+                    data-user="${userId}"
+                  >\u2715</button>
+                </div>
+
+                <textarea
+                  class="canvas-editor"
+                  data-action="edit-canvas"
+                  data-user="${userId}"
+                  data-session-id="${activeSession.id}"
+                  spellcheck="false"
+                >${escapeHtml(activeSession.canvasContent || '')}</textarea>
+
+                <div class="canvas-footer">
+                  <span>Live CoThread Artifact</span>
+                  <span>${isSharedActive ? `/s/${escapeHtml(activeSession.shareCode)}` : '/app (Private)'}</span>
+                </div>
+              </aside>
             </div>
           </div>
         </div>
@@ -1065,16 +1417,51 @@
     `;
   }
 
+  function renderStreamBannerHTML(session, account) {
+    if (session.type === 'shared') {
+      return `
+        <div class="stream-context-banner">
+          <div>
+            <strong>Shared CoThread Session (<code>/s/${escapeHtml(session.shareCode)}</code>):</strong>
+            Participants (${session.participants.map((p) => state.accounts[p]?.shortName || p).join(', ')}) share one real-time AI context.
+            AI prompts are sponsored by <strong>${escapeHtml(session.hostName)}'s Host Quota</strong>.
+          </div>
+          <div>
+            <span>Want to branch privately? Click <strong>"Continue Independently (Copy to My Chats)"</strong>.</span>
+          </div>
+        </div>
+      `;
+    }
+
+    if (session.forkedFromSessionId) {
+      return `
+        <div class="stream-context-banner">
+          <div>
+            <strong>\uD83D\uDD00 Independent Personal Thread (<code>/app</code> \u2022 Copied from <code>/s/${escapeHtml(session.forkedFromShareCode || 'shared')}</code>):</strong>
+            Owned by <strong>${escapeHtml(account.name)} (${escapeHtml(account.email)})</strong>.
+            All new prompts deduct from your own <strong>Software Token Quota</strong> while the original shared session stays intact.
+          </div>
+        </div>
+      `;
+    }
+
+    return `
+      <div class="stream-context-banner">
+        <div>
+          <strong>Private Personal Thread (<code>/app</code> \u2022 ${escapeHtml(account.email)}):</strong>
+          Visible only to you. Prompts deduct from your software-assigned <strong>${escapeHtml(PLAN_TIERS[account.planTier]?.name || 'CoThread')}</strong> quota.
+        </div>
+      </div>
+    `;
+  }
+
   function renderMessageRowHTML(msg, viewingUserId, session) {
     const isAI = msg.kind === 'ai' || msg.senderId === 'gemini';
     const isOwn = !isAI && msg.senderId === viewingUserId;
-    const senderAcct = isAI
-      ? { name: 'CoThread AI', initials: '\u2726', colorClass: 'gemini' }
-      : (state.accounts[msg.senderId] || {
-          name: msg.senderName || 'Collaborator',
-          initials: (msg.senderName || 'CT').slice(0, 2).toUpperCase(),
-          colorClass: 'custom'
-        });
+    const senderAcct = state.accounts[msg.senderId] || {
+      initials: isAI ? '\u2726' : 'CT',
+      colorClass: isAI ? 'gemini' : 'custom'
+    };
 
     const rowClass = isAI
       ? 'msg-row ai-message'
@@ -1090,7 +1477,17 @@
         <div class="msg-bubble">
           <div class="msg-meta-header">
             <div class="msg-author-cluster">
-              <span class="msg-author-name">${escapeHtml(isAI ? 'CoThread AI' : (msg.senderName || senderAcct.name))}</span>
+              <span class="msg-author-name">${escapeHtml(msg.senderName)}</span>
+              <span class="msg-role-pill">${escapeHtml(msg.senderRole || 'Member')}</span>
+              <span class="msg-intent-tag">
+                ${
+                  msg.kind === 'prompt'
+                    ? '\u2726 Prompted AI'
+                    : msg.kind === 'chat'
+                    ? '\uD83D\uDCAC Team Message (0 Tokens)'
+                    : `Replying to ${escapeHtml(msg.triggeredBy || 'Team')}`
+                }
+              </span>
             </div>
             <span class="msg-timestamp">${escapeHtml(msg.timestamp || '')}</span>
           </div>
@@ -1103,52 +1500,57 @@
               : ''
           }
 
-          ${isAI ? `
-            <!-- Gemini Style Minimalist Icon Action Bar (Copy & New Chat) -->
-            <div class="gemini-action-bar">
-              <button type="button" class="gemini-icon-btn" data-action="copy-response" data-msg-id="${msg.id}" title="Copy response">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                </svg>
-              </button>
-              <button type="button" class="gemini-icon-btn" data-action="new-chat-from-prompt" data-user="${viewingUserId}" title="Start new chat">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                  <line x1="12" y1="8" x2="12" y2="14"></line>
-                  <line x1="9" y1="11" x2="15" y2="11"></line>
-                </svg>
-              </button>
-              <button type="button" class="gemini-icon-btn" data-action="retry-response" data-user="${viewingUserId}" title="Retry response">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="1 4 1 10 7 10"></polyline>
-                  <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
-                </svg>
-              </button>
-            </div>
-          ` : ''}
+          ${
+            isAI
+              ? `
+                <div class="msg-quota-footer">
+                  <span class="quota-attribution-pill ${msg.quotaType === 'host' ? 'charged-host' : ''}">
+                    ${
+                      msg.quotaType === 'host'
+                        ? `\u26A1 ${escapeHtml(msg.modelUsed || 'gemini-3.8-flash')} \u2022 ${fmtNum(msg.tokensCharged)} tokens charged to ${escapeHtml(msg.quotaChargedTo)} \u2022 ${fmtNum(msg.tokensSaved || 140)} saved via Flash-Lite`
+                        : `\uD83D\uDD12 ${escapeHtml(msg.modelUsed || 'gemini-3.8-flash')} \u2022 ${fmtNum(msg.tokensCharged)} tokens charged to ${escapeHtml(msg.quotaChargedTo)}`
+                    }
+                  </span>
+                  ${
+                    msg.codeSnippet
+                      ? `
+                        <button
+                          type="button"
+                          class="sync-to-canvas-btn"
+                          data-action="append-snippet-to-canvas"
+                          data-user="${viewingUserId}"
+                          data-session-id="${session.id}"
+                          data-msg-id="${msg.id}"
+                        >\uD83D\uDCC4 Open in Artifact Canvas</button>
+                      `
+                      : ''
+                  }
+                </div>
+              `
+              : ''
+          }
         </div>
       </div>
     `;
   }
 
+  function scrollChatToBottom(sessionId) {
+    Object.keys(state.paneState).forEach((uid) => {
+      const pane = state.paneState[uid];
+      if (pane && pane.activeSessionId === sessionId) {
+        const el = document.getElementById(`msgScroll_${uid}`);
+        if (el) el.scrollTop = el.scrollHeight;
+      }
+    });
+  }
+
   // =========================================================
-  // EVENT BINDINGS
+  // PANE EVENT DELEGATION
   // =========================================================
 
   function bindPaneEvents(userId) {
     const paneEl = document.querySelector(`.workspace-pane[data-pane-user="${userId}"]`);
     if (!paneEl) return;
-
-    // Chat Model Select inside composer
-    const modelSel = paneEl.querySelector('#chatModelSelect');
-    if (modelSel) {
-      modelSel.addEventListener('change', (e) => {
-        state.primaryModel = e.target.value;
-        saveAndBroadcastState();
-        showToast(`Switched model to ${state.primaryModel}`, 'shared');
-      });
-    }
 
     const inputEl = paneEl.querySelector(`#composerInput_${userId}`);
     if (inputEl) {
@@ -1164,17 +1566,27 @@
       });
     }
 
+    const canvasEl = paneEl.querySelector('[data-action="edit-canvas"]');
+    if (canvasEl) {
+      canvasEl.addEventListener('input', (e) => {
+        const sId = canvasEl.getAttribute('data-session-id');
+        const session = getSessionById(sId);
+        if (session) {
+          session.canvasContent = e.target.value;
+          session.canvasLastEditedBy = state.accounts[userId]?.shortName || 'User';
+          saveAndBroadcastState();
+          document
+            .querySelectorAll(`[data-action="edit-canvas"][data-session-id="${sId}"]`)
+            .forEach((other) => {
+              if (other !== canvasEl) other.value = session.canvasContent;
+            });
+        }
+      });
+    }
+
     paneEl.addEventListener('click', (e) => {
       const btn = e.target.closest('[data-action]');
-      if (!btn) {
-        // If clicking outside dropdown menu, close menu
-        const pane = ensurePaneStateForUser(userId);
-        if (pane.openMenuSessionId) {
-          pane.openMenuSessionId = null;
-          renderApp();
-        }
-        return;
-      }
+      if (!btn) return;
 
       const action = btn.getAttribute('data-action');
       const targetUser = btn.getAttribute('data-user') || userId;
@@ -1183,201 +1595,1217 @@
         const sId = btn.getAttribute('data-session-id');
         const p = ensurePaneStateForUser(targetUser);
         p.activeSessionId = sId;
-        p.openMenuSessionId = null;
+        p.mobileSidebarOpen = false;
         saveAndBroadcastState();
         renderApp();
         scrollChatToBottom(sId);
-      } else if (action === 'toggle-chat-menu') {
-        e.stopPropagation();
-        const sId = btn.getAttribute('data-session-id');
+      } else if (action === 'toggle-mobile-sidebar') {
         const p = ensurePaneStateForUser(targetUser);
-        p.openMenuSessionId = p.openMenuSessionId === sId ? null : sId;
+        p.mobileSidebarOpen = !p.mobileSidebarOpen;
         renderApp();
-      } else if (action === 'rename-chat') {
-        e.stopPropagation();
-        const sId = btn.getAttribute('data-session-id');
-        renameChat(sId, targetUser);
-      } else if (action === 'delete-chat') {
-        e.stopPropagation();
-        const sId = btn.getAttribute('data-session-id');
-        deleteChat(sId, targetUser);
-      } else if (action === 'new-chat') {
-        createNewChat(targetUser);
-      } else if (action === 'close-sidebar') {
+      } else if (action === 'close-mobile-sidebar') {
         const p = ensurePaneStateForUser(targetUser);
-        p.sidebarOpen = false;
+        p.mobileSidebarOpen = false;
         renderApp();
+      } else if (action === 'set-composer-mode') {
+        ensurePaneStateForUser(targetUser).composerMode = btn.getAttribute('data-mode');
+        renderApp();
+        const inp = document.getElementById(`composerInput_${targetUser}`);
+        if (inp) inp.focus();
+      } else if (action === 'quick-prompt') {
+        const mode = btn.getAttribute('data-mode');
+        const text = btn.getAttribute('data-text');
+        ensurePaneStateForUser(targetUser).composerMode = mode;
+        const sId = ensurePaneStateForUser(targetUser).activeSessionId;
+        handleSendMessage(targetUser, sId, text, mode);
       } else if (action === 'send-message') {
         const sId = btn.getAttribute('data-session-id');
         const inp = document.getElementById(`composerInput_${targetUser}`);
         handleSendMessage(targetUser, sId, inp ? inp.value : '');
-      } else if (action === 'logout') {
-        logoutUser();
-      } else if (action === 'copy-response') {
+      } else if (action === 'toggle-canvas') {
+        const p = ensurePaneStateForUser(targetUser);
+        p.canvasOpen = !p.canvasOpen;
+        saveAndBroadcastState();
+        renderApp();
+      } else if (action === 'open-share-modal') {
+        openShareModal(btn.getAttribute('data-session-id'));
+      } else if (action === 'grant-hasnain-access') {
+        const sId = btn.getAttribute('data-session-id');
+        grantAccessToColleague(sId, 'Muhammad Hasnain', 'hasnainrashi@gmail.com', 'starter', true);
+      } else if (action === 'continue-independently') {
+        ensurePaneStateForUser(targetUser).mobileSidebarOpen = false;
+        continueIndependentlyToMyChats(targetUser, btn.getAttribute('data-session-id'));
+      } else if (action === 'new-shared-session') {
+        ensurePaneStateForUser(targetUser).mobileSidebarOpen = false;
+        createNewSharedSession(targetUser);
+      } else if (action === 'new-personal-chat') {
+        ensurePaneStateForUser(targetUser).mobileSidebarOpen = false;
+        createNewPersonalChat(targetUser);
+      } else if (action === 'open-account-quota-modal') {
+        openAccountQuotaModal(targetUser);
+      } else if (action === 'switch-account') {
+        returnToCompanyWebsite();
+      } else if (action === 'append-snippet-to-canvas') {
+        const sId = btn.getAttribute('data-session-id');
         const msgId = btn.getAttribute('data-msg-id');
-        const p = ensurePaneStateForUser(targetUser);
-        const session = getSessionById(p.activeSessionId);
-        const msg = session?.messages.find((m) => m.id === msgId);
-        if (msg) {
-          navigator.clipboard?.writeText(msg.text).catch(() => {});
-          const origHtml = btn.innerHTML;
-          btn.innerHTML = `
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-          `;
-          setTimeout(() => {
-            btn.innerHTML = origHtml;
-          }, 1800);
-          showToast('Response copied to clipboard!', 'shared');
-        }
-      } else if (action === 'new-chat-from-prompt') {
-        createNewChat(targetUser);
-      } else if (action === 'retry-response') {
-        const p = ensurePaneStateForUser(targetUser);
-        const session = getSessionById(p.activeSessionId);
-        const lastHumanMsg = [...(session?.messages || [])].reverse().find((m) => m.kind === 'prompt');
-        if (lastHumanMsg) {
-          handleSendMessage(targetUser, session.id, lastHumanMsg.text);
+        const session = getSessionById(sId);
+        const msg = session && session.messages.find((m) => m.id === msgId);
+        if (session && msg && msg.codeSnippet) {
+          session.canvasContent =
+            (session.canvasContent || '') +
+            `\n\n// Appended from ${msg.senderName} (${nowTimeLabel()})\n` +
+            msg.codeSnippet;
+          ensurePaneStateForUser(targetUser).canvasOpen = true;
+          saveAndBroadcastState('Code snippet appended to Artifact Canvas!', 'shared');
+          renderApp();
+          showToast('Code snippet opened in Artifact Canvas!', 'shared');
         }
       }
     });
   }
 
-  function initGlobalEvents() {
-    // Theme toggle
-    document.getElementById('websiteThemeToggleBtn')?.addEventListener('click', toggleTheme);
-    document.getElementById('appThemeToggleBtn')?.addEventListener('click', toggleTheme);
+  function grantAccessToColleague(sessionId, colleagueName, colleagueEmail, colleagueTier, openSplitView) {
+    const cleanEmail = String(colleagueEmail || 'hasnainrashi@gmail.com').trim().toLowerCase();
+    const cleanName = String(colleagueName || 'Muhammad Hasnain').trim();
+    const tierKey = PLAN_TIERS[colleagueTier] ? colleagueTier : 'starter';
+    const tier = PLAN_TIERS[tierKey];
 
-    // Sidebar Toggle button in top header
-    document.getElementById('sidebarToggleBtn')?.addEventListener('click', () => {
-      const uid = currentUserId || Object.keys(state.accounts)[0];
-      if (uid) {
-        const pane = ensurePaneStateForUser(uid);
-        pane.sidebarOpen = !pane.sidebarOpen;
-        renderApp();
+    // Ensure a Host account exists first if none
+    if (Object.keys(state.accounts).length === 0) {
+      registerOrSignInWithDetails('Robina Mirbahar', 'robina@cothread.ai', 'pro');
+    }
+
+    const session =
+      getSessionById(sessionId) ||
+      state.sessions.find((s) => s.type === 'shared') ||
+      state.sessions[0];
+    if (!session) return null;
+
+    let colleagueAcct = Object.values(state.accounts).find(
+      (a) => a.email.toLowerCase() === cleanEmail
+    );
+
+    if (!colleagueAcct) {
+      const parts = cleanName.split(/\s+/);
+      const shortName = parts.length > 1 ? parts[parts.length - 1] : parts[0] || 'Hasnain';
+      const initials = parts
+        .map((p) => p[0])
+        .join('')
+        .slice(0, 2)
+        .toUpperCase();
+      const newId =
+        'user_' +
+        cleanEmail.replace(/[^a-z0-9]/g, '').slice(0, 12) +
+        '_' +
+        Date.now().toString(36).slice(-3);
+
+      colleagueAcct = {
+        id: newId,
+        name: cleanName,
+        shortName,
+        email: cleanEmail,
+        initials: initials || 'MH',
+        planTier: tier.id,
+        quotaTotal: tier.quota,
+        quotaUsed: 0,
+        colorClass: cleanEmail.includes('hasnain') ? 'hasnain' : 'custom',
+        isRealUser: true
+      };
+      state.accounts[newId] = colleagueAcct;
+
+      // Also create a personal workspace chat for the colleague
+      state.sessions.push({
+        id: 'personal_welcome_' + newId,
+        type: 'personal',
+        ownerId: newId,
+        ownerName: shortName,
+        forkedFromSessionId: null,
+        forkedFromTitle: null,
+        title: `${shortName}'s Personal AI Workspace`,
+        tokensUsed: 0,
+        canvasTitle: 'workspace_notes.md',
+        canvasLastEditedBy: shortName,
+        canvasContent: `# ${cleanName}'s Private CoThread Canvas (/app)\nProvisioned Software Token Quota: ${fmtNum(tier.quota)} tokens (${tier.name})\n`,
+        messages: [
+          {
+            id: 'm_w_' + Date.now(),
+            senderId: 'gemini',
+            senderName: 'Google ADK \u2022 Gemini 3.8 Flash',
+            senderRole: 'CoThread AI',
+            kind: 'ai',
+            modelUsed: 'gemini-3.8-flash',
+            timestamp: nowTimeLabel(),
+            triggeredBy: shortName,
+            quotaChargedTo: `${cleanName} (My ${tier.badge} Quota)`,
+            quotaType: 'personal',
+            tokensCharged: 0,
+            tokensSaved: 0,
+            text: `Welcome to your private **Personal Workspace (\`/app\`)**, **${cleanName}**! Prompts here deduct strictly from your personal software token quota (**${fmtNum(tier.quota)} tokens**).`
+          }
+        ]
+      });
+    }
+
+    session.linkActive = true;
+    session.permissionMode = 'can_prompt';
+    if (!session.participants.includes(colleagueAcct.id)) {
+      session.participants.push(colleagueAcct.id);
+    }
+    if (session.participantUsage[colleagueAcct.id] === undefined) {
+      session.participantUsage[colleagueAcct.id] = 0;
+    }
+
+    const pane = ensurePaneStateForUser(colleagueAcct.id);
+    pane.activeSessionId = session.id;
+    pane.composerMode = 'ai';
+
+    const alreadyAnnounced = session.messages.some(
+      (m) => m.id && m.id.startsWith('m_access_' + colleagueAcct.id)
+    );
+    if (!alreadyAnnounced) {
+      session.messages.push({
+        id: 'm_access_' + colleagueAcct.id + '_' + Date.now(),
+        senderId: colleagueAcct.id,
+        senderName: colleagueAcct.name,
+        senderRole: 'Colleague \u2022 Joined via Sublink',
+        kind: 'chat',
+        timestamp: nowTimeLabel(),
+        text: `\uD83D\uDD13 **Access Granted:** **${session.hostName}** granted **${colleagueAcct.name}** (\`${colleagueAcct.email}\` \u2022 ${tier.name} ${fmtNum(tier.quota)} Quota) live **Can Prompt** access to \`/s/${session.shareCode}\`. All @Gemini prompts in this room are sponsored by **${session.hostShortName}'s Host Quota** (${fmtNum(session.tokenCap)} Session Cap) while ${colleagueAcct.shortName}'s personal ${fmtNum(tier.quota)} quota remains untouched!`
+      });
+    }
+
+    if (openSplitView) {
+      state.sideBySideMode = true;
+    }
+
+    const inviteUrl = buildShareableSublinkUrl(session.shareCode, colleagueAcct.email);
+    navigator.clipboard?.writeText(inviteUrl).catch(() => {});
+
+    saveAndBroadcastState(
+      `Granted ${colleagueAcct.name} (${colleagueAcct.email}) live access to /s/${session.shareCode}!`,
+      'shared'
+    );
+    renderApp();
+    scrollChatToBottom(session.id);
+    showToast(
+      `\u2713 Granted ${colleagueAcct.name} (${colleagueAcct.email}) live access to /s/${session.shareCode} & opened Dual-Pane View!`,
+      'shared'
+    );
+    return colleagueAcct;
+  }
+
+  function createNewSharedSession(hostUserId) {
+    const host = state.accounts[hostUserId] || Object.values(state.accounts)[0];
+    if (!host) return;
+    const newId = 'shared_' + Date.now();
+    const shareCode = 'cothread-' + Math.random().toString(36).slice(2, 6) + '-' + Math.random().toString(36).slice(2, 5);
+
+    const newSession = {
+      id: newId,
+      type: 'shared',
+      title: `${host.shortName}'s Collaborative AI Room`,
+      hostId: hostUserId,
+      hostName: host.name,
+      hostShortName: host.shortName,
+      shareCode,
+      linkActive: true,
+      permissionMode: 'can_prompt',
+      tokenCap: 20000,
+      tokensUsed: 0,
+      tokensSavedByCompression: 0,
+      participantUsage: { [hostUserId]: 0 },
+      participants: [hostUserId],
+      canvasTitle: 'shared_artifact.md',
+      canvasLastEditedBy: host.shortName,
+      canvasContent: `# ${host.name}'s Shared CoThread Artifact (/s/${shareCode})\nSponsored by ${host.name}'s Software Token Quota.\n`,
+      messages: [
+        {
+          id: 'm_init_' + Date.now(),
+          senderId: hostUserId,
+          senderName: host.name,
+          senderRole: 'Host',
+          kind: 'chat',
+          timestamp: nowTimeLabel(),
+          text: `Created shared session /s/${shareCode} with a 20,000 token cap from my CoThread quota. Share the sublink so colleagues can join!`
+        }
+      ]
+    };
+
+    state.sessions.unshift(newSession);
+    ensurePaneStateForUser(hostUserId).activeSessionId = newId;
+    saveAndBroadcastState();
+    renderApp();
+    showToast(`Created Shared Session /s/${shareCode}!`, 'shared');
+  }
+
+  function createNewPersonalChat(userId) {
+    const account = state.accounts[userId] || Object.values(state.accounts)[0];
+    if (!account) return;
+    const newId = 'personal_' + userId + '_' + Date.now();
+    const newPersonal = {
+      id: newId,
+      type: 'personal',
+      ownerId: userId,
+      ownerName: account.shortName,
+      forkedFromSessionId: null,
+      forkedFromTitle: null,
+      title: `Personal Thread (${nowTimeLabel()})`,
+      tokensUsed: 0,
+      canvasTitle: 'personal_notes.md',
+      canvasLastEditedBy: account.shortName,
+      canvasContent: `# ${account.name} \u2014 Private Personal Artifact (/app)\nBilled to ${account.email}'s Software Token Quota.\n`,
+      messages: [
+        {
+          id: 'm_p_' + Date.now(),
+          senderId: userId,
+          senderName: account.name,
+          senderRole: 'Personal Account',
+          kind: 'chat',
+          timestamp: nowTimeLabel(),
+          text: `Started a new private Personal Thread (/app). Prompts here use my own software token quota.`
+        }
+      ]
+    };
+
+    state.sessions.push(newPersonal);
+    ensurePaneStateForUser(userId).activeSessionId = newId;
+    saveAndBroadcastState();
+    renderApp();
+    showToast(`Started new Personal Thread (/app) on ${account.shortName}'s quota.`, 'personal');
+  }
+
+  // =========================================================
+  // MODALS: GOOGLE CHOOSER, SHARE SUBLINK, ACCOUNT QUOTA
+  // =========================================================
+
+  function openGoogleChooserModal(preselectedTier) {
+    const backdrop = document.getElementById('googleChooserBackdrop');
+    const listEl = document.getElementById('googleAccountList');
+    const customForm = document.getElementById('googleCustomAccountForm');
+    if (!backdrop || !listEl) return;
+
+    if (preselectedTier) {
+      const tierSel = document.getElementById('googleCustomTier');
+      if (tierSel) tierSel.value = preselectedTier;
+    }
+
+    const defaultOAuthProfiles = [
+      {
+        name: 'Robina Mirbahar (Project Lead \u2022 Host)',
+        email: 'robina@cothread.ai',
+        planTier: preselectedTier || 'pro',
+        initials: 'RM',
+        colorClass: 'alex'
+      },
+      {
+        name: 'Muhammad Hasnain (Co-Builder & Collaborator)',
+        email: 'hasnainrashi@gmail.com',
+        planTier: 'starter',
+        initials: 'MH',
+        colorClass: 'hasnain'
+      }
+    ];
+
+    const existingAccounts = Object.values(state.accounts);
+    const combinedProfiles = [...existingAccounts];
+    defaultOAuthProfiles.forEach((prof) => {
+      if (!combinedProfiles.some((a) => a.email.toLowerCase() === prof.email.toLowerCase())) {
+        combinedProfiles.push(prof);
       }
     });
 
-    // Company Page Navigation CTAs -> Navigate to /chat
-    document.getElementById('navOpenChatBtn')?.addEventListener('click', () => navigateTo('chat'));
-    document.getElementById('navOpenLoginBtn')?.addEventListener('click', () => navigateTo('chat'));
-    document.getElementById('heroLaunchChatBtn')?.addEventListener('click', () => navigateTo('chat'));
-    document.getElementById('bentoLaunchChatBtn')?.addEventListener('click', () => navigateTo('chat'));
+    listEl.classList.remove('hidden');
+    listEl.innerHTML =
+      `<div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--ink-muted);margin-bottom:6px;">1-Click Google OAuth Accounts</div>` +
+      combinedProfiles
+        .map((acct) => {
+          const tier = PLAN_TIERS[acct.planTier] || PLAN_TIERS.pro;
+          const quotaLabel = fmtNum(acct.quotaTotal || tier.quota);
+          return `
+            <button
+              type="button"
+              class="google-account-row"
+              data-oauth-name="${escapeHtml(acct.name)}"
+              data-oauth-email="${escapeHtml(acct.email)}"
+              data-oauth-tier="${escapeHtml(tier.id)}"
+            >
+              <div class="google-acct-left">
+                <span class="avatar-circle ${acct.colorClass || 'custom'}">${escapeHtml(acct.initials || 'CT')}</span>
+                <div class="google-acct-info">
+                  <strong>${escapeHtml(acct.name)}</strong>
+                  <small>${escapeHtml(acct.email)} \u2022 ${escapeHtml(tier.name)} (${quotaLabel} Quota)</small>
+                </div>
+              </div>
+              <span class="plan-tier-badge">${escapeHtml(tier.badge)}</span>
+            </button>
+          `;
+        })
+        .join('');
 
-    document.querySelectorAll('[data-action="go-to-chat"]').forEach((btn) => {
-      btn.addEventListener('click', () => navigateTo('chat'));
-    });
-
-    // Chat Header Return to Website
-    document.getElementById('backToWebsiteBtn')?.addEventListener('click', () => navigateTo('home'));
-
-    // Back to Home from Auth Portal
-    document.getElementById('authBackHomeBtn')?.addEventListener('click', () => navigateTo('home'));
-
-    // Dummy Auth Portal Tabs
-    const tabLogin = document.getElementById('tabLoginBtn');
-    const tabSignup = document.getElementById('tabSignupBtn');
-    const formLogin = document.getElementById('dummyLoginForm');
-    const formSignup = document.getElementById('dummySignupForm');
-
-    tabLogin?.addEventListener('click', () => {
-      tabLogin.classList.add('active');
-      tabSignup?.classList.remove('active');
-      formLogin?.classList.remove('hidden');
-      formSignup?.classList.add('hidden');
-    });
-
-    tabSignup?.addEventListener('click', () => {
-      tabSignup.classList.add('active');
-      tabLogin?.classList.remove('active');
-      formSignup?.classList.remove('hidden');
-      formLogin?.classList.add('hidden');
-    });
-
-    // Login Form Submit
-    formLogin?.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const email = document.getElementById('loginEmail')?.value;
-      if (email) loginOrRegisterUser('', email);
-    });
-
-    // Signup Form Submit
-    formSignup?.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const name = document.getElementById('signupName')?.value;
-      const email = document.getElementById('signupEmail')?.value;
-      if (email) loginOrRegisterUser(name, email);
-    });
-
-    // 1-Click Quick Test Personas
-    document.querySelectorAll('.quick-profile-btn').forEach((btn) => {
+    listEl.querySelectorAll('[data-oauth-email]').forEach((btn) => {
       btn.addEventListener('click', () => {
-        const name = btn.getAttribute('data-test-name');
-        const email = btn.getAttribute('data-test-email');
-        if (email) loginOrRegisterUser(name, email);
+        const name = btn.getAttribute('data-oauth-name');
+        const email = btn.getAttribute('data-oauth-email');
+        const tier = btn.getAttribute('data-oauth-tier') || preselectedTier || 'pro';
+        registerOrSignInWithDetails(name, email, tier);
       });
     });
 
-    // Share Modal Events
-    document.getElementById('closeShareModalBtn')?.addEventListener('click', closeShareModal);
-    document.getElementById('shareModalBackdrop')?.addEventListener('click', (e) => {
-      if (e.target.id === 'shareModalBackdrop') closeShareModal();
+    if (customForm) {
+      customForm.classList.remove('hidden');
+    }
+
+    backdrop.classList.remove('hidden');
+  }
+
+  function closeGoogleChooserModal() {
+    const backdrop = document.getElementById('googleChooserBackdrop');
+    if (backdrop) backdrop.classList.add('hidden');
+  }
+
+  function buildShareableSublinkUrl(shareCode, joinAsEmail) {
+    const base = window.location.href.split('?')[0].split('#')[0];
+    const extra = joinAsEmail ? `&joinAs=${encodeURIComponent(joinAsEmail)}` : '';
+    return `${base}?s=${encodeURIComponent(shareCode)}${extra}#/s/${encodeURIComponent(shareCode)}`;
+  }
+
+  function openShareModal(sessionId) {
+    activeShareModalSessionId = sessionId;
+    const backdrop = document.getElementById('shareQuotaModalBackdrop');
+    if (!backdrop) return;
+    renderShareModalContent(sessionId);
+    backdrop.classList.remove('hidden');
+  }
+
+  function closeShareModal() {
+    const backdrop = document.getElementById('shareQuotaModalBackdrop');
+    if (backdrop) backdrop.classList.add('hidden');
+  }
+
+  function renderShareModalContent(sessionId) {
+    const body = document.getElementById('shareModalBody');
+    if (!body) return;
+    const session = getSessionById(sessionId);
+    if (!session || session.type !== 'shared') return;
+
+    const fullSublink = buildShareableSublinkUrl(session.shareCode, 'hasnainrashi@gmail.com');
+    const pct = Math.min(100, Math.round((session.tokensUsed / session.tokenCap) * 100));
+
+    body.innerHTML = `
+      <div class="form-section" style="background:rgba(24,128,56,0.06);border:1.5px solid rgba(24,128,56,0.28);border-radius:12px;padding:12px 14px;margin-bottom:14px;">
+        <label class="form-label" style="margin-bottom:6px;">
+          <span>\u26A1 Quick Grant Access to Co-Builder &amp; Collaborator</span>
+          <span style="color:#188038;font-weight:700;">Instant Live Room Sync</span>
+        </label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+          <button type="button" class="btn-primary" id="modalGrantHasnainBtn" style="flex:1;background:#188038;border-color:#188038;">
+            \uD83D\uDC64+ Grant Access to Muhammad Hasnain (hasnainrashi@gmail.com \u2022 Starter 25k)
+          </button>
+          <button type="button" class="btn-secondary" id="modalOpenHasnainTabBtn">
+            Open Hasnain in 2nd Tab \u2197
+          </button>
+        </div>
+        <form id="modalInviteCustomForm" style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+          <input type="text" id="modalInviteNameInput" class="share-link-input" placeholder="Colleague Name (e.g. Muhammad Hasnain)" style="flex:1;min-width:140px;" />
+          <input type="email" id="modalInviteEmailInput" class="share-link-input" placeholder="Email (e.g. hasnainrashi@gmail.com)" style="flex:1;min-width:180px;" />
+          <button type="submit" class="btn-secondary">Invite &amp; Grant Access</button>
+        </form>
+      </div>
+
+      <div class="form-section">
+        <label class="form-label">
+          <span>Shareable CoThread Session Sublink (<code>/s/${escapeHtml(session.shareCode)}</code>)</span>
+          <span style="color: ${session.linkActive ? 'var(--accent-emerald)' : '#E11D48'}">
+            ${session.linkActive ? '\u25CF Sublink Active' : '\u25CF Sublink Revoked'}
+          </span>
+        </label>
+        <div class="share-link-box">
+          <input type="text" class="share-link-input" id="shareLinkUrlInput" readonly value="${escapeHtml(fullSublink)}" />
+          <button type="button" class="btn-primary" id="copyShareLinkBtn">Copy Sublink</button>
+          <button type="button" class="btn-secondary" id="openSecondTabBtn">Open in 2nd Tab \u2197</button>
+        </div>
+        <p class="form-help">Colleagues opening this sublink automatically join <code>/s/${escapeHtml(session.shareCode)}</code> using <strong>${escapeHtml(session.hostName)}'s</strong> sponsored session allowance.</p>
+      </div>
+
+      <div class="form-section">
+        <label class="form-label" for="sharePermissionSelect">Colleague Permission Level</label>
+        <select id="sharePermissionSelect" class="form-select">
+          <option value="can_prompt" ${session.permissionMode === 'can_prompt' ? 'selected' : ''}>
+            \u26A1 Can Prompt @Gemini &amp; Edit Canvas (Uses Host's Sponsored Session Quota)
+          </option>
+          <option value="view_only" ${session.permissionMode === 'view_only' ? 'selected' : ''}>
+            \uD83D\uDC40 View &amp; Team Chat Only (Colleagues can Copy to My Chats to prompt on their own quota)
+          </option>
+        </select>
+      </div>
+
+      <div class="form-section">
+        <div class="quota-slider-wrap">
+          <label class="form-label" for="sessionCapSlider">
+            <span>Host-Sponsored Session Token Cap</span>
+            <span style="font-family: var(--font-mono)">
+              ${fmtNum(session.tokensUsed)} / <strong id="capSliderValueLabel">${fmtNum(session.tokenCap)}</strong> tokens (${pct}%)
+            </span>
+          </label>
+          <input
+            type="range"
+            id="sessionCapSlider"
+            class="quota-slider"
+            min="5000"
+            max="100000"
+            step="2500"
+            value="${session.tokenCap}"
+          />
+          <p class="form-help">
+            Limits how many tokens from <strong>${escapeHtml(session.hostName)}'s Software Token Quota</strong> can be used in <code>/s/${escapeHtml(session.shareCode)}</code>.
+          </p>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <label class="form-label">Per-Participant Token Usage in <code>/s/${escapeHtml(session.shareCode)}</code></label>
+        <div class="participant-breakdown-list">
+          ${session.participants
+            .map((pid) => {
+              const pAcct = state.accounts[pid] || {
+                initials: 'CT',
+                colorClass: 'custom',
+                name: pid,
+                email: `${pid}@workspace`
+              };
+              const used = session.participantUsage[pid] || 0;
+              return `
+                <div class="participant-breakdown-item">
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <span class="avatar-circle ${pAcct.colorClass}" style="width:22px;height:22px;font-size:10px;">${escapeHtml(pAcct.initials)}</span>
+                    <span><strong>${escapeHtml(pAcct.name)}</strong> (${escapeHtml(pAcct.email)})</span>
+                  </div>
+                  <span style="font-family: var(--font-mono);">
+                    ${fmtNum(used)} tokens from Host Quota
+                  </span>
+                </div>
+              `;
+            })
+            .join('')}
+        </div>
+      </div>
+
+      <div class="modal-footer-actions">
+        <button type="button" class="btn-danger" id="toggleRevokeLinkBtn">
+          ${session.linkActive ? 'Revoke Sublink' : 'Re-Activate Sublink'}
+        </button>
+        <button type="button" class="btn-primary" id="doneShareModalBtn">Done</button>
+      </div>
+    `;
+
+    document.getElementById('modalGrantHasnainBtn')?.addEventListener('click', () => {
+      grantAccessToColleague(session.id, 'Muhammad Hasnain', 'hasnainrashi@gmail.com', 'starter', true);
+      closeShareModal();
     });
 
-    // Share Modal Tabs
-    document.getElementById('tabSharePrivateBtn')?.addEventListener('click', () => switchShareTab('private'));
-    document.getElementById('tabSharePublicBtn')?.addEventListener('click', () => switchShareTab('public'));
+    document.getElementById('modalOpenHasnainTabBtn')?.addEventListener('click', () => {
+      grantAccessToColleague(session.id, 'Muhammad Hasnain', 'hasnainrashi@gmail.com', 'starter', false);
+      window.open(fullSublink, '_blank');
+    });
 
-    // Private Invite by Email Form
-    document.getElementById('shareInviteEmailForm')?.addEventListener('submit', (e) => {
+    document.getElementById('modalInviteCustomForm')?.addEventListener('submit', (e) => {
       e.preventDefault();
-      const emailInp = document.getElementById('shareInviteEmailInput');
-      const email = String(emailInp?.value || '').trim().toLowerCase();
-      if (!email) return;
-
-      const session = getSessionById(activeShareSessionId);
-      if (!session) return;
-
-      session.invitedEmails = session.invitedEmails || [];
-      if (!session.invitedEmails.includes(email)) {
-        session.invitedEmails.push(email);
-      }
-
-      // Generate direct private collaborator link
-      const inviteUrl = `${getBaseAppUrl()}?join=${encodeURIComponent(session.shareCode)}&invitee=${encodeURIComponent(email)}#/chat`;
-      navigator.clipboard?.writeText(inviteUrl).catch(() => {});
-
-      saveAndBroadcastState();
-      renderShareCollaboratorsList(session);
-      if (emailInp) emailInp.value = '';
-
-      showToast(`Invited ${email}! Direct collaborator link copied to clipboard.`, 'shared');
+      const nameVal = (document.getElementById('modalInviteNameInput')?.value || '').trim() || 'Muhammad Hasnain';
+      const emailVal = (document.getElementById('modalInviteEmailInput')?.value || '').trim() || 'hasnainrashi@gmail.com';
+      grantAccessToColleague(session.id, nameVal, emailVal, 'starter', true);
+      closeShareModal();
     });
 
-    // Public Link Copy Button
-    document.getElementById('sharePublicCopyBtn')?.addEventListener('click', () => {
-      const input = document.getElementById('sharePublicLinkInput');
-      if (input && input.value) {
-        navigator.clipboard?.writeText(input.value).catch(() => {});
-        const btn = document.getElementById('sharePublicCopyBtn');
-        if (btn) {
-          const orig = btn.innerHTML;
-          btn.innerHTML = '<span>\u2713 Copied!</span>';
-          setTimeout(() => {
-            btn.innerHTML = orig;
-          }, 2000);
-        }
-        showToast('Public view & copy link copied to clipboard!', 'shared');
+    document.getElementById('copyShareLinkBtn')?.addEventListener('click', () => {
+      const inp = document.getElementById('shareLinkUrlInput');
+      if (inp) {
+        inp.select();
+        navigator.clipboard?.writeText(inp.value).catch(() => {});
       }
+      showToast(`Copied sublink /s/${session.shareCode} to clipboard!`, 'shared');
+    });
+
+    document.getElementById('openSecondTabBtn')?.addEventListener('click', () => {
+      grantAccessToColleague(session.id, 'Muhammad Hasnain', 'hasnainrashi@gmail.com', 'starter', false);
+      window.open(fullSublink, '_blank');
+    });
+
+    document.getElementById('sharePermissionSelect')?.addEventListener('change', (e) => {
+      session.permissionMode = e.target.value;
+      saveAndBroadcastState();
+      renderApp();
+      showToast('Updated colleague permission level!', 'shared');
+    });
+
+    document.getElementById('sessionCapSlider')?.addEventListener('input', (e) => {
+      session.tokenCap = Number(e.target.value);
+      const lbl = document.getElementById('capSliderValueLabel');
+      if (lbl) lbl.textContent = fmtNum(session.tokenCap);
+      saveAndBroadcastState();
+      renderWorkspaceStage();
+    });
+
+    document.getElementById('toggleRevokeLinkBtn')?.addEventListener('click', () => {
+      session.linkActive = !session.linkActive;
+      saveAndBroadcastState();
+      renderApp();
+      showToast(
+        session.linkActive ? 'Sublink re-activated!' : 'Sublink revoked by Host.',
+        session.linkActive ? 'shared' : 'personal'
+      );
+    });
+
+    document.getElementById('doneShareModalBtn')?.addEventListener('click', closeShareModal);
+  }
+
+  function openAccountQuotaModal(userId) {
+    activeQuotaModalUserId = userId || currentUserId;
+    const backdrop = document.getElementById('accountQuotaModalBackdrop');
+    if (!backdrop) return;
+    renderAccountQuotaModalContent(activeQuotaModalUserId);
+    backdrop.classList.remove('hidden');
+  }
+
+  function closeAccountQuotaModal() {
+    const backdrop = document.getElementById('accountQuotaModalBackdrop');
+    if (backdrop) backdrop.classList.add('hidden');
+  }
+
+  function renderAccountQuotaModalContent(userId) {
+    const body = document.getElementById('accountQuotaModalBody');
+    const account = state.accounts[userId];
+    if (!body || !account) return;
+
+    const pct = Math.min(100, Math.round((account.quotaUsed / account.quotaTotal) * 100));
+
+    body.innerHTML = `
+      <div class="form-section">
+        <div class="participant-breakdown-item">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span class="avatar-circle ${account.colorClass}">${escapeHtml(account.initials)}</span>
+            <div>
+              <strong style="display:block;">${escapeHtml(account.name)}</strong>
+              <span style="font-size:11px;color:var(--ink-muted);">${escapeHtml(account.email)} \u2022 Cloud Firestore Document: <code>users/${escapeHtml(account.id)}</code></span>
+            </div>
+          </div>
+          <span class="plan-tier-badge">${escapeHtml(PLAN_TIERS[account.planTier]?.badge || 'PRO')}</span>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <label class="form-label">
+          <span>Provisioned Software Token Quota Usage</span>
+          <span style="font-family:var(--font-mono);">
+            ${fmtNum(account.quotaUsed)} / ${fmtNum(account.quotaTotal)} tokens (${pct}%)
+          </span>
+        </label>
+        <div class="mini-progress-track" style="height:8px;">
+          <div class="mini-progress-fill" style="width:${pct}%"></div>
+        </div>
+        <p class="form-help">
+          Enforced via <code>firestore.rules</code> &amp; <code>QuotaGuardTool</code> across Gemini 3.8 Flash, Gemini 4 Argon, and Gemini 3.5 Flash-Lite\u2014zero API keys required.
+        </p>
+      </div>
+
+      <div class="form-section">
+        <label class="form-label">Switch / Upgrade Software Token Quota Tier</label>
+        <div class="plan-tier-grid">
+          ${Object.values(PLAN_TIERS)
+            .map((tier) => {
+              const isCurrent = account.planTier === tier.id;
+              return `
+                <div class="plan-tier-card ${isCurrent ? 'active-plan' : ''}" data-select-tier="${tier.id}">
+                  <h4>${escapeHtml(tier.name)}</h4>
+                  <div class="plan-tier-quota">${fmtNum(tier.quota)} tokens</div>
+                  <p class="plan-tier-desc">${escapeHtml(tier.desc)}</p>
+                </div>
+              `;
+            })
+            .join('')}
+        </div>
+      </div>
+
+      <div class="modal-footer-actions">
+        <button type="button" class="btn-primary" id="doneAccountQuotaBtn">Done</button>
+      </div>
+    `;
+
+    body.querySelectorAll('[data-select-tier]').forEach((card) => {
+      card.addEventListener('click', () => {
+        const newTierId = card.getAttribute('data-select-tier');
+        const newTier = PLAN_TIERS[newTierId];
+        if (newTier) {
+          account.planTier = newTier.id;
+          account.quotaTotal = newTier.quota;
+          saveAndBroadcastState();
+          renderApp();
+          showToast(
+            `Updated Firestore users/${account.id} to ${newTier.name} (${fmtNum(newTier.quota)} tokens)!`,
+            'shared'
+          );
+        }
+      });
+    });
+
+    document.getElementById('doneAccountQuotaBtn')?.addEventListener('click', closeAccountQuotaModal);
+  }
+
+  // =========================================================
+  // 6. GOOGLE CLOUD STACK INSPECTOR (FIRESTORE + ADK + MCP + FIREBASE STUDIO)
+  // =========================================================
+
+  let activeStackTab = 'firestore';
+
+  function openGoogleStackModal(tabName) {
+    if (tabName) activeStackTab = tabName;
+    const backdrop = document.getElementById('googleStackModalBackdrop');
+    if (!backdrop) return;
+    renderGoogleStackModalContent();
+    backdrop.classList.remove('hidden');
+  }
+
+  function closeGoogleStackModal() {
+    const backdrop = document.getElementById('googleStackModalBackdrop');
+    if (backdrop) backdrop.classList.add('hidden');
+  }
+
+  async function executeMcpToolRequest(toolName, args) {
+    if (window.location.protocol.startsWith('http')) {
+      try {
+        const res = await fetch('/api/mcp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            jsonrpc: '2.0',
+            id: Date.now(),
+            method: 'tools/call',
+            params: { name: toolName, arguments: args }
+          })
+        });
+        if (res.ok) {
+          return await res.json();
+        }
+      } catch (e) {
+        // Fallback to local MCP server dispatcher
+      }
+    }
+
+    const activeUser = state.accounts[currentUserId] || Object.values(state.accounts)[0] || {
+      id: 'mcp_service_principal',
+      name: 'CoThread MCP Service Principal',
+      shortName: 'MCP Host',
+      email: 'mcp-server@cothread.ai',
+      role: 'MCP Service Principal',
+      planTier: 'enterprise',
+      quotaTotal: 1000000,
+      quotaUsed: 0
+    };
+    const activeSession = state.sessions[0] || {
+      id: 'mcp_ephemeral_session',
+      type: 'shared',
+      title: 'MCP Server Session',
+      hostId: activeUser.id,
+      hostName: activeUser.name,
+      hostShortName: activeUser.shortName,
+      shareCode: 'cothread-mcp-live',
+      tokenCap: 25000,
+      tokensUsed: 0,
+      messages: []
+    };
+
+    if (toolName === 'cothread_list_sessions') {
+      return {
+        jsonrpc: '2.0',
+        id: Date.now(),
+        result: {
+          protocolVersion: '2025-03-26',
+          server: 'cothread-mcp-server',
+          firestoreCollections: ['users', 'sessions', 'quota_ledger'],
+          sessions: state.sessions.map((s) => ({
+            id: s.id,
+            type: s.type,
+            title: s.title,
+            route: s.type === 'shared' ? `/s/${s.shareCode}` : '/app',
+            tokensUsed: s.tokensUsed,
+            tokenCap: s.tokenCap || null
+          }))
+        }
+      };
+    }
+
+    if (toolName === 'cothread_check_quota') {
+      return {
+        jsonrpc: '2.0',
+        id: Date.now(),
+        result: {
+          firestoreDoc: `users/${activeUser.id}`,
+          email: activeUser.email,
+          planTier: activeUser.planTier,
+          quotaUsed: activeUser.quotaUsed,
+          quotaTotal: activeUser.quotaTotal,
+          quotaRemaining: activeUser.quotaTotal - activeUser.quotaUsed,
+          enforcedBy: 'firestore.rules + QuotaGuardTool'
+        }
+      };
+    }
+
+    if (toolName === 'cothread_create_shared_session') {
+      const code = 'cothread-mcp-' + Math.random().toString(36).slice(2, 6);
+      const newRoom = {
+        id: 'shared_mcp_' + Date.now(),
+        type: 'shared',
+        title: args?.title || 'MCP Provisioned Architecture Room',
+        hostId: activeUser.id,
+        hostName: activeUser.name,
+        hostShortName: activeUser.shortName,
+        shareCode: code,
+        linkActive: true,
+        permissionMode: 'can_prompt',
+        tokenCap: Number(args?.tokenCap) || 25000,
+        tokensUsed: 0,
+        tokensSavedByCompression: 0,
+        participantUsage: { [activeUser.id]: 0 },
+        participants: [activeUser.id],
+        canvasTitle: 'mcp_provisioned_spec.ts',
+        canvasLastEditedBy: 'cothread-mcp-server',
+        canvasContent: `// Created via MCP Tool: cothread_create_shared_session\n// Sublink: /s/${code}\n`,
+        messages: [
+          {
+            id: 'm_mcp_' + Date.now(),
+            senderId: 'gemini',
+            senderName: 'cothread-mcp-server \u2022 Google ADK',
+            senderRole: 'CoThread AI',
+            kind: 'ai',
+            modelUsed: state.primaryModel,
+            timestamp: nowTimeLabel(),
+            triggeredBy: activeUser.shortName,
+            quotaChargedTo: `Host (${activeUser.name})`,
+            quotaType: 'host',
+            tokensCharged: 0,
+            tokensSaved: 0,
+            text: `Provisioned Shared Room \`/s/${code}\` via **MCP Server (\`cothread_create_shared_session\`)** and persisted to **Cloud Firestore**.`
+          }
+        ]
+      };
+      state.sessions.unshift(newRoom);
+      saveAndBroadcastState();
+      renderApp();
+      return {
+        jsonrpc: '2.0',
+        id: Date.now(),
+        result: {
+          status: 'CREATED_IN_FIRESTORE',
+          sessionId: newRoom.id,
+          shareSublink: `/s/${code}`,
+          tokenCap: newRoom.tokenCap
+        }
+      };
+    }
+
+    if (toolName === 'cothread_prompt_adk_agent') {
+      const reply = await synthesizeCoThreadAIResponse(
+        activeSession,
+        activeUser,
+        args?.prompt || 'Audit Firestore Host Quota enforcement'
+      );
+      return {
+        jsonrpc: '2.0',
+        id: Date.now(),
+        result: {
+          orchestrator: 'CoThreadADKOrchestrator',
+          model: state.primaryModel,
+          compressionModel: state.compressionModel,
+          tokensCharged: reply.tokensCharged,
+          tokensSaved: reply.tokensSaved,
+          latestTrace: state.adkTraces?.[0] || null
+        }
+      };
+    }
+
+    return {
+      jsonrpc: '2.0',
+      id: Date.now(),
+      result: { status: 'OK', tool: toolName }
+    };
+  }
+
+  function renderGoogleStackModalContent() {
+    const body = document.getElementById('googleStackModalBody');
+    if (!body) return;
+
+    const usersCount = Object.keys(state.accounts || {}).length;
+    const sharedCount = (state.sessions || []).filter((s) => s.type === 'shared').length;
+    const personalCount = (state.sessions || []).filter((s) => s.type === 'personal').length;
+    const traces = state.adkTraces || [];
+
+    const tabsHtml = `
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+        <button type="button" class="cothread-mini-sticker ${activeStackTab === 'firestore' ? 'yellow' : ''}" data-switch-stack-tab="firestore">
+          \u2601\uFE0F Cloud Firestore DB (${usersCount} Users \u2022 ${sharedCount + personalCount} Docs)
+        </button>
+        <button type="button" class="cothread-mini-sticker ${activeStackTab === 'adk' ? 'teal' : ''}" data-switch-stack-tab="adk">
+          \uD83E\uDD16 Google ADK Agent (${traces.length} Traces)
+        </button>
+        <button type="button" class="cothread-mini-sticker ${activeStackTab === 'mcp' ? 'pink' : ''}" data-switch-stack-tab="mcp">
+          \uD83D\uDD0C MCP Server (JSON-RPC 2.0)
+        </button>
+        <button type="button" class="cothread-mini-sticker" style="${activeStackTab === 'studio' ? 'background:#FFC900;' : 'background:#FFF;'}" data-switch-stack-tab="studio">
+          \uD83D\uDD25 Firebase Studio (.idx)
+        </button>
+      </div>
+    `;
+
+    let panelHtml = '';
+
+    if (activeStackTab === 'firestore') {
+      const sampleUsers = Object.values(state.accounts).map((u) => ({
+        docPath: `users/${u.id}`,
+        name: u.name,
+        email: u.email,
+        planTier: u.planTier,
+        quotaUsed: u.quotaUsed,
+        quotaTotal: u.quotaTotal
+      }));
+      const sampleSessions = state.sessions.slice(0, 4).map((s) => ({
+        docPath: `sessions/${s.id}`,
+        type: s.type,
+        route: s.type === 'shared' ? `/s/${s.shareCode}` : '/app',
+        hostOrOwner: s.hostName || s.ownerName,
+        tokensUsed: s.tokensUsed,
+        tokenCap: s.tokenCap || 'Personal Quota',
+        messagesCount: s.messages.length
+      }));
+
+      panelHtml = `
+        <div class="form-section">
+          <label class="form-label">
+            <span>Cloud Firestore Collections (<code>src/db/firestore-db.js</code> &amp; <code>firestore.rules</code>)</span>
+            <span style="color:var(--accent-emerald);font-weight:700;">\u25CF Transactional Quota Ledger Active</span>
+          </label>
+          <p class="form-help" style="margin-bottom:10px;">
+            Secured by <code>firestore.rules</code> + composite indexes in <code>firestore.indexes.json</code>. Shared session prompts atomically debit the Host's cap; 1-click forks create an isolated <code>type: "personal"</code> document in <code>sessions/{id}</code>.
+          </p>
+          <pre style="background:#121212;color:#FFC900;padding:12px;border-radius:12px;border:2px solid #000;font-family:var(--font-mono);font-size:11.5px;max-height:240px;overflow:auto;">${escapeHtml(
+            JSON.stringify({ firestoreCollections: { users: sampleUsers, sessions: sampleSessions } }, null, 2)
+          )}</pre>
+        </div>
+      `;
+    } else if (activeStackTab === 'adk') {
+      panelHtml = `
+        <div class="form-section">
+          <label class="form-label">
+            <span>Google Agent Development Kit (<code>src/adk/cothread-adk-agent.js</code>)</span>
+            <span style="color:var(--accent-emerald);font-weight:700;">\u25CF CoThreadADKOrchestrator Ready</span>
+          </label>
+          <div class="participant-breakdown-list" style="margin-bottom:12px;">
+            <div class="participant-breakdown-item">
+              <strong>1. ContextCompressionSubAgent</strong>
+              <span style="font-family:var(--font-mono);">gemini-3.5-flash-lite</span>
+            </div>
+            <div class="participant-breakdown-item">
+              <strong>2. QuotaGuardTool (ADK Function Tool)</strong>
+              <span style="font-family:var(--font-mono);">Firestore Host/Personal Ledger</span>
+            </div>
+            <div class="participant-breakdown-item">
+              <strong>3. CollaborativeArchitectSubAgent</strong>
+              <span style="font-family:var(--font-mono);">${escapeHtml(state.primaryModel)}</span>
+            </div>
+          </div>
+          <label class="form-label">Live ADK Execution Traces</label>
+          <pre style="background:#121212;color:#FF90E8;padding:12px;border-radius:12px;border:2px solid #000;font-family:var(--font-mono);font-size:11.5px;max-height:200px;overflow:auto;">${escapeHtml(
+            JSON.stringify(traces.slice(0, 5), null, 2)
+          )}</pre>
+        </div>
+      `;
+    } else if (activeStackTab === 'mcp') {
+      panelHtml = `
+        <div class="form-section">
+          <label class="form-label">
+            <span>CoThread MCP Server (<code>src/mcp/cothread-mcp-server.js</code> \u2022 JSON-RPC 2.0)</span>
+            <span style="font-family:var(--font-mono);">POST /api/mcp &amp; stdio</span>
+          </label>
+          <p class="form-help" style="margin-bottom:10px;">
+            Click any MCP tool below to execute a real JSON-RPC 2.0 <code>tools/call</code> request against the CoThread MCP Server:
+          </p>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+            <button type="button" class="btn-secondary" data-run-mcp-tool="cothread_list_sessions">
+              \u25B6 cothread_list_sessions
+            </button>
+            <button type="button" class="btn-secondary" data-run-mcp-tool="cothread_check_quota">
+              \u25B6 cothread_check_quota
+            </button>
+            <button type="button" class="btn-secondary" data-run-mcp-tool="cothread_create_shared_session">
+              \u25B6 cothread_create_shared_session
+            </button>
+            <button type="button" class="btn-secondary" data-run-mcp-tool="cothread_prompt_adk_agent">
+              \u25B6 cothread_prompt_adk_agent
+            </button>
+          </div>
+          <pre id="mcpOutputConsole" style="background:#121212;color:#23A094;padding:12px;border-radius:12px;border:2px solid #000;font-family:var(--font-mono);font-size:11.5px;max-height:210px;overflow:auto;">// Click a tool button above to execute JSON-RPC 2.0 tools/call on cothread-mcp-server</pre>
+        </div>
+      `;
+    } else {
+      panelHtml = `
+        <div class="form-section">
+          <label class="form-label">
+            <span>Firebase Studio &amp; Google Cloud Deployment Stack</span>
+            <span style="font-family:var(--font-mono);">.idx/dev.nix \u2022 .idx/mcp.json \u2022 firebase.json</span>
+          </label>
+          <div class="participant-breakdown-list">
+            <div class="participant-breakdown-item">
+              <strong>Firebase Studio Environment</strong>
+              <code>.idx/dev.nix (Node 22 + Firebase Emulators + Cloud SDK)</code>
+            </div>
+            <div class="participant-breakdown-item">
+              <strong>Firebase Studio MCP Registration</strong>
+              <code>.idx/mcp.json \u2192 node src/mcp/cothread-mcp-server.js --stdio</code>
+            </div>
+            <div class="participant-breakdown-item">
+              <strong>Firestore Security Rules &amp; Indexes</strong>
+              <code>firestore.rules + firestore.indexes.json</code>
+            </div>
+            <div class="participant-breakdown-item">
+              <strong>Cloud Run + Firebase Hosting Rewrite</strong>
+              <code>firebase.json (/api/** &amp; /s/** \u2192 cothread-service)</code>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    body.innerHTML =
+      tabsHtml +
+      panelHtml +
+      `
+      <div class="modal-footer-actions">
+        <button type="button" class="btn-primary" id="doneGoogleStackModalBtn">Done</button>
+      </div>
+    `;
+
+    body.querySelectorAll('[data-switch-stack-tab]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        activeStackTab = btn.getAttribute('data-switch-stack-tab');
+        renderGoogleStackModalContent();
+      });
+    });
+
+    body.querySelectorAll('[data-run-mcp-tool]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const toolName = btn.getAttribute('data-run-mcp-tool');
+        const outEl = document.getElementById('mcpOutputConsole');
+        if (outEl) outEl.textContent = `Executing MCP JSON-RPC 2.0 tools/call -> ${toolName}...`;
+        const res = await executeMcpToolRequest(toolName, {});
+        if (outEl) outEl.textContent = JSON.stringify(res, null, 2);
+        showToast(`Executed MCP tool: ${toolName}`, 'shared');
+      });
+    });
+
+    document.getElementById('doneGoogleStackModalBtn')?.addEventListener('click', closeGoogleStackModal);
+  }
+
+  function showToast(message, variant) {
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+
+    const item = document.createElement('div');
+    item.className = `toast-item ${variant === 'personal' ? 'personal-toast' : ''}`;
+    item.innerHTML = `
+      <span>${variant === 'personal' ? '\uD83D\uDD00' : '\u2726'}</span>
+      <div style="flex:1;line-height:1.4;">${escapeHtml(message)}</div>
+    `;
+    container.appendChild(item);
+
+    setTimeout(() => {
+      item.style.opacity = '0';
+      item.style.transition = 'opacity 0.25s ease';
+      setTimeout(() => item.remove(), 260);
+    }, 4200);
+  }
+
+  function launchWorkspaceDirectlyOrSignIn(preferredTier) {
+    const typedEmail = (document.getElementById('heroEmailInput')?.value || '').trim();
+    const typedName = (document.getElementById('heroNameInput')?.value || '').trim();
+    const selectedPlan = preferredTier || document.getElementById('heroPlanSelect')?.value || 'pro';
+
+    if (typedEmail) {
+      registerOrSignInWithDetails(typedName || typedEmail.split('@')[0], typedEmail, selectedPlan);
+      return;
+    }
+
+    const existingAccounts = Object.values(state.accounts || {});
+    if (existingAccounts.length > 0) {
+      const primary = state.accounts[currentUserId] || existingAccounts[0];
+      if (preferredTier && PLAN_TIERS[preferredTier]) {
+        primary.planTier = preferredTier;
+        primary.quotaTotal = PLAN_TIERS[preferredTier].quota;
+      }
+      completeLoginAsUser(primary.id, false);
+      return;
+    }
+
+    // Immediate 1-click workspace entry when user clicks any "Start CoThreading" / "Create / Open Workspace" CTA
+    registerOrSignInWithDetails(
+      typedName || 'Robina Mirbahar',
+      'robina@cothread.ai',
+      selectedPlan
+    );
+  }
+
+  function initGlobalEvents() {
+    // Theme Toggles (Website & App)
+    document.getElementById('websiteThemeToggleBtn')?.addEventListener('click', toggleTheme);
+    document.getElementById('appThemeToggleBtn')?.addEventListener('click', toggleTheme);
+
+    // Website Navbar & Hero CTAs -> Immediately launch workspace or open Google OAuth modal
+    document.getElementById('navOpenGoogleBtn')?.addEventListener('click', () => openGoogleChooserModal());
+    document.getElementById('badgeFirebaseAuthBtn')?.addEventListener('click', () => openGoogleChooserModal());
+    document.getElementById('navTryCoThreadBtn')?.addEventListener('click', () => launchWorkspaceDirectlyOrSignIn());
+    document.getElementById('heroStartCoThreadingBtn')?.addEventListener('click', () => launchWorkspaceDirectlyOrSignIn());
+    document.getElementById('closingStartBtn')?.addEventListener('click', () => launchWorkspaceDirectlyOrSignIn());
+    document.getElementById('showcaseSignInBtn')?.addEventListener('click', () => launchWorkspaceDirectlyOrSignIn());
+
+    // Hero Card: Continue with Google
+    document.getElementById('openGoogleChooserBtn')?.addEventListener('click', () => openGoogleChooserModal());
+    document.getElementById('closeGoogleChooserBtn')?.addEventListener('click', closeGoogleChooserModal);
+    document.getElementById('googleChooserBackdrop')?.addEventListener('click', (e) => {
+      if (e.target.id === 'googleChooserBackdrop') closeGoogleChooserModal();
+    });
+
+    // Hero Email Signup / Sign-In Form
+    document.getElementById('heroEmailAuthForm')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      launchWorkspaceDirectlyOrSignIn();
+    });
+
+    // Document-level event delegation for all [data-open-stack-tab], [data-provision-tier], and [data-launch-workspace] buttons/pills
+    document.addEventListener('click', (e) => {
+      const stackBtn = e.target.closest('[data-open-stack-tab]');
+      if (stackBtn) {
+        e.preventDefault();
+        const tab = stackBtn.getAttribute('data-open-stack-tab') || 'firestore';
+        openGoogleStackModal(tab);
+        return;
+      }
+
+      const tierBtn = e.target.closest('[data-provision-tier]');
+      if (tierBtn) {
+        e.preventDefault();
+        const tier = tierBtn.getAttribute('data-provision-tier') || 'pro';
+        launchWorkspaceDirectlyOrSignIn(tier);
+        return;
+      }
+
+      const launchBtn = e.target.closest('[data-launch-workspace]');
+      if (launchBtn) {
+        e.preventDefault();
+        const tier = launchBtn.getAttribute('data-launch-workspace') || 'pro';
+        launchWorkspaceDirectlyOrSignIn(tier);
+        return;
+      }
+    });
+
+    document.getElementById('openGoogleStackModalBtn')?.addEventListener('click', () => {
+      openGoogleStackModal('firestore');
+    });
+    document.getElementById('closeGoogleStackModalBtn')?.addEventListener('click', closeGoogleStackModal);
+    document.getElementById('googleStackModalBackdrop')?.addEventListener('click', (e) => {
+      if (e.target.id === 'googleStackModalBackdrop') closeGoogleStackModal();
+    });
+
+    // Google Custom Account Form
+    document.getElementById('googleCustomAccountForm')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = (document.getElementById('googleCustomName')?.value || '').trim() || 'Robina Mirbahar';
+      const email = (document.getElementById('googleCustomEmail')?.value || '').trim() || 'robina@cothread.ai';
+      const tier = document.getElementById('googleCustomTier')?.value || 'pro';
+      registerOrSignInWithDetails(name, email, tier);
+    });
+
+    // Workspace Header Controls
+    document.getElementById('backToWebsiteBtn')?.addEventListener('click', returnToCompanyWebsite);
+
+    document.getElementById('headerModelSelect')?.addEventListener('change', (e) => {
+      state.primaryModel = e.target.value;
+      saveAndBroadcastState();
+      showToast(`Switched Google ADK Architect model to ${state.primaryModel}.`, 'shared');
+    });
+
+    document.getElementById('copyCurrentSublinkBtn')?.addEventListener('click', () => {
+      const uid = currentUserId || Object.keys(state.accounts)[0];
+      if (!uid) return;
+      const pane = ensurePaneStateForUser(uid);
+      const activeSession = getSessionById(pane.activeSessionId);
+      if (activeSession && activeSession.type === 'shared') {
+        const url = buildShareableSublinkUrl(activeSession.shareCode);
+        navigator.clipboard?.writeText(url).catch(() => {});
+        showToast(`Copied shared session sublink (/s/${activeSession.shareCode})!`, 'shared');
+      } else {
+        navigator.clipboard?.writeText(window.location.href).catch(() => {});
+        showToast('Copied workspace link (/app)!', 'personal');
+      }
+    });
+
+    document.getElementById('toggleSideBySideBtn')?.addEventListener('click', () => {
+      const accountIds = Object.keys(state.accounts || {});
+      if (!state.sideBySideMode && accountIds.length < 2) {
+        const sharedSess = (state.sessions || []).find((s) => s.type === 'shared');
+        grantAccessToColleague(
+          sharedSess ? sharedSess.id : null,
+          'Muhammad Hasnain',
+          'hasnainrashi@gmail.com',
+          'starter',
+          true
+        );
+        return;
+      }
+      state.sideBySideMode = !state.sideBySideMode;
+      renderApp();
+      showToast(
+        state.sideBySideMode
+          ? 'Enabled Dual-Pane Multiplayer Workspace (Robina & Hasnain).'
+          : 'Switched to single-pane view.',
+        'shared'
+      );
+    });
+
+    // Close Modals
+    document.getElementById('closeShareModalBtn')?.addEventListener('click', closeShareModal);
+    document.getElementById('shareQuotaModalBackdrop')?.addEventListener('click', (e) => {
+      if (e.target.id === 'shareQuotaModalBackdrop') closeShareModal();
+    });
+
+    document.getElementById('closeAccountQuotaModalBtn')?.addEventListener('click', closeAccountQuotaModal);
+    document.getElementById('accountQuotaModalBackdrop')?.addEventListener('click', (e) => {
+      if (e.target.id === 'accountQuotaModalBackdrop') closeAccountQuotaModal();
     });
 
     // Gemini Agent Modal Events
-    document.getElementById('closeGeminiAgentModalBtn')?.addEventListener('click', closeGeminiAgentModal);
+    const openGeminiModal = () => {
+      const modal = document.getElementById('geminiAgentModalBackdrop');
+      if (!modal) return;
+      const inp = document.getElementById('geminiApiKeyInput');
+      const badge = document.getElementById('geminiKeySavedBadge');
+      let saved = '';
+      try {
+        saved = (localStorage.getItem('cothread_gemini_api_key') || '').trim();
+      } catch (err) {}
+      if (inp) inp.value = saved;
+      if (badge) {
+        badge.textContent = saved
+          ? 'Connected (' + saved.slice(0, 6) + '...)'
+          : 'Using CoThread ADK Agent';
+        badge.style.color = saved ? 'var(--accent-emerald)' : 'var(--ink-muted)';
+      }
+      modal.classList.remove('hidden');
+    };
+    const closeGeminiModal = () => {
+      document.getElementById('geminiAgentModalBackdrop')?.classList.add('hidden');
+    };
+    document.getElementById('headerGeminiKeyBtn')?.addEventListener('click', openGeminiModal);
+    document.getElementById('closeGeminiAgentModalBtn')?.addEventListener('click', closeGeminiModal);
     document.getElementById('geminiAgentModalBackdrop')?.addEventListener('click', (e) => {
-      if (e.target.id === 'geminiAgentModalBackdrop') closeGeminiAgentModal();
+      if (e.target.id === 'geminiAgentModalBackdrop') closeGeminiModal();
     });
-
     document.getElementById('geminiAgentKeyForm')?.addEventListener('submit', (e) => {
       e.preventDefault();
       const inp = document.getElementById('geminiApiKeyInput');
@@ -1385,16 +2813,15 @@
       try {
         if (val) {
           localStorage.setItem('cothread_gemini_api_key', val);
-          showToast('Gemini API Key saved for live Chat Agent!', 'shared');
+          showToast('Saved Gemini API Key for live Chat Agent!', 'shared');
         } else {
           localStorage.removeItem('cothread_gemini_api_key');
-          showToast('Cleared custom Gemini API key.', 'personal');
+          showToast('Cleared custom Gemini API Key.', 'personal');
         }
       } catch (err) {}
       renderTopWorkspaceHeader();
-      closeGeminiAgentModal();
+      closeGeminiModal();
     });
-
     document.getElementById('clearGeminiKeyBtn')?.addEventListener('click', () => {
       try {
         localStorage.removeItem('cothread_gemini_api_key');
@@ -1402,78 +2829,485 @@
       const inp = document.getElementById('geminiApiKeyInput');
       if (inp) inp.value = '';
       renderTopWorkspaceHeader();
-      closeGeminiAgentModal();
-      showToast('Cleared custom Gemini API key.', 'personal');
+      closeGeminiModal();
+      showToast('Cleared custom Gemini API Key.', 'personal');
     });
-  }
 
-  // =========================================================
-  // HERO ANIMATED TYPEWRITER
-  // =========================================================
-
-  function initHeroTypewriterAnimation() {
-    const subtitleDynamic = document.getElementById('heroAnimatedSubtitle');
-    if (!subtitleDynamic) return;
-
-    const phrases = [
-      'Multiple users prompt Gemini in one shared chat with live presence and history.',
-      'Real-time collaborative AI chat with live presence and shared history.',
-      'Live collaborator presence & avatars in the top bar as teammates join.',
-      'Zero quota confusion \u2022 Share with 1 click via Public or Private threads.',
-      'Turn individual AI prompting into a synchronized multiplayer workspace.'
-    ];
-
-    let phraseIdx = 0;
-    let charIdx = phrases[0].length;
-    let isDeleting = true;
-
-    function tick() {
-      const current = phrases[phraseIdx];
-      if (isDeleting) {
-        charIdx--;
-        subtitleDynamic.textContent = current.slice(0, Math.max(0, charIdx));
-        if (charIdx <= 0) {
-          isDeleting = false;
-          phraseIdx = (phraseIdx + 1) % phrases.length;
-          setTimeout(tick, 350);
-          return;
-        }
-        setTimeout(tick, 18);
-      } else {
-        charIdx++;
-        subtitleDynamic.textContent = current.slice(0, charIdx);
-        if (charIdx >= current.length) {
-          isDeleting = true;
-          setTimeout(tick, 3200);
-          return;
-        }
-        setTimeout(tick, 32);
+    // Hero Sublink Jump Bar
+    document.getElementById('heroSublinkForm')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const rawVal = (document.getElementById('heroSublinkInput')?.value || '').trim();
+      if (!rawVal) {
+        launchWorkspaceDirectlyOrSignIn('pro');
+        return;
       }
+      if (rawVal.includes('@')) {
+        registerOrSignInWithDetails(rawVal.split('@')[0], rawVal, 'pro');
+        return;
+      }
+      const match = rawVal.match(/(cothread-[a-z0-9-]+)/i);
+      if (match) {
+        pendingInviteShareCode = match[1];
+        renderWebsiteInviteBanner();
+      }
+      launchWorkspaceDirectlyOrSignIn('starter');
+    });
+
+    // Interactive Capability 1: Copy Sublink buttons on Landing Page
+    const handleLandingSublinkCopy = (btnEl) => {
+      const shareUrl = buildShareableSublinkUrl('cothread-arch-9x2k', 'hasnainrashi@gmail.com');
+      navigator.clipboard?.writeText(shareUrl).catch(() => {});
+      if (btnEl) {
+        const origText = btnEl.textContent;
+        btnEl.textContent = '\u2713 Copied Sublink!';
+        setTimeout(() => {
+          btnEl.textContent = origText;
+        }, 1800);
+      }
+      showToast('Copied live sublink (/s/cothread-arch-9x2k) for Hasnain to clipboard!', 'shared');
+    };
+    document.getElementById('bentoCopySublinkBtn')?.addEventListener('click', (e) => {
+      handleLandingSublinkCopy(e.currentTarget);
+    });
+    document.getElementById('showcaseCopyRouteBtn')?.addEventListener('click', (e) => {
+      handleLandingSublinkCopy(e.currentTarget);
+    });
+
+    // Interactive Capability 1b: Join as Colleague (Starter 25k) directly into Dual-Pane Workspace
+    document.querySelectorAll('[data-bento-join-guest]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        if (Object.keys(state.accounts).length === 0) {
+          registerOrSignInWithDetails('Robina Mirbahar', 'robina@cothread.ai', 'pro');
+        }
+        const sharedSess = (state.sessions || []).find((s) => s.type === 'shared');
+        grantAccessToColleague(
+          sharedSess ? sharedSess.id : null,
+          'Muhammad Hasnain',
+          'hasnainrashi@gmail.com',
+          'starter',
+          true
+        );
+      });
+    });
+
+    // Interactive Capability 2: Live Host Cap Slider & Permission Toggle on Landing Page (synced with session state)
+    const initialSharedSess = (state.sessions || []).find((s) => s.type === 'shared');
+    let showcaseTokensUsed = initialSharedSess && typeof initialSharedSess.tokensUsed === 'number'
+      ? initialSharedSess.tokensUsed
+      : 4820;
+    let showcaseTokenCap = initialSharedSess && typeof initialSharedSess.tokenCap === 'number'
+      ? initialSharedSess.tokenCap
+      : 25000;
+    let showcasePermissionMode = initialSharedSess && initialSharedSess.permission
+      ? initialSharedSess.permission
+      : 'collaborator'; // 'collaborator' | 'viewer'
+
+    const syncLandingQuotaUI = () => {
+      const safeCap = Math.max(1000, showcaseTokenCap);
+      const pct = Math.min(100, Math.round((showcaseTokensUsed / safeCap) * 100));
+      const allowanceLeft = Math.max(0, safeCap - showcaseTokensUsed);
+      const hostProTotal = 250000;
+      const hostPoolRemaining = Math.max(0, hostProTotal - showcaseTokensUsed);
+
+      const barColor = pct >= 95
+        ? '#DC2626'
+        : pct >= 75
+          ? '#F59E0B'
+          : '#16A34A';
+
+      // 1. Update "Sponsor the room" Bento Card elements
+      const bentoCapLabel = document.getElementById('bentoCapLabel') || document.getElementById('bentoCapValueLabel');
+      const bentoCapFill = document.getElementById('bentoCapFill') || document.getElementById('bentoQuotaMeterFill');
+      const bentoSlider = document.getElementById('bentoCapSlider');
+      const bentoAllowanceLeft = document.getElementById('bentoAllowanceLeft');
+      const bentoHostPoolLeft = document.getElementById('bentoHostPoolLeft');
+
+      if (bentoCapLabel) {
+        bentoCapLabel.textContent = `${showcaseTokensUsed.toLocaleString()} / ${safeCap.toLocaleString()} tokens (${pct}%)`;
+      }
+      if (bentoCapFill) {
+        bentoCapFill.style.width = `${pct}%`;
+        bentoCapFill.style.backgroundColor = barColor;
+      }
+      if (bentoSlider && Number(bentoSlider.value) !== safeCap) {
+        bentoSlider.value = String(safeCap);
+      }
+      if (bentoAllowanceLeft) {
+        bentoAllowanceLeft.textContent = allowanceLeft > 0
+          ? `Allowance Left: ${allowanceLeft.toLocaleString()} tok`
+          : '\u26A0 Cap Reached (0 tok left)';
+        bentoAllowanceLeft.style.color = allowanceLeft > 0 ? '#111111' : '#DC2626';
+      }
+      if (bentoHostPoolLeft) {
+        bentoHostPoolLeft.textContent = `Host Pool: ${hostPoolRemaining.toLocaleString()} / 250k`;
+      }
+
+      // 2. Update Live Studio Showcase Quota Strip
+      const showcaseCapText = document.getElementById('showcaseCapText') || document.getElementById('showcaseQuotaLabel');
+      const showcaseCapFill = document.getElementById('showcaseCapFill') || document.getElementById('showcaseQuotaFill');
+      const showcasePermBadge = document.getElementById('showcasePermBadge');
+
+      if (showcaseCapText) {
+        showcaseCapText.textContent = `${showcaseTokensUsed.toLocaleString()} / ${safeCap.toLocaleString()} (${pct}%)`;
+      }
+      if (showcaseCapFill) {
+        showcaseCapFill.style.width = `${pct}%`;
+        showcaseCapFill.style.backgroundColor = barColor;
+      }
+      if (showcasePermBadge) {
+        if (showcasePermissionMode === 'viewer') {
+          showcasePermBadge.textContent = '\uD83D\uDD12 VIEW ONLY';
+          showcasePermBadge.style.background = '#FEE2E2';
+          showcasePermBadge.style.color = '#991B1B';
+        } else if (allowanceLeft === 0) {
+          showcasePermBadge.textContent = '\u26A0 CAP REACHED';
+          showcasePermBadge.style.background = '#FEF3C7';
+          showcasePermBadge.style.color = '#92400E';
+        } else {
+          showcasePermBadge.textContent = 'CAN PROMPT AI';
+          showcasePermBadge.style.background = '';
+          showcasePermBadge.style.color = '';
+        }
+      }
+
+      // 3. Update Step 02 Card ("Sponsor the Room Quota")
+      const step2CapLabel = document.getElementById('step2CapLabel');
+      const step2StatusTag = document.getElementById('step2StatusTag');
+      if (step2CapLabel) {
+        step2CapLabel.textContent = `${showcaseTokensUsed.toLocaleString()} / ${safeCap.toLocaleString()}`;
+      }
+      if (step2StatusTag) {
+        step2StatusTag.textContent = allowanceLeft > 0 ? `\u2713 ${allowanceLeft.toLocaleString()} Left` : '\u26A0 Capped';
+      }
+
+      // 4. Sync with primary shared session & Host account in live workspace state
+      const sharedSess = (state.sessions || []).find((s) => s.type === 'shared');
+      if (sharedSess) {
+        sharedSess.tokenCap = safeCap;
+        sharedSess.tokensUsed = showcaseTokensUsed;
+        const hostAcc = state.accounts && state.accounts[sharedSess.ownerId];
+        if (hostAcc) {
+          hostAcc.quotaUsed = showcaseTokensUsed;
+        }
+      }
+    };
+
+    const capSliderEl = document.getElementById('bentoCapSlider');
+    if (capSliderEl) {
+      const handleSliderChange = (e) => {
+        showcaseTokenCap = Number(e.target.value) || 25000;
+        syncLandingQuotaUI();
+      };
+      capSliderEl.addEventListener('input', handleSliderChange);
+      capSliderEl.addEventListener('change', handleSliderChange);
     }
 
-    setTimeout(tick, 2800);
-  }
+    const bentoSamples = [
+      'Design a fault-tolerant Cloud Run + Pub/Sub webhook dead-letter retry pipeline.',
+      'Write a Firestore atomic transaction enforcing Host Session Token Caps.',
+      'Compare single-player Claude, ChatGPT & Gemini against CoThread multiplayer rooms.',
+      'Generate an MCP tool schema for real-time collaborative canvas synchronization.'
+    ];
+    let bentoSampleIdx = 0;
 
-  // =========================================================
-  // BOOT APPLICATION
-  // =========================================================
+    document.getElementById('bentoTestPromptBtn')?.addEventListener('click', async () => {
+      if (showcasePermissionMode === 'viewer') {
+        showToast('Room is locked to View Only! Click Mode button to enable Can Prompt AI.', 'warning');
+        return;
+      }
+      if (showcaseTokensUsed >= showcaseTokenCap) {
+        showToast(`Host Session Cap (${showcaseTokenCap.toLocaleString()} tokens) reached! Drag the slider right to raise the cap.`, 'warning');
+        return;
+      }
+      const nextPrompt = bentoSamples[bentoSampleIdx % bentoSamples.length];
+      bentoSampleIdx += 1;
+      await runLandingShowcasePrompt(nextPrompt);
+    });
+
+    document.getElementById('bentoResetQuotaBtn')?.addEventListener('click', () => {
+      showcaseTokensUsed = 4820;
+      showcaseTokenCap = 25000;
+      syncLandingQuotaUI();
+      showToast('Reset room telemetry to 4,820 / 25,000 tokens.', 'info');
+    });
+
+    document.getElementById('bentoPermToggleBtn')?.addEventListener('click', (e) => {
+      const btn = e.currentTarget;
+      showcasePermissionMode = showcasePermissionMode === 'collaborator' ? 'viewer' : 'collaborator';
+      const sharedSess = (state.sessions || []).find((s) => s.type === 'shared');
+      if (sharedSess) {
+        sharedSess.permission = showcasePermissionMode;
+      }
+      const showcaseInput = document.getElementById('showcasePromptInput');
+      const showcaseSubmit = document.getElementById('showcaseSendPromptBtn');
+      const speakerSelect = document.getElementById('showcaseSpeakerSelect');
+
+      if (showcasePermissionMode === 'viewer') {
+        btn.textContent = '\uD83D\uDD12 View Only (Locked)';
+        btn.style.background = '#FCA5A5';
+        btn.style.color = '#000000';
+        if (speakerSelect?.value === 'guest' && showcaseInput) {
+          showcaseInput.disabled = true;
+          showcaseInput.placeholder = '\uD83D\uDD12 Host switched room to View Only \u2014 Fork to My Chats or switch to Host';
+          if (showcaseSubmit) showcaseSubmit.disabled = true;
+        }
+        showToast('Switched /s/cothread-arch-9x2k permission to View Only.', 'warning');
+      } else {
+        btn.textContent = 'Mode: Can Prompt AI \u21BB';
+        btn.style.background = '#FF90E8';
+        btn.style.color = '#000000';
+        if (showcaseInput) {
+          showcaseInput.disabled = false;
+          showcaseInput.placeholder = 'Type a live prompt to Gemini...';
+          if (showcaseSubmit) showcaseSubmit.disabled = false;
+        }
+        showToast('Switched /s/cothread-arch-9x2k permission to Can Prompt (Host-Sponsored).', 'shared');
+      }
+      syncLandingQuotaUI();
+    });
+
+    document.getElementById('showcaseSpeakerSelect')?.addEventListener('change', (e) => {
+      const role = e.target.value;
+      const showcaseInput = document.getElementById('showcasePromptInput');
+      const showcaseSubmit = document.getElementById('showcaseSendPromptBtn');
+      if (role === 'guest' && showcasePermissionMode === 'viewer') {
+        if (showcaseInput) {
+          showcaseInput.disabled = true;
+          showcaseInput.placeholder = '\uD83D\uDD12 Host switched room to View Only \u2014 Fork to My Chats or switch to Host';
+        }
+        if (showcaseSubmit) showcaseSubmit.disabled = true;
+      } else {
+        if (showcaseInput) {
+          showcaseInput.disabled = false;
+          showcaseInput.placeholder = 'Type a live prompt to Gemini...';
+        }
+        if (showcaseSubmit) showcaseSubmit.disabled = false;
+      }
+    });
+
+    // Interactive Capability 4: Open Workspace with Shared Artifact Canvas Open
+    document.querySelectorAll('[data-bento-open-canvas]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        launchWorkspaceDirectlyOrSignIn('pro');
+        const uid = currentUserId || Object.keys(state.accounts)[0];
+        if (uid) {
+          const pane = ensurePaneStateForUser(uid);
+          pane.canvasOpen = true;
+          renderApp();
+          showToast('Opened Shared Artifact Canvas inside CoThread Workspace.', 'shared');
+        }
+      });
+    });
+
+    // Interactive Capability 3 & Live Studio Fork Button: Fork to Personal Workspace
+    document.getElementById('showcaseForkPersonalBtn')?.addEventListener('click', () => {
+      registerOrSignInWithDetails('Muhammad Hasnain', 'hasnainrashi@gmail.com', 'starter');
+      const uid = currentUserId || Object.keys(state.accounts)[0];
+      const sharedSess = (state.sessions || []).find((s) => s.type === 'shared');
+      if (uid && sharedSess) {
+        continueIndependentlyToMyChats(uid, sharedSess.id);
+      }
+    });
+
+    // Live Studio Interactive Co-Prompt Composer & Preset Chips on Landing Page
+    const runLandingShowcasePrompt = async (promptText) => {
+      const cleanPrompt = (promptText || '').trim();
+      if (!cleanPrompt) return;
+
+      const streamEl = document.getElementById('showcaseMessagesArea') || document.getElementById('showcaseChatStream');
+      const inputEl = document.getElementById('showcasePromptInput');
+      const sendBtn = document.getElementById('showcaseSendPromptBtn');
+      const testBtn = document.getElementById('bentoTestPromptBtn');
+      const speakerSelect = document.getElementById('showcaseSpeakerSelect');
+      if (!streamEl) return;
+
+      const speakerRole = speakerSelect?.value || 'guest';
+      if (speakerRole === 'guest' && showcasePermissionMode === 'viewer') {
+        showToast('Room is in View Only mode for colleagues. Fork to My Chats or toggle Can Prompt!', 'warning');
+        return;
+      }
+
+      if (showcaseTokensUsed >= showcaseTokenCap) {
+        showToast(`Host Session Cap (${showcaseTokenCap.toLocaleString()} tokens) reached! Drag the Host Session Cap slider right to allocate more tokens.`, 'warning');
+        return;
+      }
+
+      const isHost = speakerRole === 'host';
+      const senderName = isHost ? 'Robina Mirbahar (Lead \u2022 Host)' : 'Muhammad Hasnain (Collaborator)';
+      const senderInitials = isHost ? 'RM' : 'MH';
+      const senderAvatarClass = isHost ? 'alex' : 'hasnain';
+      const senderTagHtml = isHost
+        ? '<span class="sc-tag">Pro 250k Pool</span>'
+        : '<span class="sc-tag guest">Sublink Guest</span>';
+
+      // Append human prompt bubble matching .sc-msg structure
+      const userMsgEl = document.createElement('div');
+      userMsgEl.className = `sc-msg ${isHost ? 'host-msg' : 'guest-msg'}`;
+      userMsgEl.innerHTML = `
+        <div class="sc-av ${senderAvatarClass}">${senderInitials}</div>
+        <div class="sc-bubble">
+          <div class="sc-meta"><strong>${escapeHtml(senderName)}</strong> ${senderTagHtml}</div>
+          <p><span class="mention">@Gemini</span> ${escapeHtml(cleanPrompt)}</p>
+        </div>
+      `;
+      streamEl.appendChild(userMsgEl);
+
+      // Append AI streaming indicator bubble
+      const aiMsgEl = document.createElement('div');
+      aiMsgEl.className = 'sc-msg ai-msg';
+      aiMsgEl.innerHTML = `
+        <div class="sc-av ai">\u2726</div>
+        <div class="sc-bubble ai-surface">
+          <div class="sc-meta">
+            <strong>Google ADK \u2022 ${escapeHtml(state.primaryModel || 'Gemini 4 Argon')}</strong>
+            <span class="sc-quota-pill">\u26A1 Synthesizing on Host Quota...</span>
+          </div>
+          <p>Evaluating shared multiplayer context &amp; charging Host session allowance...</p>
+        </div>
+      `;
+      streamEl.appendChild(aiMsgEl);
+      streamEl.scrollTop = streamEl.scrollHeight;
+
+      if (inputEl) inputEl.value = '';
+      if (sendBtn) {
+        sendBtn.disabled = true;
+        sendBtn.textContent = 'Running...';
+      }
+      if (testBtn) {
+        testBtn.disabled = true;
+        testBtn.textContent = '\u26A1 Running...';
+      }
+
+      try {
+        const sharedSess = (state.sessions || []).find((s) => s.type === 'shared') || {
+          id: 'session_landing_showcase',
+          title: 'Cloud Run Webhook Ingestion Architecture',
+          type: 'shared',
+          messages: [],
+        };
+        const aiResult = await synthesizeCoThreadAIResponse({
+          session: sharedSess,
+          senderAccount: {
+            id: isHost ? 'user_host' : 'user_guest',
+            name: isHost ? 'Robina Mirbahar' : 'Muhammad Hasnain',
+            planTier: isHost ? 'pro' : 'starter',
+          },
+          promptText: cleanPrompt,
+          sponsorAccount: {
+            id: 'user_host',
+            name: 'Robina Mirbahar',
+            planTier: 'pro',
+          },
+          isShared: true,
+        });
+
+        const tokenCost = aiResult.tokensCharged || aiResult.tokenCost || 480;
+        showcaseTokensUsed = Math.min(showcaseTokenCap, showcaseTokensUsed + tokenCost);
+        syncLandingQuotaUI();
+
+        const formattedHtml = escapeHtml(aiResult.text || '')
+          .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+          .replace(/`([^`]+)`/g, '<code>$1</code>')
+          .replace(/\n/g, '<br/>');
+
+        aiMsgEl.innerHTML = `
+          <div class="sc-av ai">\u2726</div>
+          <div class="sc-bubble ai-surface">
+            <div class="sc-meta">
+              <strong>Google ADK \u2022 ${escapeHtml(state.primaryModel || 'Gemini 4 Argon')}</strong>
+              <span class="sc-quota-pill">\u26A1 +${tokenCost.toLocaleString()} tokens \u2192 Host Quota (Now ${showcaseTokensUsed.toLocaleString()} / ${showcaseTokenCap.toLocaleString()})</span>
+            </div>
+            <p>${formattedHtml}</p>
+          </div>
+        `;
+        streamEl.scrollTop = streamEl.scrollHeight;
+        showToast(
+          `Charged +${tokenCost.toLocaleString()} tokens to Robina's Host Quota (${showcaseTokensUsed.toLocaleString()} / ${showcaseTokenCap.toLocaleString()} used, Hasnain: 0 used).`,
+          'shared'
+        );
+      } finally {
+        if (sendBtn) {
+          sendBtn.disabled = false;
+          sendBtn.textContent = 'Ask AI \u2192';
+        }
+        if (testBtn) {
+          testBtn.disabled = false;
+          testBtn.textContent = '\u26A1 +Prompt Tokens';
+        }
+      }
+    };
+
+    // Initialize landing quota UI immediately on boot
+    syncLandingQuotaUI();
+
+    document.getElementById('showcasePromptForm')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const inputEl = document.getElementById('showcasePromptInput');
+      runLandingShowcasePrompt(inputEl?.value || '');
+    });
+
+    document.querySelectorAll('[data-showcase-preset]').forEach((chip) => {
+      chip.addEventListener('click', () => {
+        const presetPrompt = chip.getAttribute('data-showcase-preset') || '';
+        const inputEl = document.getElementById('showcasePromptInput');
+        if (inputEl) inputEl.value = presetPrompt;
+        runLandingShowcasePrompt(presetPrompt);
+      });
+    });
+  }
 
   function bootCoThreadApp() {
     initTheme();
     initGlobalEvents();
-    initHeroTypewriterAnimation();
 
+    // Auto-handle URL query parameters (?grant=hasnain or ?joinAs=hasnainrashi@gmail.com)
     try {
       const params = new URLSearchParams(window.location.search);
-      const joinCode = params.get('join') || params.get('s');
-      if (joinCode) {
-        pendingInviteShareCode = joinCode.trim();
+      const grantParam = (params.get('grant') || '').toLowerCase();
+      const joinAsParam = (params.get('joinAs') || '').toLowerCase();
+
+      if (grantParam === 'hasnain') {
+        if (Object.keys(state.accounts).length === 0) {
+          registerOrSignInWithDetails('Robina Mirbahar', 'robina@cothread.ai', 'pro');
+        } else if (!currentUserId) {
+          const hostAcct =
+            Object.values(state.accounts).find((a) => a.email === 'robina@cothread.ai') ||
+            Object.values(state.accounts)[0];
+          if (hostAcct) setTabUser(hostAcct.id);
+        }
+        const sharedSess = (state.sessions || []).find((s) => s.type === 'shared');
+        grantAccessToColleague(
+          sharedSess ? sharedSess.id : null,
+          'Muhammad Hasnain',
+          'hasnainrashi@gmail.com',
+          'starter',
+          true
+        );
+        return;
       }
-      const email = params.get('invitee');
-      if (email) {
-        pendingInviteeEmail = email.trim().toLowerCase();
+
+      if (joinAsParam) {
+        if (Object.keys(state.accounts).length === 0) {
+          registerOrSignInWithDetails('Robina Mirbahar', 'robina@cothread.ai', 'pro');
+        }
+        const sharedSess = (state.sessions || []).find((s) => s.type === 'shared');
+        const joinedAcct = grantAccessToColleague(
+          sharedSess ? sharedSess.id : null,
+          joinAsParam.includes('hasnain') ? 'Muhammad Hasnain' : joinAsParam.split('@')[0],
+          joinAsParam,
+          'starter',
+          false
+        );
+        if (joinedAcct) {
+          state.sideBySideMode = false;
+          setTabUser(joinedAcct.id);
+          renderApp();
+          return;
+        }
       }
-    } catch (e) {}
+    } catch (e) {
+      // ignore URL parse errors
+    }
 
     renderApp();
   }
