@@ -1666,47 +1666,73 @@ export async function executeAdkCollaborativeTurn() {
       if (tierSel) tierSel.value = preselectedTier;
     }
 
-    const realAccounts = Object.values(state.accounts).filter((a) => a.isRealUser);
-    if (realAccounts.length > 0) {
-      listEl.classList.remove('hidden');
-      listEl.innerHTML =
-        `<div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--ink-muted);margin-bottom:6px;">Signed-in Firestore Accounts</div>` +
-        realAccounts
-          .map((acct) => {
-            const tier = PLAN_TIERS[acct.planTier] || PLAN_TIERS.pro;
-            return `
-              <button type="button" class="google-account-row" data-google-login-id="${acct.id}">
-                <div class="google-acct-left">
-                  <span class="avatar-circle ${acct.colorClass}">${escapeHtml(acct.initials)}</span>
-                  <div class="google-acct-info">
-                    <strong>${escapeHtml(acct.name)}</strong>
-                    <small>${escapeHtml(acct.email)} • ${escapeHtml(tier.name)} (${fmtNum(acct.quotaTotal)} Quota)</small>
-                  </div>
-                </div>
-                <span class="plan-tier-badge">${escapeHtml(tier.badge)}</span>
-              </button>
-            `;
-          })
-          .join('');
+    const defaultOAuthProfiles = [
+      {
+        name: 'Robina Mirbahar',
+        email: 'robina@cothread.ai',
+        planTier: preselectedTier || 'pro',
+        initials: 'RM',
+        colorClass: 'alex'
+      },
+      {
+        name: 'Muhammad Hasnain',
+        email: 'hasnainrashi@gmail.com',
+        planTier: 'starter',
+        initials: 'MH',
+        colorClass: 'hasnain'
+      }
+    ];
 
-      listEl.querySelectorAll('[data-google-login-id]').forEach((btn) => {
-        btn.addEventListener('click', () => {
-          completeLoginAsUser(btn.getAttribute('data-google-login-id'), false);
-        });
+    const existingAccounts = Object.values(state.accounts);
+    const combinedProfiles = [...existingAccounts];
+    defaultOAuthProfiles.forEach((prof) => {
+      if (!combinedProfiles.some((a) => a.email.toLowerCase() === prof.email.toLowerCase())) {
+        combinedProfiles.push(prof);
+      }
+    });
+
+    listEl.classList.remove('hidden');
+    listEl.innerHTML =
+      `<div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--ink-muted);margin-bottom:6px;">1-Click Google OAuth Accounts</div>` +
+      combinedProfiles
+        .map((acct) => {
+          const tier = PLAN_TIERS[acct.planTier] || PLAN_TIERS.pro;
+          const quotaLabel = fmtNum(acct.quotaTotal || tier.quota);
+          return `
+            <button
+              type="button"
+              class="google-account-row"
+              data-oauth-name="${escapeHtml(acct.name)}"
+              data-oauth-email="${escapeHtml(acct.email)}"
+              data-oauth-tier="${escapeHtml(tier.id)}"
+            >
+              <div class="google-acct-left">
+                <span class="avatar-circle ${acct.colorClass || 'custom'}">${escapeHtml(acct.initials || 'CT')}</span>
+                <div class="google-acct-info">
+                  <strong>${escapeHtml(acct.name)}</strong>
+                  <small>${escapeHtml(acct.email)} • ${escapeHtml(tier.name)} (${quotaLabel} Quota)</small>
+                </div>
+              </div>
+              <span class="plan-tier-badge">${escapeHtml(tier.badge)}</span>
+            </button>
+          `;
+        })
+        .join('');
+
+    listEl.querySelectorAll('[data-oauth-email]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const name = btn.getAttribute('data-oauth-name');
+        const email = btn.getAttribute('data-oauth-email');
+        const tier = btn.getAttribute('data-oauth-tier') || preselectedTier || 'pro';
+        registerOrSignInWithDetails(name, email, tier);
       });
-    } else {
-      listEl.classList.add('hidden');
-      listEl.innerHTML = '';
-    }
+    });
 
     if (customForm) {
       customForm.classList.remove('hidden');
     }
 
     backdrop.classList.remove('hidden');
-    setTimeout(() => {
-      document.getElementById('googleCustomName')?.focus();
-    }, 60);
   }
 
   function closeGoogleChooserModal() {
@@ -2333,16 +2359,33 @@ export async function executeAdkCollaborativeTurn() {
     }, 4200);
   }
 
-  function scrollToAuthCard() {
-    const authCard = document.getElementById('heroAuthCard');
-    if (authCard) {
-      authCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      setTimeout(() => {
-        document.getElementById('heroEmailInput')?.focus();
-      }, 350);
-    } else {
-      openGoogleChooserModal();
+  function launchWorkspaceDirectlyOrSignIn(preferredTier) {
+    const typedEmail = (document.getElementById('heroEmailInput')?.value || '').trim();
+    const typedName = (document.getElementById('heroNameInput')?.value || '').trim();
+    const selectedPlan = preferredTier || document.getElementById('heroPlanSelect')?.value || 'pro';
+
+    if (typedEmail) {
+      registerOrSignInWithDetails(typedName || typedEmail.split('@')[0], typedEmail, selectedPlan);
+      return;
     }
+
+    const existingAccounts = Object.values(state.accounts || {});
+    if (existingAccounts.length > 0) {
+      const primary = state.accounts[currentUserId] || existingAccounts[0];
+      if (preferredTier && PLAN_TIERS[preferredTier]) {
+        primary.planTier = preferredTier;
+        primary.quotaTotal = PLAN_TIERS[preferredTier].quota;
+      }
+      completeLoginAsUser(primary.id, false);
+      return;
+    }
+
+    // Immediate 1-click workspace entry when user clicks any "Start CoThreading" / "Create / Open Workspace" CTA
+    registerOrSignInWithDetails(
+      typedName || 'Robina Mirbahar',
+      'robina@cothread.ai',
+      selectedPlan
+    );
   }
 
   function initGlobalEvents() {
@@ -2350,12 +2393,13 @@ export async function executeAdkCollaborativeTurn() {
     document.getElementById('websiteThemeToggleBtn')?.addEventListener('click', toggleTheme);
     document.getElementById('appThemeToggleBtn')?.addEventListener('click', toggleTheme);
 
-    // Website Navbar CTAs -> Open Real Sign-In / Google OAuth
+    // Website Navbar & Hero CTAs -> Immediately launch workspace or open Google OAuth modal
     document.getElementById('navOpenGoogleBtn')?.addEventListener('click', () => openGoogleChooserModal());
-    document.getElementById('navTryCoThreadBtn')?.addEventListener('click', scrollToAuthCard);
-    document.getElementById('heroStartCoThreadingBtn')?.addEventListener('click', scrollToAuthCard);
-    document.getElementById('closingStartBtn')?.addEventListener('click', scrollToAuthCard);
-    document.getElementById('showcaseSignInBtn')?.addEventListener('click', scrollToAuthCard);
+    document.getElementById('badgeFirebaseAuthBtn')?.addEventListener('click', () => openGoogleChooserModal());
+    document.getElementById('navTryCoThreadBtn')?.addEventListener('click', () => launchWorkspaceDirectlyOrSignIn());
+    document.getElementById('heroStartCoThreadingBtn')?.addEventListener('click', () => launchWorkspaceDirectlyOrSignIn());
+    document.getElementById('closingStartBtn')?.addEventListener('click', () => launchWorkspaceDirectlyOrSignIn());
+    document.getElementById('showcaseSignInBtn')?.addEventListener('click', () => launchWorkspaceDirectlyOrSignIn());
 
     // Hero Card: Continue with Google
     document.getElementById('openGoogleChooserBtn')?.addEventListener('click', () => openGoogleChooserModal());
@@ -2367,22 +2411,34 @@ export async function executeAdkCollaborativeTurn() {
     // Hero Email Signup / Sign-In Form
     document.getElementById('heroEmailAuthForm')?.addEventListener('submit', (e) => {
       e.preventDefault();
-      const email = (document.getElementById('heroEmailInput')?.value || '').trim();
-      if (!email) {
-        document.getElementById('heroEmailInput')?.focus();
-        return;
-      }
-      const name = (document.getElementById('heroNameInput')?.value || '').trim() || email.split('@')[0];
-      const plan = document.getElementById('heroPlanSelect')?.value || 'pro';
-      registerOrSignInWithDetails(name, email, plan);
+      launchWorkspaceDirectlyOrSignIn();
     });
 
-    // Google Stack Inspector Badges across Hero, Auth Card, Footer, and Workspace Header
-    document.querySelectorAll('[data-open-stack-tab]').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const tab = btn.getAttribute('data-open-stack-tab') || 'firestore';
+    // Document-level event delegation for all [data-open-stack-tab], [data-provision-tier], and [data-launch-workspace] buttons/pills
+    document.addEventListener('click', (e) => {
+      const stackBtn = e.target.closest('[data-open-stack-tab]');
+      if (stackBtn) {
+        e.preventDefault();
+        const tab = stackBtn.getAttribute('data-open-stack-tab') || 'firestore';
         openGoogleStackModal(tab);
-      });
+        return;
+      }
+
+      const tierBtn = e.target.closest('[data-provision-tier]');
+      if (tierBtn) {
+        e.preventDefault();
+        const tier = tierBtn.getAttribute('data-provision-tier') || 'pro';
+        launchWorkspaceDirectlyOrSignIn(tier);
+        return;
+      }
+
+      const launchBtn = e.target.closest('[data-launch-workspace]');
+      if (launchBtn) {
+        e.preventDefault();
+        const tier = launchBtn.getAttribute('data-launch-workspace') || 'pro';
+        launchWorkspaceDirectlyOrSignIn(tier);
+        return;
+      }
     });
 
     document.getElementById('openGoogleStackModalBtn')?.addEventListener('click', () => {
@@ -2393,20 +2449,12 @@ export async function executeAdkCollaborativeTurn() {
       if (e.target.id === 'googleStackModalBackdrop') closeGoogleStackModal();
     });
 
-    // Pricing Cards: Provision Tier via Google / Work Account Modal
-    document.querySelectorAll('[data-provision-tier]').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const tier = btn.getAttribute('data-provision-tier') || 'pro';
-        openGoogleChooserModal(tier);
-      });
-    });
-
     // Google Custom Account Form
     document.getElementById('googleCustomAccountForm')?.addEventListener('submit', (e) => {
       e.preventDefault();
-      const name = document.getElementById('googleCustomName')?.value;
-      const email = document.getElementById('googleCustomEmail')?.value;
-      const tier = document.getElementById('googleCustomTier')?.value;
+      const name = (document.getElementById('googleCustomName')?.value || '').trim() || 'Robina Mirbahar';
+      const email = (document.getElementById('googleCustomEmail')?.value || '').trim() || 'robina@cothread.ai';
+      const tier = document.getElementById('googleCustomTier')?.value || 'pro';
       registerOrSignInWithDetails(name, email, tier);
     });
 
@@ -2438,9 +2486,10 @@ export async function executeAdkCollaborativeTurn() {
       const accountIds = Object.keys(state.accounts || {});
       if (!state.sideBySideMode && accountIds.length < 2) {
         state.sideBySideMode = true;
-        openGoogleChooserModal('starter');
+        // Automatically provision 2nd collaborator account so Dual-Pane opens on 1st click!
+        registerOrSignInWithDetails('Muhammad Hasnain', 'hasnainrashi@gmail.com', 'starter');
         showToast(
-          'Sign in a 2nd Google/Work account to display alongside your primary account in Dual-Pane mode.',
+          'Enabled Dual-Pane Multiplayer Workspace (Screen 1: Host • Screen 2: Collaborator).',
           'shared'
         );
         return;
@@ -2471,7 +2520,7 @@ export async function executeAdkCollaborativeTurn() {
       e.preventDefault();
       const rawVal = (document.getElementById('heroSublinkInput')?.value || '').trim();
       if (!rawVal) {
-        scrollToAuthCard();
+        launchWorkspaceDirectlyOrSignIn('pro');
         return;
       }
       if (rawVal.includes('@')) {
@@ -2483,13 +2532,19 @@ export async function executeAdkCollaborativeTurn() {
         pendingInviteShareCode = match[1];
         renderWebsiteInviteBanner();
       }
-      scrollToAuthCard();
+      launchWorkspaceDirectlyOrSignIn('starter');
     });
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
+  function bootCoThreadApp() {
     initTheme();
     initGlobalEvents();
     renderApp();
-  });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootCoThreadApp);
+  } else {
+    bootCoThreadApp();
+  }
 })();
