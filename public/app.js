@@ -89,6 +89,16 @@
   let pendingInviteeEmail = detectInviteeEmail();
   let activeShareSessionId = null;
 
+  // Helper to get the base app URL (preserves /CoThread/ subpath on GitHub Pages)
+  function getBaseAppUrl() {
+    const origin = window.location.origin;
+    let path = window.location.pathname || '/';
+    // Strip trailing /chat or /app if present on Express server
+    path = path.replace(/\/(chat|app)\/?$/i, '/');
+    if (!path.endsWith('/')) path += '/';
+    return origin + path;
+  }
+
   // Determine current route: 'home' vs 'chat'
   function isChatRoute() {
     const path = window.location.pathname.toLowerCase();
@@ -97,16 +107,17 @@
     const params = new URLSearchParams(window.location.search);
 
     if (host.startsWith('chat.')) return true;
-    if (path === '/chat' || path.startsWith('/chat/') || path === '/app' || path.startsWith('/app/')) return true;
+    if (path === '/chat' || path.startsWith('/chat/') || path.endsWith('/chat') || path === '/app' || path.startsWith('/app/')) return true;
     if (hash === '#/chat' || hash.startsWith('#/chat') || hash.startsWith('#/s/')) return true;
     if (params.get('view') === 'chat' || params.get('join') || params.get('s')) return true;
     return false;
   }
 
   function navigateTo(route) {
+    const isGitHubPagesOrStatic = window.location.protocol === 'file:' || window.location.hostname.endsWith('github.io');
     if (route === 'chat') {
       try {
-        if (window.location.protocol !== 'file:') {
+        if (!isGitHubPagesOrStatic) {
           window.history.pushState(null, '', '/chat');
         } else {
           window.location.hash = '#/chat';
@@ -116,10 +127,10 @@
       }
     } else {
       try {
-        if (window.location.protocol !== 'file:') {
+        if (!isGitHubPagesOrStatic) {
           window.history.pushState(null, '', '/');
         } else {
-          window.location.hash = '';
+          window.history.pushState(null, '', window.location.pathname);
         }
       } catch (e) {
         window.location.hash = '';
@@ -613,7 +624,7 @@
     // Setup public link input
     const pubInput = document.getElementById('sharePublicLinkInput');
     if (pubInput) {
-      pubInput.value = `${window.location.origin}/chat?join=${encodeURIComponent(session.shareCode)}&mode=public_copy`;
+      pubInput.value = `${getBaseAppUrl()}?join=${encodeURIComponent(session.shareCode)}&mode=public_copy#/chat`;
     }
 
     modal.classList.remove('hidden');
@@ -1277,7 +1288,7 @@
       }
 
       // Generate direct private collaborator link
-      const inviteUrl = `${window.location.origin}/chat?join=${encodeURIComponent(session.shareCode)}&invitee=${encodeURIComponent(email)}`;
+      const inviteUrl = `${getBaseAppUrl()}?join=${encodeURIComponent(session.shareCode)}&invitee=${encodeURIComponent(email)}#/chat`;
       navigator.clipboard?.writeText(inviteUrl).catch(() => {});
 
       saveAndBroadcastState();
