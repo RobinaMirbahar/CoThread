@@ -1140,6 +1140,18 @@
                         <button
                           type="button"
                           class="hdr-btn"
+                          style="background:rgba(24,128,56,0.12);color:#188038;border-color:rgba(24,128,56,0.35);font-weight:700;"
+                          data-action="grant-hasnain-access"
+                          data-user="${userId}"
+                          data-session-id="${activeSession.id}"
+                          title="Grant Muhammad Hasnain (hasnainrashi@gmail.com) live access to this shared chat on Host Quota and open his screen side-by-side"
+                        >
+                          <span>👤+ Give Access to Hasnain</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          class="hdr-btn"
                           data-action="open-share-modal"
                           data-session-id="${activeSession.id}"
                         >
@@ -1583,6 +1595,9 @@
         renderApp();
       } else if (action === 'open-share-modal') {
         openShareModal(btn.getAttribute('data-session-id'));
+      } else if (action === 'grant-hasnain-access') {
+        const sId = btn.getAttribute('data-session-id');
+        grantAccessToColleague(sId, 'Muhammad Hasnain', 'hasnainrashi@gmail.com', 'starter', true);
       } else if (action === 'continue-independently') {
         ensurePaneStateForUser(targetUser).mobileSidebarOpen = false;
         continueIndependentlyToMyChats(targetUser, btn.getAttribute('data-session-id'));
@@ -1613,6 +1628,136 @@
         }
       }
     });
+  }
+
+  function grantAccessToColleague(sessionId, colleagueName, colleagueEmail, colleagueTier, openSplitView) {
+    const cleanEmail = String(colleagueEmail || 'hasnainrashi@gmail.com').trim().toLowerCase();
+    const cleanName = String(colleagueName || 'Muhammad Hasnain').trim();
+    const tierKey = PLAN_TIERS[colleagueTier] ? colleagueTier : 'starter';
+    const tier = PLAN_TIERS[tierKey];
+
+    // Ensure a Host account exists first if none
+    if (Object.keys(state.accounts).length === 0) {
+      registerOrSignInWithDetails('Robina Mirbahar', 'robina@cothread.ai', 'pro');
+    }
+
+    const session =
+      getSessionById(sessionId) ||
+      state.sessions.find((s) => s.type === 'shared') ||
+      state.sessions[0];
+    if (!session) return null;
+
+    let colleagueAcct = Object.values(state.accounts).find(
+      (a) => a.email.toLowerCase() === cleanEmail
+    );
+
+    if (!colleagueAcct) {
+      const parts = cleanName.split(/\s+/);
+      const shortName = parts.length > 1 ? parts[parts.length - 1] : parts[0] || 'Hasnain';
+      const initials = parts
+        .map((p) => p[0])
+        .join('')
+        .slice(0, 2)
+        .toUpperCase();
+      const newId =
+        'user_' +
+        cleanEmail.replace(/[^a-z0-9]/g, '').slice(0, 12) +
+        '_' +
+        Date.now().toString(36).slice(-3);
+
+      colleagueAcct = {
+        id: newId,
+        name: cleanName,
+        shortName,
+        email: cleanEmail,
+        initials: initials || 'MH',
+        planTier: tier.id,
+        quotaTotal: tier.quota,
+        quotaUsed: 0,
+        colorClass: cleanEmail.includes('hasnain') ? 'hasnain' : 'custom',
+        isRealUser: true
+      };
+      state.accounts[newId] = colleagueAcct;
+
+      // Also create a personal workspace chat for the colleague
+      state.sessions.push({
+        id: 'personal_welcome_' + newId,
+        type: 'personal',
+        ownerId: newId,
+        ownerName: shortName,
+        forkedFromSessionId: null,
+        forkedFromTitle: null,
+        title: `${shortName}'s Personal AI Workspace`,
+        tokensUsed: 0,
+        canvasTitle: 'workspace_notes.md',
+        canvasLastEditedBy: shortName,
+        canvasContent: `# ${cleanName}'s Private CoThread Canvas (/app)\nProvisioned Software Token Quota: ${fmtNum(tier.quota)} tokens (${tier.name})\n`,
+        messages: [
+          {
+            id: 'm_w_' + Date.now(),
+            senderId: 'gemini',
+            senderName: 'Google ADK • Gemini 3.8 Flash',
+            senderRole: 'CoThread AI',
+            kind: 'ai',
+            modelUsed: 'gemini-3.8-flash',
+            timestamp: nowTimeLabel(),
+            triggeredBy: shortName,
+            quotaChargedTo: `${cleanName} (My ${tier.badge} Quota)`,
+            quotaType: 'personal',
+            tokensCharged: 0,
+            tokensSaved: 0,
+            text: `Welcome to your private **Personal Workspace (\`/app\`)**, **${cleanName}**! Prompts here deduct strictly from your personal software token quota (**${fmtNum(tier.quota)} tokens**).`
+          }
+        ]
+      });
+    }
+
+    session.linkActive = true;
+    session.permissionMode = 'can_prompt';
+    if (!session.participants.includes(colleagueAcct.id)) {
+      session.participants.push(colleagueAcct.id);
+    }
+    if (session.participantUsage[colleagueAcct.id] === undefined) {
+      session.participantUsage[colleagueAcct.id] = 0;
+    }
+
+    const pane = ensurePaneStateForUser(colleagueAcct.id);
+    pane.activeSessionId = session.id;
+    pane.composerMode = 'ai';
+
+    const alreadyAnnounced = session.messages.some(
+      (m) => m.id && m.id.startsWith('m_access_' + colleagueAcct.id)
+    );
+    if (!alreadyAnnounced) {
+      session.messages.push({
+        id: 'm_access_' + colleagueAcct.id + '_' + Date.now(),
+        senderId: colleagueAcct.id,
+        senderName: colleagueAcct.name,
+        senderRole: 'Colleague • Joined via Sublink',
+        kind: 'chat',
+        timestamp: nowTimeLabel(),
+        text: `🔓 **Access Granted:** **${session.hostName}** granted **${colleagueAcct.name}** (\`${colleagueAcct.email}\` • ${tier.name} ${fmtNum(tier.quota)} Quota) live **Can Prompt** access to \`/s/${session.shareCode}\`. All @Gemini prompts in this room are sponsored by **${session.hostShortName}'s Host Quota** (${fmtNum(session.tokenCap)} Session Cap) while ${colleagueAcct.shortName}'s personal ${fmtNum(tier.quota)} quota remains untouched!`
+      });
+    }
+
+    if (openSplitView) {
+      state.sideBySideMode = true;
+    }
+
+    const inviteUrl = buildShareableSublinkUrl(session.shareCode, colleagueAcct.email);
+    navigator.clipboard?.writeText(inviteUrl).catch(() => {});
+
+    saveAndBroadcastState(
+      `Granted ${colleagueAcct.name} (${colleagueAcct.email}) live access to /s/${session.shareCode}!`,
+      'shared'
+    );
+    renderApp();
+    scrollChatToBottom(session.id);
+    showToast(
+      `✓ Granted ${colleagueAcct.name} (${colleagueAcct.email}) live access to /s/${session.shareCode} & opened Dual-Pane View!`,
+      'shared'
+    );
+    return colleagueAcct;
   }
 
   function createNewSharedSession(hostUserId) {
@@ -1712,17 +1857,17 @@
 
     const defaultOAuthProfiles = [
       {
-        name: 'Robina Mirbahar (Lead • Host)',
+        name: 'Robina Mirbahar (Project Lead • Host)',
         email: 'robina@cothread.ai',
         planTier: preselectedTier || 'pro',
         initials: 'RM',
         colorClass: 'alex'
       },
       {
-        name: 'Staff Engineer (Collaborator)',
-        email: 'engineer@cothread.ai',
+        name: 'Muhammad Hasnain (Co-Builder & Collaborator)',
+        email: 'hasnainrashi@gmail.com',
         planTier: 'starter',
-        initials: 'SE',
+        initials: 'MH',
         colorClass: 'hasnain'
       }
     ];
@@ -1784,9 +1929,10 @@
     if (backdrop) backdrop.classList.add('hidden');
   }
 
-  function buildShareableSublinkUrl(shareCode) {
+  function buildShareableSublinkUrl(shareCode, joinAsEmail) {
     const base = window.location.href.split('?')[0].split('#')[0];
-    return `${base}?s=${encodeURIComponent(shareCode)}#/s/${encodeURIComponent(shareCode)}`;
+    const extra = joinAsEmail ? `&joinAs=${encodeURIComponent(joinAsEmail)}` : '';
+    return `${base}?s=${encodeURIComponent(shareCode)}${extra}#/s/${encodeURIComponent(shareCode)}`;
   }
 
   function openShareModal(sessionId) {
@@ -1808,10 +1954,30 @@
     const session = getSessionById(sessionId);
     if (!session || session.type !== 'shared') return;
 
-    const fullSublink = buildShareableSublinkUrl(session.shareCode);
+    const fullSublink = buildShareableSublinkUrl(session.shareCode, 'hasnainrashi@gmail.com');
     const pct = Math.min(100, Math.round((session.tokensUsed / session.tokenCap) * 100));
 
     body.innerHTML = `
+      <div class="form-section" style="background:rgba(24,128,56,0.06);border:1.5px solid rgba(24,128,56,0.28);border-radius:12px;padding:12px 14px;margin-bottom:14px;">
+        <label class="form-label" style="margin-bottom:6px;">
+          <span>⚡ Quick Grant Access to Co-Builder &amp; Collaborator</span>
+          <span style="color:#188038;font-weight:700;">Instant Live Room Sync</span>
+        </label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+          <button type="button" class="btn-primary" id="modalGrantHasnainBtn" style="flex:1;background:#188038;border-color:#188038;">
+            👤+ Grant Access to Muhammad Hasnain (hasnainrashi@gmail.com • Starter 25k)
+          </button>
+          <button type="button" class="btn-secondary" id="modalOpenHasnainTabBtn">
+            Open Hasnain in 2nd Tab ↗
+          </button>
+        </div>
+        <form id="modalInviteCustomForm" style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+          <input type="text" id="modalInviteNameInput" class="share-link-input" placeholder="Colleague Name (e.g. Muhammad Hasnain)" style="flex:1;min-width:140px;" />
+          <input type="email" id="modalInviteEmailInput" class="share-link-input" placeholder="Email (e.g. hasnainrashi@gmail.com)" style="flex:1;min-width:180px;" />
+          <button type="submit" class="btn-secondary">Invite &amp; Grant Access</button>
+        </form>
+      </div>
+
       <div class="form-section">
         <label class="form-label">
           <span>Shareable CoThread Session Sublink (<code>/s/${escapeHtml(session.shareCode)}</code>)</span>
@@ -1824,7 +1990,7 @@
           <button type="button" class="btn-primary" id="copyShareLinkBtn">Copy Sublink</button>
           <button type="button" class="btn-secondary" id="openSecondTabBtn">Open in 2nd Tab ↗</button>
         </div>
-        <p class="form-help">Colleagues opening this sublink can sign in with Google and collaborate live using <strong>${escapeHtml(session.hostName)}'s</strong> sponsored session allowance.</p>
+        <p class="form-help">Colleagues opening this sublink automatically join <code>/s/${escapeHtml(session.shareCode)}</code> using <strong>${escapeHtml(session.hostName)}'s</strong> sponsored session allowance.</p>
       </div>
 
       <div class="form-section">
@@ -1898,6 +2064,24 @@
       </div>
     `;
 
+    document.getElementById('modalGrantHasnainBtn')?.addEventListener('click', () => {
+      grantAccessToColleague(session.id, 'Muhammad Hasnain', 'hasnainrashi@gmail.com', 'starter', true);
+      closeShareModal();
+    });
+
+    document.getElementById('modalOpenHasnainTabBtn')?.addEventListener('click', () => {
+      grantAccessToColleague(session.id, 'Muhammad Hasnain', 'hasnainrashi@gmail.com', 'starter', false);
+      window.open(fullSublink, '_blank');
+    });
+
+    document.getElementById('modalInviteCustomForm')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const nameVal = (document.getElementById('modalInviteNameInput')?.value || '').trim() || 'Muhammad Hasnain';
+      const emailVal = (document.getElementById('modalInviteEmailInput')?.value || '').trim() || 'hasnainrashi@gmail.com';
+      grantAccessToColleague(session.id, nameVal, emailVal, 'starter', true);
+      closeShareModal();
+    });
+
     document.getElementById('copyShareLinkBtn')?.addEventListener('click', () => {
       const inp = document.getElementById('shareLinkUrlInput');
       if (inp) {
@@ -1908,6 +2092,7 @@
     });
 
     document.getElementById('openSecondTabBtn')?.addEventListener('click', () => {
+      grantAccessToColleague(session.id, 'Muhammad Hasnain', 'hasnainrashi@gmail.com', 'starter', false);
       window.open(fullSublink, '_blank');
     });
 
@@ -2529,12 +2714,13 @@
     document.getElementById('toggleSideBySideBtn')?.addEventListener('click', () => {
       const accountIds = Object.keys(state.accounts || {});
       if (!state.sideBySideMode && accountIds.length < 2) {
-        state.sideBySideMode = true;
-        // Automatically provision 2nd collaborator account so Dual-Pane opens on 1st click!
-        registerOrSignInWithDetails('Staff Engineer', 'engineer@cothread.ai', 'starter');
-        showToast(
-          'Enabled Dual-Pane Multiplayer Workspace (Screen 1: Host • Screen 2: Collaborator).',
-          'shared'
+        const sharedSess = (state.sessions || []).find((s) => s.type === 'shared');
+        grantAccessToColleague(
+          sharedSess ? sharedSess.id : null,
+          'Muhammad Hasnain',
+          'hasnainrashi@gmail.com',
+          'starter',
+          true
         );
         return;
       }
@@ -2542,7 +2728,7 @@
       renderApp();
       showToast(
         state.sideBySideMode
-          ? 'Enabled Dual-Pane Multiplayer Workspace.'
+          ? 'Enabled Dual-Pane Multiplayer Workspace (Robina & Hasnain).'
           : 'Switched to single-pane view.',
         'shared'
       );
@@ -2581,7 +2767,7 @@
 
     // Interactive Capability 1: Copy Sublink buttons on Landing Page
     const handleLandingSublinkCopy = (btnEl) => {
-      const shareUrl = buildShareableSublinkUrl('cothread-arch-9x2k');
+      const shareUrl = buildShareableSublinkUrl('cothread-arch-9x2k', 'hasnainrashi@gmail.com');
       navigator.clipboard?.writeText(shareUrl).catch(() => {});
       if (btnEl) {
         const origText = btnEl.textContent;
@@ -2590,7 +2776,7 @@
           btnEl.textContent = origText;
         }, 1800);
       }
-      showToast('Copied live sublink (/s/cothread-arch-9x2k) to clipboard!', 'shared');
+      showToast('Copied live sublink (/s/cothread-arch-9x2k) for Hasnain to clipboard!', 'shared');
     };
     document.getElementById('bentoCopySublinkBtn')?.addEventListener('click', (e) => {
       handleLandingSublinkCopy(e.currentTarget);
@@ -2602,12 +2788,16 @@
     // Interactive Capability 1b: Join as Colleague (Starter 25k) directly into Dual-Pane Workspace
     document.querySelectorAll('[data-bento-join-guest]').forEach((btn) => {
       btn.addEventListener('click', () => {
-        state.sideBySideMode = true;
-        registerOrSignInWithDetails('Robina Mirbahar', 'robina@cothread.ai', 'pro');
-        registerOrSignInWithDetails('Muhammad Hasnain', 'hasnainrashi@gmail.com', 'starter');
-        showToast(
-          'Joined /s/cothread-arch-9x2k with Robina (Host • Pro 250k) & Hasnain (Colleague • Starter 25k)!',
-          'shared'
+        if (Object.keys(state.accounts).length === 0) {
+          registerOrSignInWithDetails('Robina Mirbahar', 'robina@cothread.ai', 'pro');
+        }
+        const sharedSess = (state.sessions || []).find((s) => s.type === 'shared');
+        grantAccessToColleague(
+          sharedSess ? sharedSess.id : null,
+          'Muhammad Hasnain',
+          'hasnainrashi@gmail.com',
+          'starter',
+          true
         );
       });
     });
@@ -2719,7 +2909,7 @@
       const uid = currentUserId || Object.keys(state.accounts)[0];
       const sharedSess = (state.sessions || []).find((s) => s.type === 'shared');
       if (uid && sharedSess) {
-        handleForkSessionToPersonal(uid, sharedSess.id);
+        continueIndependentlyToMyChats(uid, sharedSess.id);
       }
     });
 
@@ -2810,7 +3000,7 @@
           isShared: true,
         });
 
-        const tokenCost = aiResult.tokenCost || 420;
+        const tokenCost = aiResult.tokensCharged || aiResult.tokenCost || 420;
         showcaseTokensUsed = Math.min(showcaseTokenCap, showcaseTokensUsed + tokenCost);
         syncLandingQuotaUI();
 
@@ -2865,6 +3055,56 @@
   function bootCoThreadApp() {
     initTheme();
     initGlobalEvents();
+
+    // Auto-handle URL query parameters (?grant=hasnain or ?joinAs=hasnainrashi@gmail.com)
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const grantParam = (params.get('grant') || '').toLowerCase();
+      const joinAsParam = (params.get('joinAs') || '').toLowerCase();
+
+      if (grantParam === 'hasnain') {
+        if (Object.keys(state.accounts).length === 0) {
+          registerOrSignInWithDetails('Robina Mirbahar', 'robina@cothread.ai', 'pro');
+        } else if (!currentUserId) {
+          const hostAcct =
+            Object.values(state.accounts).find((a) => a.email === 'robina@cothread.ai') ||
+            Object.values(state.accounts)[0];
+          if (hostAcct) setTabUser(hostAcct.id);
+        }
+        const sharedSess = (state.sessions || []).find((s) => s.type === 'shared');
+        grantAccessToColleague(
+          sharedSess ? sharedSess.id : null,
+          'Muhammad Hasnain',
+          'hasnainrashi@gmail.com',
+          'starter',
+          true
+        );
+        return;
+      }
+
+      if (joinAsParam) {
+        if (Object.keys(state.accounts).length === 0) {
+          registerOrSignInWithDetails('Robina Mirbahar', 'robina@cothread.ai', 'pro');
+        }
+        const sharedSess = (state.sessions || []).find((s) => s.type === 'shared');
+        const joinedAcct = grantAccessToColleague(
+          sharedSess ? sharedSess.id : null,
+          joinAsParam.includes('hasnain') ? 'Muhammad Hasnain' : joinAsParam.split('@')[0],
+          joinAsParam,
+          'starter',
+          false
+        );
+        if (joinedAcct) {
+          state.sideBySideMode = false;
+          setTabUser(joinedAcct.id);
+          renderApp();
+          return;
+        }
+      }
+    } catch (e) {
+      // ignore URL parse errors
+    }
+
     renderApp();
   }
 
