@@ -11,8 +11,8 @@ This guide contains:
 ## Slide 1 — Title & Executive Vision
 - **Project Name**: **CoThread** — *Enterprise Collaborative AI Platform*
 - **Tagline**: *Multiplayer Gemini Sublinks with Host-Sponsored Token Quotas & Instant Personal Continuation*
-- **Project Lead & Principal AI Architect**: **Robina Mirbahar** ([@RobinaMirbahar](https://github.com/RobinaMirbahar) • `robina@cothread.ai`)
-- **Team**: **Robina Mirbahar** ([@RobinaMirbahar](https://github.com/RobinaMirbahar) — **Project Lead, Principal Architect & Host**) & **Muhammad Hasnain** ([@hasnain-kk](https://github.com/hasnain-kk) — **Co-Builder & Collaborator**)
+- **Project Lead, Principal AI Architect**: **Robina Mirbahar** ([@RobinaMirbahar](https://github.com/RobinaMirbahar) • `robina@cothread.ai`)
+- **Original Idea, Co-Builder & Collaborator**: **Muhammad Hasnain** ([@hasnain-kk](https://github.com/hasnain-kk) • `hasnainrashi@gmail.com`)
 - **Event**: Google Cloud AI Builder Cup 2026
 - **Core Google Cloud Stack**: Google Cloud Run • Cloud Firestore (`firestore.rules`) • Google ADK (`CoThreadADKOrchestrator`) • Model Context Protocol (MCP Server) • Firebase Studio (`.idx`) • `@google/genai` SDK (`gemini-3.8-flash`, `gemini-4-argon`, `gemini-3.5-flash-lite`)
 
