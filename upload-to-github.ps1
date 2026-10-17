@@ -74,7 +74,7 @@ Write-Host "3. Uploading project files from $PSScriptRoot to $Owner/$RepoName...
 $ExcludeDirs = @("node_modules", ".git", ".gemini")
 $ExcludeFiles = @(".env", ".env.local")
 
-$Files = Get-ChildItem -Path $PSScriptRoot -Recurse -File | Where-Object {
+$Files = Get-ChildItem -Path $PSScriptRoot -Recurse -File -Force | Where-Object {
     $rel = $_.FullName.Substring($PSScriptRoot.Length + 1).Replace("\", "/")
     $parts = $rel.Split("/")
     $skipDir = $false
