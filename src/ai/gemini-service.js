@@ -660,6 +660,11 @@
           `${String(canvasDoc.content || canvasDoc.code).slice(0, 1200)}`
         : '';
 
+    const isSharedMode =
+      normalizedSession.mode !== 'personal' &&
+      !normalizedSession.forkedFromSessionId &&
+      normalizedSession.isShared !== false;
+
     const systemInstruction = [
       `You are CoThread AI, a helpful, intelligent collaborative Gemini assistant in a shared team chat.`,
       `The current user speaking to you is ${activeUser.name}.`,
@@ -667,7 +672,7 @@
       `1. Respond naturally, directly, and helpfully to ${activeUser.name}'s message (just like Google Gemini or Claude).`,
       `2. NEVER include bracketed role tags like "[Host - ...]" or "[Colleague - ...]" in your response.`,
       `3. For casual greetings (like "hi" or "hello"), reply warmly and concisely without generating unnecessary code or canvas blocks.`,
-      `4. When the user asks for code, architecture, or an implementation, provide complete, clean, well-explained code directly in markdown code blocks.`,
+      `4. When the user asks for code, architecture diagrams, or an implementation, provide complete, clean, well-explained output directly in your response.`,
     ].join('\n');
 
     const latestQuestionText = String(
@@ -1033,6 +1038,41 @@
 
     if (/^(hi|hello|hey|salaam|salam|good\s*(morning|afternoon|evening)|yo)\b/i.test(rawQuestion.trim())) {
       return `Hello ${speakerName}! How can I help you and your team today? Feel free to ask any question, brainstorm ideas, or request code.`;
+    }
+
+    if (
+      qLower.includes('architecture') ||
+      qLower.includes('diagram') ||
+      qLower.includes('presentation') ||
+      qLower.includes('slide')
+    ) {
+      return (
+        `Here is a complete, presentation-ready **CoThread System Architecture Diagram** for your slide deck (**${speakerName}**):\n\n` +
+        `• **1. Multiplayer Client Layer:** Multiple teammates (**Host** + **Invited Collaborators**) connect to the same shared \`/s/\` room with live presence avatars and real-time \`BroadcastChannel\` / SSE sync.\n` +
+        `• **2. CoThread Orchestration & Quota Engine (Google Cloud Run):** Routes multi-participant prompts, enforces Host-Sponsored Token Quotas vs. Personal Fork Quotas, and persists sessions in **Cloud Firestore**.\n` +
+        `• **3. Google GenAI Layer (\`@google/genai\`):** Uses **Gemini 3.5 Flash-Lite** for context compression and **Gemini 3.8 Flash / Gemini 4 Argon** via the stateful **Interactions API** (\`/v1beta/interactions\`).\n\n` +
+        `<canvas title="cothread-architecture-diagram.md" type="code">flowchart LR\n` +
+        `  subgraph Clients["1. Multiplayer Team Clients"]\n` +
+        `    Host["Host (Robina / Hasnain)\\nPro Quota Owner"]\n` +
+        `    Collab["Collaborators (Sarah / Alex)\\nJoined via /s/ Share Link"]\n` +
+        `  end\n\n` +
+        `  subgraph CloudRun["2. CoThread Backend (Google Cloud Run)"]\n` +
+        `    Router["Multi-Participant Context Router\\n+ Live Presence Sync (SSE)"]\n` +
+        `    Quota["Quota Guard Engine\\nHost-Sponsored vs. Personal Fork"]\n` +
+        `  end\n\n` +
+        `  subgraph GeminiAPI["3. Google GenAI (@google/genai SDK)"]\n` +
+        `    Compress["Gemini 3.5 Flash-Lite\\n(Context Compression)"]\n` +
+        `    CoreAI["Gemini 3.8 Flash & Gemini 4 Argon\\n(/v1beta/interactions API)"]\n` +
+        `  end\n\n` +
+        `  DB[("Cloud Firestore\\nSessions, Users & Security Rules")]\n\n` +
+        `  Host --> Router\n` +
+        `  Collab --> Router\n` +
+        `  Router --> Quota\n` +
+        `  Quota <--> DB\n` +
+        `  Quota --> Compress\n` +
+        `  Compress --> CoreAI\n` +
+        `  CoreAI --> Router</canvas>`
+      );
     }
 
     if (qLower.includes('chat agent') || qLower.includes('agent') || qLower.includes('code')) {
