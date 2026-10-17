@@ -133,7 +133,7 @@
           <div class="gumroad-layered-btn-wrap">
             <div class="gumroad-layer-red" aria-hidden="true"></div>
             <div class="gumroad-layer-yellow" aria-hidden="true"></div>
-            <button type="button" class="gumroad-layer-main" data-quick-login="alex">
+            <button type="button" class="gumroad-layer-main" id="heroStartCoThreadingBtn">
               Start CoThreading
             </button>
           </div>
@@ -143,7 +143,7 @@
               type="text"
               id="heroSublinkInput"
               class="gumroad-hero-search-input"
-              placeholder="Paste /s/ link or email..."
+              placeholder="Paste /s/ link or work email..."
               aria-label="Paste shared sublink or enter email"
             />
             <button type="submit" class="gumroad-hero-search-btn" title="Join Room or Sign In">
@@ -153,14 +153,17 @@
         </div>
 
         <div class="gumroad-hero-quick-stickers">
-          <button type="button" class="gumroad-mini-sticker yellow" data-quick-login="alex">
-            ⚡ Alex (Host • 250k)
+          <button type="button" class="gumroad-mini-sticker yellow" data-open-stack-tab="firestore">
+            ☁️ Cloud Firestore DB
           </button>
-          <button type="button" class="gumroad-mini-sticker teal" data-quick-login="hasnain">
-            🔗 Hasnain (Guest)
+          <button type="button" class="gumroad-mini-sticker teal" data-open-stack-tab="adk">
+            🤖 Google ADK Agent
           </button>
-          <button type="button" class="gumroad-mini-sticker pink" id="heroLaunchSplitBtn">
-            ◫ Split View
+          <button type="button" class="gumroad-mini-sticker pink" data-open-stack-tab="mcp">
+            🔌 MCP Server (5 Tools)
+          </button>
+          <button type="button" class="gumroad-mini-sticker" style="background:#FFFFFF;" data-open-stack-tab="studio">
+            🔥 Firebase Studio (.idx)
           </button>
         </div>
       </div>
@@ -251,15 +254,15 @@
           <div class="hero-left-col">
             <div class="claude-style-auth-card" id="heroAuthCard">
               <div class="auth-card-sticker-header">
-                <span class="sticker-badge-yellow">INSTANT SIGN-IN</span>
-                <span class="sticker-badge-mono">ZERO API KEYS</span>
+                <span class="sticker-badge-yellow">FIREBASE &amp; GOOGLE AUTH</span>
+                <span class="sticker-badge-mono">FIRESTORE DB</span>
               </div>
 
               <div class="invite-banner-editorial hidden" id="inviteAuthBanner">
                 <div class="invite-pulse-orb"></div>
                 <div class="invite-banner-copy">
                   <strong id="inviteBannerTitle">Invited to Shared Session</strong>
-                  <p id="inviteBannerDesc">Sponsored by Alex's Host Quota.</p>
+                  <p id="inviteBannerDesc">Sponsored by Host Quota.</p>
                 </div>
               </div>
 
@@ -273,7 +276,7 @@
                 <span>Continue with Google</span>
               </button>
 
-              <div class="editorial-or-divider"><span>OR EMAIL</span></div>
+              <div class="editorial-or-divider"><span>OR WORK EMAIL</span></div>
 
               <form class="hero-email-form" id="heroEmailAuthForm">
                 <div class="email-input-group">
@@ -281,19 +284,19 @@
                     type="email"
                     id="heroEmailInput"
                     class="editorial-email-input"
-                    placeholder="you@company.com"
-                    value="alex@company.com"
+                    placeholder="Enter your email (e.g. name@company.com)"
                     required
                   />
                 </div>
 
-                <div class="signup-drawer hidden" id="heroSignupDrawer">
+                <div class="signup-drawer" id="heroSignupDrawer">
                   <div class="drawer-row">
                     <input
                       type="text"
                       id="heroNameInput"
                       class="editorial-email-input sm"
-                      placeholder="Full Name"
+                      placeholder="Your Name"
+                      required
                     />
                     <select id="heroPlanSelect" class="editorial-email-input sm" aria-label="Select Tier">
                       <option value="starter">Starter • 25k ($0)</option>
@@ -304,25 +307,20 @@
                 </div>
 
                 <button type="submit" class="btn-continue-obsidian">
-                  Enter Workspace →
+                  Create / Open Workspace →
                 </button>
               </form>
 
-              <div class="auth-card-bottom-row">
-                <button type="button" class="link-toggle-signup" id="toggleSignupDrawerBtn">
-                  + Pick software quota tier
-                </button>
-              </div>
-
               <div class="instant-demo-strip">
                 <div class="demo-strip-pills">
-                  <button type="button" class="demo-launch-pill" data-quick-login="alex">
-                    <span class="avatar-dot alex">AR</span>
-                    <span><strong>Alex</strong> (Host)</span>
+                  <button type="button" class="demo-launch-pill" data-open-stack-tab="firestore">
+                    <span>☁️ <strong>Firestore</strong> DB</span>
                   </button>
-                  <button type="button" class="demo-launch-pill" data-quick-login="hasnain">
-                    <span class="avatar-dot hasnain">HK</span>
-                    <span><strong>Hasnain</strong> (Guest)</span>
+                  <button type="button" class="demo-launch-pill" data-open-stack-tab="adk">
+                    <span>🤖 <strong>Google ADK</strong></span>
+                  </button>
+                  <button type="button" class="demo-launch-pill" data-open-stack-tab="mcp">
+                    <span>🔌 <strong>MCP</strong> Server</span>
                   </button>
                 </div>
               </div>
@@ -340,37 +338,37 @@
                   <span>cothread.ai/s/cothread-arch-9x2k</span>
                 </div>
                 <div class="window-avatars">
-                  <span class="mini-av alex">AR</span>
-                  <span class="mini-av hasnain">HK</span>
-                  <span class="mini-av sarah">SC</span>
+                  <span class="mini-av alex">CT</span>
+                  <span class="mini-av hasnain">ADK</span>
+                  <span class="mini-av sarah">MCP</span>
                 </div>
               </div>
 
               <div class="showcase-quota-strip">
                 <div class="sq-left">
-                  <span class="sq-badge">HOST QUOTA</span>
-                  <span class="sq-text">Sponsored by <strong>Alex (250k Pro)</strong></span>
+                  <span class="sq-badge">FIRESTORE + ADK</span>
+                  <span class="sq-text">Host-Sponsored Quota Ledger • <strong>Cloud Run</strong></span>
                 </div>
                 <div class="sq-right">
-                  <span class="sq-mono">4,820 / 25k</span>
+                  <span class="sq-mono">25k CAP</span>
                   <div class="sq-bar"><div class="sq-fill" style="width: 24%"></div></div>
                 </div>
               </div>
 
               <div class="showcase-messages-area">
                 <div class="sc-msg host-msg">
-                  <div class="sc-av alex">AR</div>
+                  <div class="sc-av alex">H</div>
                   <div class="sc-bubble">
-                    <div class="sc-meta"><strong>Alex</strong> <span class="sc-tag">Host</span></div>
-                    <p>Shared <code>/s/cothread-arch-9x2k</code> on my Pro quota. @Hasnain, prompt Gemini here!</p>
+                    <div class="sc-meta"><strong>Session Host</strong> <span class="sc-tag">Firestore Sync</span></div>
+                    <p>Created <code>/s/cothread-arch-9x2k</code> backed by Cloud Firestore &amp; Google ADK.</p>
                   </div>
                 </div>
 
                 <div class="sc-msg guest-msg">
-                  <div class="sc-av hasnain">HK</div>
+                  <div class="sc-av hasnain">G</div>
                   <div class="sc-bubble">
-                    <div class="sc-meta"><strong>Hasnain</strong> <span class="sc-tag guest">Guest</span></div>
-                    <p><span class="mention">@Gemini</span> Route shared prompts to Alex's quota and personal forks to mine.</p>
+                    <div class="sc-meta"><strong>Team Collaborator</strong> <span class="sc-tag guest">Sublink Guest</span></div>
+                    <p><span class="mention">@Gemini</span> Compress thread via Flash-Lite and charge shared prompts to the Host cap.</p>
                   </div>
                 </div>
 
@@ -378,21 +376,21 @@
                   <div class="sc-av ai">✦</div>
                   <div class="sc-bubble ai-surface">
                     <div class="sc-meta">
-                      <strong>Gemini 3.8 Flash</strong>
-                      <span class="sc-quota-pill">⚡ 410 tokens → Host</span>
+                      <strong>Google ADK • Gemini 3.8 Flash</strong>
+                      <span class="sc-quota-pill">⚡ QuotaGuardTool Verified</span>
                     </div>
-                    <p>Done! Click <strong>Copy to My Chats</strong> anytime to continue privately on your own quota.</p>
+                    <p>Persisted to Firestore! Click <strong>Copy to My Chats</strong> anytime to fork onto your personal quota.</p>
                   </div>
                 </div>
               </div>
 
               <div class="showcase-bottom-bar">
                 <div class="sc-actions">
-                  <button type="button" class="sc-copy-btn" data-quick-login="hasnain">
-                    <span>🔀 Copy to My Chats</span>
+                  <button type="button" class="sc-copy-btn" data-open-stack-tab="mcp">
+                    <span>🔌 Inspect MCP &amp; ADK</span>
                   </button>
-                  <button type="button" class="sc-enter-btn" data-quick-login="alex">
-                    <span>Open Live Room ↗</span>
+                  <button type="button" class="sc-enter-btn" id="showcaseSignInBtn">
+                    <span>Sign In to Launch ↗</span>
                   </button>
                 </div>
               </div>
@@ -434,20 +432,20 @@
     <section class="gumroad-stat-marquee-section" id="quotaFlowSection">
       <div class="gumroad-marquee-wrap" aria-label="CoThread Capabilities Ticker">
         <div class="gumroad-marquee-track">
+          <span class="gumroad-tag-pill pink">☁️ Cloud Firestore DB</span>
+          <span class="gumroad-tag-pill yellow">🤖 Google ADK Orchestrator</span>
+          <span class="gumroad-tag-pill teal">🔌 Model Context Protocol (MCP)</span>
+          <span class="gumroad-tag-pill">🔥 Firebase Studio (.idx)</span>
           <span class="gumroad-tag-pill pink">⚡ Gemini 3.8 Flash</span>
           <span class="gumroad-tag-pill yellow">🧠 Gemini 4 Argon</span>
           <span class="gumroad-tag-pill teal">🗜️ Flash-Lite Compression</span>
-          <span class="gumroad-tag-pill">🔗 /s/cothread-arch-9x2k</span>
           <span class="gumroad-tag-pill pink">🛡️ Host Quota Cap</span>
           <span class="gumroad-tag-pill yellow">🔀 Copy to My Chats</span>
-          <span class="gumroad-tag-pill teal">📝 Shared Canvas</span>
           <span class="gumroad-tag-pill pink">💡 Idea: @hasnain-kk</span>
-          <span class="gumroad-tag-pill pink">⚡ Gemini 3.8 Flash</span>
-          <span class="gumroad-tag-pill yellow">🧠 Gemini 4 Argon</span>
-          <span class="gumroad-tag-pill teal">🗜️ Flash-Lite Compression</span>
-          <span class="gumroad-tag-pill">🔗 /s/cothread-arch-9x2k</span>
-          <span class="gumroad-tag-pill pink">🛡️ Host Quota Cap</span>
-          <span class="gumroad-tag-pill yellow">🔀 Copy to My Chats</span>
+          <span class="gumroad-tag-pill pink">☁️ Cloud Firestore DB</span>
+          <span class="gumroad-tag-pill yellow">🤖 Google ADK Orchestrator</span>
+          <span class="gumroad-tag-pill teal">🔌 Model Context Protocol (MCP)</span>
+          <span class="gumroad-tag-pill">🔥 Firebase Studio (.idx)</span>
         </div>
       </div>
     </section>
@@ -474,7 +472,7 @@
             <ul class="pricing-features">
               <li>✓ Join shared `/s/` rooms free</li>
               <li>✓ 1-Click Copy to My Chats</li>
-              <li>✓ Gemini 3.8 Flash</li>
+              <li>✓ Gemini 3.8 Flash + ADK</li>
             </ul>
             <button type="button" class="pricing-cta-btn secondary" data-provision-tier="starter">
               Start Free (25k) →
@@ -493,7 +491,7 @@
             </div>
             <ul class="pricing-features">
               <li>✓ Host `/s/` rooms &amp; sponsor guests</li>
-              <li>✓ Session token cap controls</li>
+              <li>✓ Firestore session token cap controls</li>
               <li>✓ Gemini 4 Argon + 3.8 Flash</li>
             </ul>
             <button type="button" class="pricing-cta-btn primary" data-provision-tier="pro">
@@ -512,7 +510,7 @@
             </div>
             <ul class="pricing-features">
               <li>✓ 1M+ pooled org tokens</li>
-              <li>✓ Google Workspace SSO</li>
+              <li>✓ Google Workspace SSO &amp; MCP</li>
               <li>✓ Domain-locked sublinks</li>
             </ul>
             <button type="button" class="pricing-cta-btn secondary" data-provision-tier="enterprise">
@@ -528,7 +526,7 @@
       <div class="gumroad-layered-btn-wrap">
         <div class="gumroad-layer-red" aria-hidden="true"></div>
         <div class="gumroad-layer-yellow" aria-hidden="true"></div>
-        <button type="button" class="gumroad-layer-main" data-quick-login="alex">
+        <button type="button" class="gumroad-layer-main" id="closingStartBtn">
           Launch CoThread →
         </button>
       </div>
@@ -546,9 +544,10 @@
           </p>
         </div>
         <div class="footer-links-col">
-          <button type="button" class="footer-link-btn" data-quick-login="alex">Alex (Host)</button>
-          <button type="button" class="footer-link-btn" data-quick-login="hasnain">Hasnain (Guest)</button>
-          <button type="button" class="footer-link-btn" id="footerResetBtn">Reset</button>
+          <button type="button" class="footer-link-btn" data-open-stack-tab="firestore">☁️ Cloud Firestore</button>
+          <button type="button" class="footer-link-btn" data-open-stack-tab="adk">🤖 Google ADK</button>
+          <button type="button" class="footer-link-btn" data-open-stack-tab="mcp">🔌 MCP Server</button>
+          <button type="button" class="footer-link-btn" data-open-stack-tab="studio">🔥 Firebase Studio</button>
         </div>
       </div>
     </footer>
@@ -568,8 +567,8 @@
         <div class="model-selector-pill">
           <span class="sparkle-icon">✦</span>
           <select id="headerModelSelect" class="header-model-select" aria-label="Select CoThread AI Model">
-            <option value="gemini-3.8-flash">Gemini 3.8 Flash</option>
-            <option value="gemini-4-argon">Gemini 4 Argon</option>
+            <option value="gemini-3.8-flash">Gemini 3.8 Flash (ADK)</option>
+            <option value="gemini-4-argon">Gemini 4 Argon (ADK)</option>
           </select>
           <span class="flash-lite-tag">Flash-Lite</span>
         </div>
@@ -585,17 +584,17 @@
       </div>
 
       <div class="top-header-right">
-        <div class="sync-status-pill">
+        <div class="sync-status-pill" title="Cloud Firestore &amp; BroadcastChannel Real-Time Sync">
           <span class="live-pulse-dot"></span>
-          <span id="syncStatusText">Live Sync</span>
+          <span id="syncStatusText">Firestore Sync</span>
         </div>
 
-        <button type="button" class="header-utility-btn" id="toggleSideBySideBtn">
-          <span>◫ Split View</span>
+        <button type="button" class="header-utility-btn demo-sim-btn" id="openGoogleStackModalBtn" title="Inspect Cloud Firestore DB, Google ADK Sub-Agents &amp; MCP Server">
+          <span>🔌 Google Stack • ADK &amp; MCP</span>
         </button>
 
-        <button type="button" class="header-utility-btn demo-sim-btn" id="simulateColleagueBtn">
-          <span>▶ Simulate</span>
+        <button type="button" class="header-utility-btn" id="toggleSideBySideBtn" title="Toggle Dual-Pane Multiplayer Workspace">
+          <span>◫ Dual Pane</span>
         </button>
 
         <button type="button" class="header-utility-btn" id="appThemeToggleBtn">
@@ -619,36 +618,35 @@
           <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
           <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
         </svg>
-        <span>Sign in with Google</span>
+        <span>Sign in with Google • Firebase Auth</span>
         <button type="button" class="modal-close-btn" id="closeGoogleChooserBtn" aria-label="Close">✕</button>
       </div>
 
       <div class="google-modal-body">
-        <h3 id="googleChooserTitle">Choose an account</h3>
-        <p class="google-modal-sub">to continue to <strong>CoThread</strong></p>
+        <h3 id="googleChooserTitle">Sign in to CoThread</h3>
+        <p class="google-modal-sub">Backed by <strong>Cloud Firestore</strong> &amp; <strong>Google ADK</strong></p>
 
         <div class="google-account-list" id="googleAccountList"></div>
 
-        <form class="google-custom-form hidden" id="googleCustomAccountForm">
+        <form class="google-custom-form" id="googleCustomAccountForm">
           <div class="form-field">
             <label for="googleCustomName">Full Name</label>
-            <input type="text" id="googleCustomName" class="editorial-input" placeholder="e.g., Hasnain Khan" required />
+            <input type="text" id="googleCustomName" class="editorial-input" placeholder="Enter your full name" required />
           </div>
           <div class="form-field">
-            <label for="googleCustomEmail">Email</label>
-            <input type="email" id="googleCustomEmail" class="editorial-input" placeholder="you@company.com" required />
+            <label for="googleCustomEmail">Google / Work Email</label>
+            <input type="email" id="googleCustomEmail" class="editorial-input" placeholder="name@company.com" required />
           </div>
           <div class="form-field">
-            <label for="googleCustomTier">Token Quota Plan</label>
+            <label for="googleCustomTier">Software Token Quota Plan</label>
             <select id="googleCustomTier" class="editorial-input">
               <option value="starter">Starter (25,000 Tokens)</option>
-              <option value="pro" selected>Pro (250,000 Tokens)</option>
+              <option value="pro" selected>Pro Host (250,000 Tokens)</option>
               <option value="enterprise">Enterprise (1,000,000 Tokens)</option>
             </select>
           </div>
           <div class="modal-footer-actions">
-            <button type="button" class="btn-secondary" id="cancelCustomGoogleBtn">Back</button>
-            <button type="submit" class="btn-primary">Continue →</button>
+            <button type="submit" class="btn-primary" style="width:100%;">Continue with Google Account →</button>
           </div>
         </form>
       </div>
@@ -684,7 +682,7 @@
           <div class="modal-icon-badge">✦</div>
           <div>
             <h2 id="accountQuotaModalTitle">Account &amp; Token Quota</h2>
-            <p class="modal-subtitle">Software-assigned token quota</p>
+            <p class="modal-subtitle">Cloud Firestore User Record &amp; Quota Ledger</p>
           </div>
         </div>
         <button type="button" class="modal-close-btn" id="closeAccountQuotaModalBtn" aria-label="Close modal">✕</button>
@@ -693,11 +691,30 @@
     </div>
   </div>
 
+  <!-- =========================================================================
+       6. GOOGLE STACK INSPECTOR MODAL (FIRESTORE DB + GOOGLE ADK + MCP SERVER + FIREBASE STUDIO)
+       ========================================================================= -->
+  <div class="modal-backdrop hidden" id="googleStackModalBackdrop" role="dialog" aria-modal="true" aria-labelledby="googleStackModalTitle">
+    <div class="modal-card share-quota-modal" style="max-width: 760px;">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <div class="modal-icon-badge" style="background:#FFC900;">🔌</div>
+          <div>
+            <h2 id="googleStackModalTitle">CoThread Google Cloud Stack Inspector</h2>
+            <p class="modal-subtitle">Cloud Firestore DB • Google ADK Multi-Agent • MCP Server • Firebase Studio</p>
+          </div>
+        </div>
+        <button type="button" class="modal-close-btn" id="closeGoogleStackModalBtn" aria-label="Close modal">✕</button>
+      </div>
+      <div class="modal-body" id="googleStackModalBody"></div>
+    </div>
+  </div>
+
   <div class="toast-container" id="toastContainer" aria-live="polite"></div>
 
-  <script src="../src/core/quota-engine.js?v=ct7"></script>
-  <script src="../src/ai/gemini-service.js?v=ct7"></script>
-  <script src="./app.js?v=ct7"></script>
+  <script src="../src/core/quota-engine.js?v=ct8"></script>
+  <script src="../src/ai/gemini-service.js?v=ct8"></script>
+  <script src="./app.js?v=ct8"></script>
 
   <script>
     (function initCoinParallax() {
