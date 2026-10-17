@@ -4206,9 +4206,33 @@ svg {
   position: relative;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   width: 100%;
-  gap: 4px;
-  margin-bottom: 2px;
+  border-radius: 12px !important;
+  border: 2px solid transparent !important;
+  padding: 3px 8px 3px 10px !important;
+  margin-bottom: 5px !important;
+  transition: all 0.15s ease;
+  background: transparent;
+  box-sizing: border-box;
+}
+
+.session-nav-item-wrap:hover {
+  background: rgba(20, 20, 19, 0.06);
+}
+
+.session-nav-item-wrap.active-shared {
+  background: var(--ct-pink) !important;
+  color: #000000 !important;
+  border: 2px solid #000000 !important;
+  box-shadow: 4px 4px 0px #000000 !important;
+}
+
+.session-nav-item-wrap.active-personal {
+  background: var(--ct-yellow) !important;
+  color: #000000 !important;
+  border: 2px solid #000000 !important;
+  box-shadow: 4px 4px 0px #000000 !important;
 }
 
 .session-nav-item-wrap .session-nav-item {
@@ -4216,9 +4240,47 @@ svg {
   min-width: 0;
   display: flex;
   align-items: center;
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 6px 0 !important;
+  margin: 0 !important;
+  cursor: pointer;
+  text-align: left;
+  color: inherit !important;
+  border-radius: 0 !important;
 }
 
-.chat-item-menu-btn {
+.session-nav-item-wrap .session-nav-item .nav-item-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+
+.session-nav-item-wrap .nav-item-title {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 13px;
+  font-weight: 700;
+  color: inherit;
+}
+
+.session-nav-item-wrap .nav-item-count {
+  font-size: 10.5px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.14);
+  color: inherit;
+  flex-shrink: 0;
+}
+
+.session-nav-item-wrap .chat-item-menu-btn {
   flex-shrink: 0;
   width: 26px;
   height: 26px;
@@ -4227,20 +4289,26 @@ svg {
   justify-content: center;
   background: transparent;
   border: none;
-  font-size: 16px;
+  font-size: 18px;
+  font-weight: 800;
   line-height: 1;
   cursor: pointer;
-  color: var(--ink-secondary);
+  color: inherit;
   border-radius: 6px;
-  opacity: 0.45;
+  opacity: 0.55;
   transition: opacity 0.15s ease, background 0.15s ease;
-  margin-left: 0 !important;
+  margin-left: 6px;
 }
 
 .session-nav-item-wrap:hover .chat-item-menu-btn,
-.chat-item-menu-btn:hover {
+.session-nav-item-wrap.active-shared .chat-item-menu-btn,
+.session-nav-item-wrap.active-personal .chat-item-menu-btn,
+.session-nav-item-wrap .chat-item-menu-btn:hover {
   opacity: 1;
-  background: rgba(0, 0, 0, 0.08);
+}
+
+.session-nav-item-wrap .chat-item-menu-btn:hover {
+  background: rgba(0, 0, 0, 0.14);
 }
 
 .chat-item-dropdown {
@@ -4553,4 +4621,271 @@ svg {
     font-size: 11px !important;
   }
 }
+
+/* ==========================================================================
+   Company Page Animations & Neo-Brutalist Micro-interactions
+   ========================================================================== */
+
+/* 1. Animated Hero Live Badge */
+.hero-live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  border-radius: 999px;
+  background: var(--bg-elevated);
+  border: 2px solid var(--border-strong);
+  box-shadow: 3px 3px 0px var(--border-strong);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink-primary);
+  margin-bottom: 22px;
+  animation: badgePop 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.hero-live-badge:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0px var(--border-strong);
+}
+
+@keyframes badgePop {
+  0% { transform: scale(0.92); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.live-dot-pulse {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #10B981;
+  display: inline-block;
+  animation: livePulse 2s infinite ease-in-out;
+}
+
+@keyframes livePulse {
+  0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+  70% { transform: scale(1.15); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+  100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+/* 2. Floating Coin Logo in Hero */
+.hero-center-logo-img {
+  animation: heroCoinFloat 4s ease-in-out infinite;
+}
+
+@keyframes heroCoinFloat {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-7px) rotate(2deg); }
+}
+
+/* 3. Hero Subtitle Typewriter & Blinking Cursor */
+.cothread-hero-subtitle {
+  font-size: clamp(16px, 2.2vw, 20px);
+  font-weight: 500;
+  line-height: 1.6;
+  color: var(--ink-secondary);
+  max-width: 720px;
+  margin: 0 auto 36px;
+  min-height: 58px;
+}
+
+.animated-hero-text {
+  font-weight: 600;
+  color: var(--ink-primary);
+}
+
+.typing-cursor {
+  display: inline-block;
+  font-weight: 800;
+  font-size: 1.15em;
+  color: var(--ct-pink);
+  animation: blinkCursor 0.8s infinite;
+  margin-left: 2px;
+}
+
+@keyframes blinkCursor {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* 4. Layered Button Hover Breathing */
+.cothread-layered-btn-wrap {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cothread-layered-btn-wrap:hover {
+  transform: translateY(-2px);
+}
+
+/* 5. Bento & Step Cards Smooth 3D Hover Lift */
+.cothread-bento-card,
+.cothread-step-card,
+.pricing-card {
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.cothread-bento-card:hover,
+.cothread-step-card:hover,
+.pricing-card:hover {
+  transform: translate(-3px, -3px);
+  box-shadow: 7px 7px 0px var(--border-strong) !important;
+}
+
+/* ==========================================================================
+   Meet the Team Section
+   ========================================================================== */
+.team-section {
+  padding: 84px 0;
+  border-bottom: 2px solid var(--border-strong);
+  background: var(--bg-elevated);
+}
+
+.team-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 28px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.team-card {
+  background: var(--bg-page);
+  border: 2px solid var(--border-strong);
+  border-radius: 16px;
+  padding: 32px 28px;
+  box-shadow: 5px 5px 0px var(--border-strong);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.team-card:hover {
+  transform: translate(-4px, -4px);
+  box-shadow: 9px 9px 0px var(--border-strong);
+}
+
+.team-avatar-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.team-avatar-circle {
+  width: 58px;
+  height: 58px;
+  border-radius: 999px;
+  border: 2.5px solid #000000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-serif);
+  font-size: 20px;
+  font-weight: 700;
+  color: #000000;
+  box-shadow: 3px 3px 0px #000000;
+}
+
+.team-avatar-circle.pink {
+  background: var(--ct-pink);
+}
+
+.team-avatar-circle.yellow {
+  background: var(--ct-yellow);
+}
+
+.team-role-pill {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1.5px solid #000000;
+  background: var(--bg-page);
+  color: var(--ink-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.team-name {
+  font-family: var(--font-serif);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ink-primary);
+  margin: 0 0 4px;
+}
+
+.team-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--ink-secondary);
+  margin: 0 0 12px;
+}
+
+.team-bio {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--ink-muted);
+  margin: 0 0 16px;
+  flex: 1;
+}
+
+.team-github-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 2px solid #000000;
+  background: #000000;
+  color: #FFFFFF !important;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-weight: 700;
+  text-decoration: none;
+  width: fit-content;
+  transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
+  box-shadow: 3px 3px 0px rgba(0, 0, 0, 0.25);
+}
+
+.team-github-btn:hover {
+  background: var(--ct-pink);
+  color: #000000 !important;
+  transform: translate(-2px, -2px);
+  box-shadow: 5px 5px 0px #000000;
+}
+
+@media (max-width: 768px) {
+  .team-cards-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================================================
+   Footer Exact Credits
+   ========================================================================== */
+.footer-credit-text {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink-muted);
+  margin-top: 8px;
+  max-width: 750px;
+}
+
+.footer-credit-text .credit-link {
+  color: var(--ink-primary);
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-thickness: 1.5px;
+  transition: color 0.15s ease;
+}
+
+.footer-credit-text .credit-link:hover {
+  color: var(--ct-pink-dark, #FF1787);
+}
+
 

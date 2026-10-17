@@ -863,13 +863,14 @@
                   const participantCount = (s.participants && s.participants.length) || 1;
                   const isMenuOpen = pane.openMenuSessionId === s.id;
                   return `
-                    <div class="session-nav-item-wrap">
+                    <div class="session-nav-item-wrap ${isSelected ? 'active-shared' : ''}">
                       <button
                         type="button"
-                        class="session-nav-item ${isSelected ? 'active-shared' : ''}"
+                        class="session-nav-item"
                         data-action="select-session"
                         data-user="${userId}"
                         data-session-id="${s.id}"
+                        title="${escapeHtml(s.title || 'Untitled Chat')}"
                       >
                         <div class="nav-item-top">
                           <span class="nav-item-title">${escapeHtml(s.title || 'Untitled Chat')}</span>
@@ -1305,12 +1306,60 @@
   }
 
   // =========================================================
+  // HERO ANIMATED TYPEWRITER
+  // =========================================================
+
+  function initHeroTypewriterAnimation() {
+    const subtitleDynamic = document.getElementById('heroAnimatedSubtitle');
+    if (!subtitleDynamic) return;
+
+    const phrases = [
+      'Multiple users prompt Gemini in one shared chat with live presence and history.',
+      'Real-time collaborative AI chat • Like Google Docs for AI.',
+      'Live collaborator presence & avatars in the top bar as teammates join.',
+      'Zero quota confusion • Share with 1 click via Public or Private threads.',
+      'Turn individual AI prompting into a synchronized multiplayer workspace.'
+    ];
+
+    let phraseIdx = 0;
+    let charIdx = phrases[0].length;
+    let isDeleting = true;
+
+    function tick() {
+      const current = phrases[phraseIdx];
+      if (isDeleting) {
+        charIdx--;
+        subtitleDynamic.textContent = current.slice(0, Math.max(0, charIdx));
+        if (charIdx <= 0) {
+          isDeleting = false;
+          phraseIdx = (phraseIdx + 1) % phrases.length;
+          setTimeout(tick, 350);
+          return;
+        }
+        setTimeout(tick, 18);
+      } else {
+        charIdx++;
+        subtitleDynamic.textContent = current.slice(0, charIdx);
+        if (charIdx >= current.length) {
+          isDeleting = true;
+          setTimeout(tick, 3200);
+          return;
+        }
+        setTimeout(tick, 32);
+      }
+    }
+
+    setTimeout(tick, 2800);
+  }
+
+  // =========================================================
   // BOOT APPLICATION
   // =========================================================
 
   function bootCoThreadApp() {
     initTheme();
     initGlobalEvents();
+    initHeroTypewriterAnimation();
 
     try {
       const params = new URLSearchParams(window.location.search);
