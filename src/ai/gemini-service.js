@@ -590,21 +590,17 @@
     const rosterMap = new Map();
     rosterMap.set(
       hostUser.name.toLowerCase(),
-      `[Host - ${hostUser.name}] (Session Owner \u2022 CoThread ${hostUser.planTier || 'Pro 250k'} Account Quota)`
+      `${hostUser.name} (Session Host)`
     );
 
     if (Array.isArray(normalizedSession.participants)) {
       for (const p of normalizedSession.participants) {
-        if (!p) continue;
-        const pName = p.name || p.userName || 'Colleague';
-        const tag = formatParticipantTag(p, hostUser.id, hostUser.name);
+        if (!p || typeof p !== 'object') continue;
+        const pName = p.name || p.userName;
+        if (!pName) continue;
         rosterMap.set(
           pName.toLowerCase(),
-          `${tag}${
-            p.role === 'host' || p.isHost
-              ? ` (Session Owner \u2022 CoThread ${hostUser.planTier || 'Pro 250k'} Account Quota)`
-              : ' (Joined Collaborator via Share Link)'
-          }`
+          `${pName} (${p.role === 'host' || p.isHost ? 'Session Host' : 'Collaborator'})`
         );
       }
     }
@@ -615,18 +611,13 @@
       if (roleRaw === 'assistant' || roleRaw === 'model' || roleRaw === 'ai') continue;
       const mName = m.senderName || m.name || m.author;
       if (mName && !rosterMap.has(mName.toLowerCase())) {
-        const tag = formatParticipantTag(m, hostUser.id, hostUser.name);
-        rosterMap.set(mName.toLowerCase(), `${tag} (Joined Collaborator via Share Link)`);
+        rosterMap.set(mName.toLowerCase(), `${mName} (Collaborator)`);
       }
     }
 
     rosterMap.set(
       activeUser.name.toLowerCase(),
-      `${activeSenderTag}${
-        activeUser.isHost
-          ? ` (Session Owner \u2022 CoThread ${hostUser.planTier || 'Pro 250k'} Account Quota)`
-          : ' (Active Speaker - Joined Collaborator)'
-      }`
+      `${activeUser.name} (Current Speaker)`
     );
 
     const participantRoster = Array.from(rosterMap.values());
@@ -669,24 +660,14 @@
           `${String(canvasDoc.content || canvasDoc.code).slice(0, 1200)}`
         : '';
 
-    const isSharedMode =
-      normalizedSession.mode !== 'personal' &&
-      !normalizedSession.forkedFromSessionId &&
-      normalizedSession.isShared !== false;
-
     const systemInstruction = [
-      `You are CoThread AI, a collaborative multi-participant Gemini intelligence embedded in a live shared workspace.`,
-      `SESSION MODE: ${
-        isSharedMode
-          ? `Live Shared Session hosted by [Host - ${hostUser.name}]. All participants share a single continuous context thread sponsored by ${hostUser.name}'s CoThread account token quota (${hostUser.planTier || 'Pro 250k'}).`
-          : `Personal Copied Workspace owned by ${activeUser.name} (branched from ${hostUser.name}'s shared session, billed to ${activeUser.name}'s personal CoThread account quota).`
-      }`,
-      `PARTICIPANTS IN THIS THREAD:\n${participantRoster.map((r) => `- ${r}`).join('\n')}`,
-      `CRITICAL COLLABORATION RULES:`,
-      `1. Distinguish between participants using their tags (e.g., [Host - ${hostUser.name}] vs [Colleague - Hasnain] vs [Colleague - Sarah Chen]).`,
-      `2. Address the current speaker (${activeSenderTag}) directly while maintaining seamless continuity with earlier points raised by the Host and other colleagues.`,
-      `3. Keep responses high-signal, actionable, and token-conscious to respect the software-assigned CoThread account token quota.`,
-      `4. When creating or updating technical specifications, code, or action plans, include a <canvas title="..." type="markdown|code">...</canvas> block so the live Shared Canvas updates automatically for all participants.`,
+      `You are CoThread AI, a helpful, intelligent collaborative Gemini assistant in a shared team chat.`,
+      `The current user speaking to you is ${activeUser.name}.`,
+      `GUIDELINES:`,
+      `1. Respond naturally, directly, and helpfully to ${activeUser.name}'s message (just like Google Gemini or Claude).`,
+      `2. NEVER include bracketed role tags like "[Host - ...]" or "[Colleague - ...]" in your response.`,
+      `3. For casual greetings (like "hi" or "hello"), reply warmly and concisely without generating unnecessary code or canvas blocks.`,
+      `4. When the user asks for code, architecture, or an implementation, provide complete, clean, well-explained code directly in markdown code blocks.`,
     ].join('\n');
 
     const latestQuestionText = String(
@@ -1050,39 +1031,42 @@
       );
     }
 
-    const conciseTopic =
-      rawQuestion.length > 95 ? `${rawQuestion.slice(0, 92)}...` : rawQuestion || 'collaborative architecture';
-    const fnIdentifier =
-      rawQuestion
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '_')
-        .replace(/^_|_$/g, '')
-        .slice(0, 28) || 'executeWorkflow';
+    if (/^(hi|hello|hey|salaam|salam|good\s*(morning|afternoon|evening)|yo)\b/i.test(rawQuestion.trim())) {
+      return `Hello ${speakerName}! How can I help you and your team today? Feel free to ask any question, brainstorm ideas, or request code.`;
+    }
+
+    if (qLower.includes('chat agent') || qLower.includes('agent') || qLower.includes('code')) {
+      return (
+        `Here is a clean, production-ready **Gemini Chat Agent** implementation for **${speakerName}** using the official \`@google/genai\` SDK and the **Interactions API** (\`gemini-3.8-flash\`):\n\n` +
+        `<canvas title="gemini-chat-agent.js" type="code">import { GoogleGenAI } from '@google/genai';\n\n` +
+        `// Initialize the Google GenAI client (reads GEMINI_API_KEY from environment)\n` +
+        `const client = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });\n\n` +
+        `export class GeminiChatAgent {\n` +
+        `  constructor(systemInstruction = 'You are a helpful AI assistant.') {\n` +
+        `    this.model = 'gemini-3.8-flash';\n` +
+        `    this.systemInstruction = systemInstruction;\n` +
+        `    this.lastInteractionId = null;\n` +
+        `  }\n\n` +
+        `  async sendMessage(userPrompt) {\n` +
+        `    const interaction = await client.interactions.create({\n` +
+        `      model: this.model,\n` +
+        `      input: userPrompt,\n` +
+        `      system_instruction: this.systemInstruction,\n` +
+        `      ...(this.lastInteractionId ? { previous_interaction_id: this.lastInteractionId } : {})\n` +
+        `    });\n\n` +
+        `    // Save interaction ID for stateful multi-turn conversation\n` +
+        `    this.lastInteractionId = interaction.id;\n\n` +
+        `    const textOutput = (interaction.outputs || []).find((o) => o.type === 'text');\n` +
+        `    return textOutput ? textOutput.text : interaction.output_text;\n` +
+        `  }\n` +
+        `}</canvas>`
+      );
+    }
 
     return (
-      `Here is the technical synthesis and implementation for **${speakerName}** (${speakerRoleBadge} \u2022 \`${modelLabel}\`), building on **${referencedTeammate}**'s context:${attachmentIntro}\n\n` +
-      `### Solution for: *"${conciseTopic}"*\n` +
-      `\u2022 **1. Architecture & Execution Flow:** Designed a modular Cloud Run + Firestore handler for *"${conciseTopic}"* with deterministic error recovery and sub-50ms state synchronization.\n` +
-      `\u2022 **2. Context & Quota Optimization:** \`gemini-3.5-flash-lite\` compressed ${messages.length} prior messages in this thread (saving **${promptData.compressedTokensSaved || 140} tokens**), charging this turn to **${session.type === 'shared' ? hostName + "'s Host Quota" : speakerName + "'s Personal Quota"}**.\n` +
-      `\u2022 **3. Live Artifact Canvas Updated:** Generated the production TypeScript module in the **Artifact Canvas** so everyone in this room can inspect or fork it.\n\n` +
-      `<canvas title="${fnIdentifier}.ts" type="code">// Generated by ${modelLabel} for ${speakerName} (${speakerRoleBadge})\n` +
-      `// Prompt: ${rawQuestion.replace(/\n+/g, ' ')}\n\n` +
-      `export interface ExecutionResult {\n` +
-      `  ok: boolean;\n` +
-      `  executedBy: string;\n` +
-      `  model: string;\n` +
-      `  firestoreSessionId: string;\n` +
-      `  timestamp: string;\n` +
-      `}\n\n` +
-      `export async function ${fnIdentifier}(payload: Record<string, unknown>): Promise<ExecutionResult> {\n` +
-      `  return {\n` +
-      `    ok: true,\n` +
-      `    executedBy: "${speakerName}",\n` +
-      `    model: "${resolvedModel}",\n` +
-      `    firestoreSessionId: "${session.id || 'session_shared_1'}",\n` +
-      `    timestamp: new Date().toISOString()\n` +
-      `  };\n` +
-      `}</canvas>`
+      `Here is a breakdown for **${speakerName}** regarding **"${rawQuestion}"**:\n\n` +
+      `1. **Key Approach:** Break the problem into modular components so everyone in this shared CoThread chat can iterate on it together.\n` +
+      `2. **Next Step:** Tell me if you would like code examples, architecture diagrams, or step-by-step instructions for **${rawQuestion}**.`
     );
   }
 
@@ -1262,107 +1246,147 @@
 
     // 4b. Direct Gemini Interactions REST API (`POST /v1beta/interactions`) for Browser / Serverless
     if (!usedLiveSdk && platformServerKey && typeof fetch === 'function') {
-      try {
-        const restPayload = {
-          model: resolvedModel,
-          input: promptData.formattedInput,
-          system_instruction: promptData.systemInstruction,
-        };
-        if (session?.lastInteractionId && String(session.lastInteractionId).startsWith('v1_')) {
-          restPayload.previous_interaction_id = session.lastInteractionId;
+      const extractInteractionText = (data) => {
+        if (!data) return '';
+        if (typeof data.output_text === 'string' && data.output_text.trim()) {
+          return data.output_text.trim();
         }
-
-        const resp = await fetch('https://generativelanguage.googleapis.com/v1beta/interactions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-goog-api-key': String(platformServerKey).trim(),
-          },
-          body: JSON.stringify(restPayload),
-        });
-
-        if (resp.ok) {
-          const data = await resp.json();
-          if (data && data.id) {
-            interactionId = data.id;
+        if (Array.isArray(data.outputs)) {
+          const outParts = [];
+          for (const out of data.outputs) {
+            if (out && out.type === 'text' && out.text) {
+              outParts.push(out.text);
+            }
           }
-          let extracted = data?.output_text || '';
-          if (!extracted && Array.isArray(data?.steps)) {
-            const parts = [];
-            for (const step of data.steps) {
-              if (step.type === 'model_output' && Array.isArray(step.content)) {
-                for (const c of step.content) {
-                  if (c.type === 'text' && c.text) {
-                    parts.push(c.text);
-                  }
+          if (outParts.length > 0) return outParts.join('\n').trim();
+        }
+        if (Array.isArray(data.steps)) {
+          const stepParts = [];
+          for (const step of data.steps) {
+            if (step.type === 'model_output' && Array.isArray(step.content)) {
+              for (const c of step.content) {
+                if (c.type === 'text' && c.text) {
+                  stepParts.push(c.text);
                 }
               }
             }
-            extracted = parts.join('\n');
           }
-          if (extracted) {
-            fullText = extracted;
-            usedLiveSdk = true;
-            if (data?.usage) {
-              sdkUsage = {
-                inputTokens: data.usage.total_input_tokens || data.usage.input_tokens || 0,
-                outputTokens: data.usage.total_output_tokens || data.usage.output_tokens || 0,
-                totalTokens: data.usage.total_tokens || 0,
-                extraSavedTokens: 0,
-              };
-            }
-          }
-        } else {
-          const errJson = await resp.json().catch(() => null);
-          const errMsg =
-            (Array.isArray(errJson) ? errJson[0]?.error?.message : errJson?.error?.message) ||
-            `HTTP ${resp.status}`;
-          liveApiNotice = errMsg;
+          if (stepParts.length > 0) return stepParts.join('\n').trim();
         }
-      } catch (fetchErr) {
-        liveApiNotice = fetchErr?.message || 'Network error calling Gemini Interactions API';
+        return '';
+      };
+
+      const candidateAttempts = [
+        { model: resolvedModel, usePrevId: true },
+        ...(resolvedModel !== 'gemini-3.8-flash'
+          ? [{ model: 'gemini-3.8-flash', usePrevId: false }]
+          : [{ model: 'gemini-3.8-flash', usePrevId: false }]),
+      ];
+
+      for (const attempt of candidateAttempts) {
+        if (usedLiveSdk) break;
+        try {
+          const restPayload = {
+            model: attempt.model,
+            input: promptData.formattedInput,
+            system_instruction: promptData.systemInstruction,
+          };
+          if (
+            attempt.usePrevId &&
+            session?.lastInteractionId &&
+            String(session.lastInteractionId).startsWith('v1_')
+          ) {
+            restPayload.previous_interaction_id = session.lastInteractionId;
+          }
+
+          const resp = await fetch('https://generativelanguage.googleapis.com/v1beta/interactions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-goog-api-key': String(platformServerKey).trim(),
+            },
+            body: JSON.stringify(restPayload),
+          });
+
+          if (resp.ok) {
+            const data = await resp.json();
+            const extracted = extractInteractionText(data);
+            if (extracted) {
+              if (data && data.id) {
+                interactionId = data.id;
+              }
+              fullText = extracted;
+              usedLiveSdk = true;
+              liveApiNotice = null;
+              if (data?.usage) {
+                sdkUsage = {
+                  inputTokens: data.usage.total_input_tokens || data.usage.input_tokens || 0,
+                  outputTokens: data.usage.total_output_tokens || data.usage.output_tokens || 0,
+                  totalTokens: data.usage.total_tokens || 0,
+                  extraSavedTokens: 0,
+                };
+              }
+              break;
+            }
+          } else {
+            const errJson = await resp.json().catch(() => null);
+            const errMsg =
+              (Array.isArray(errJson) ? errJson[0]?.error?.message : errJson?.error?.message) ||
+              `HTTP ${resp.status}`;
+            liveApiNotice = errMsg;
+          }
+        } catch (fetchErr) {
+          liveApiNotice = fetchErr?.message || 'Network error calling Gemini Interactions API';
+        }
       }
     }
 
     // 4c. Automatic Vertex AI Express Fallback (`aiplatform.googleapis.com`) for GCP Promotional Credits (e.g. cloud-champion-innovator)
     if (!usedLiveSdk && platformServerKey && typeof fetch === 'function') {
-      try {
-        const vertexModel = resolvedModel === 'gemini-4-argon' ? 'gemini-2.5-pro' : 'gemini-2.5-flash';
-        const vertexUrl = `https://aiplatform.googleapis.com/v1/publishers/google/models/${vertexModel}:generateContent?key=${encodeURIComponent(String(platformServerKey).trim())}`;
-        const vertexResp = await fetch(vertexUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            systemInstruction: {
-              parts: [{ text: promptData.systemInstruction }],
-            },
-            contents: [
-              {
-                role: 'user',
-                parts: [{ text: promptData.formattedInput }],
+      const vertexModelsToTry =
+        resolvedModel === 'gemini-4-argon'
+          ? ['gemini-2.5-pro', 'gemini-2.5-flash']
+          : ['gemini-2.5-flash'];
+      for (const vertexModel of vertexModelsToTry) {
+        if (usedLiveSdk) break;
+        try {
+          const vertexUrl = `https://aiplatform.googleapis.com/v1/publishers/google/models/${vertexModel}:generateContent?key=${encodeURIComponent(String(platformServerKey).trim())}`;
+          const vertexResp = await fetch(vertexUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              systemInstruction: {
+                parts: [{ text: promptData.systemInstruction }],
               },
-            ],
-          }),
-        });
-        if (vertexResp.ok) {
-          const vertexData = await vertexResp.json();
-          const vertexText = vertexData?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-          if (vertexText) {
-            fullText = vertexText;
-            usedLiveSdk = true;
-            liveApiNotice = null;
-            if (vertexData?.usageMetadata) {
-              sdkUsage = {
-                inputTokens: vertexData.usageMetadata.promptTokenCount || 0,
-                outputTokens: vertexData.usageMetadata.candidatesTokenCount || 0,
-                totalTokens: vertexData.usageMetadata.totalTokenCount || 0,
-                extraSavedTokens: 0,
-              };
+              contents: [
+                {
+                  role: 'user',
+                  parts: [{ text: promptData.formattedInput }],
+                },
+              ],
+            }),
+          });
+          if (vertexResp.ok) {
+            const vertexData = await vertexResp.json();
+            const vertexText = vertexData?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+            if (vertexText) {
+              fullText = vertexText;
+              usedLiveSdk = true;
+              liveApiNotice = null;
+              if (vertexData?.usageMetadata) {
+                sdkUsage = {
+                  inputTokens: vertexData.usageMetadata.promptTokenCount || 0,
+                  outputTokens: vertexData.usageMetadata.candidatesTokenCount || 0,
+                  totalTokens: vertexData.usageMetadata.totalTokenCount || 0,
+                  extraSavedTokens: 0,
+                };
+              }
+              break;
             }
           }
+        } catch (_vertexErr) {
+          // Continue to next model or fallback
         }
-      } catch (_vertexErr) {
-        // Continue to CoThread ADK Architect fallback
       }
     }
 
