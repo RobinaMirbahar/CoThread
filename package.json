@@ -1,18 +1,21 @@
 {
   "name": "cothread-enterprise-ai",
-  "version": "2.0.0",
-  "description": "CoThread — Enterprise Multiplayer AI Platform with Host-Sponsored Token Quotas, Google Sign-In & Personal Session Forking (AI Builder Cup 2026)",
+  "version": "2.1.0",
+  "description": "CoThread — Collaborative AI Platform powered by Google Gemini, Google ADK, Cloud Firestore, Firebase Studio & MCP Server",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js",
+    "mcp": "node src/mcp/cothread-mcp-server.js",
     "test": "node tests/verify.js"
   },
   "dependencies": {
+    "@google-cloud/firestore": "^7.10.0",
     "@google/genai": "^2.29.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
-    "express": "^4.21.2"
+    "express": "^4.21.2",
+    "firebase-admin": "^13.0.1"
   },
   "engines": {
     "node": ">=18.0.0"
