@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "cothread-mcp-server": {
+      "command": "node",
+      "args": ["src/mcp/cothread-mcp-server.js"],
+      "env": {
+        "FIREBASE_PROJECT_ID": "cothread-ai"
+      }
+    },
+    "firebase": {
+      "command": "npx",
+      "args": ["-y", "firebase-tools@latest", "experimental:mcp"]
+    }
+  }
+}
