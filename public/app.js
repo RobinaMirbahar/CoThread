@@ -2115,16 +2115,16 @@ export async function executeAdkCollaborativeTurn() {
 
     const tabsHtml = `
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
-        <button type="button" class="gumroad-mini-sticker ${activeStackTab === 'firestore' ? 'yellow' : ''}" data-switch-stack-tab="firestore">
+        <button type="button" class="cothread-mini-sticker ${activeStackTab === 'firestore' ? 'yellow' : ''}" data-switch-stack-tab="firestore">
           ☁️ Cloud Firestore DB (${usersCount} Users • ${sharedCount + personalCount} Docs)
         </button>
-        <button type="button" class="gumroad-mini-sticker ${activeStackTab === 'adk' ? 'teal' : ''}" data-switch-stack-tab="adk">
+        <button type="button" class="cothread-mini-sticker ${activeStackTab === 'adk' ? 'teal' : ''}" data-switch-stack-tab="adk">
           🤖 Google ADK Agent (${traces.length} Traces)
         </button>
-        <button type="button" class="gumroad-mini-sticker ${activeStackTab === 'mcp' ? 'pink' : ''}" data-switch-stack-tab="mcp">
+        <button type="button" class="cothread-mini-sticker ${activeStackTab === 'mcp' ? 'pink' : ''}" data-switch-stack-tab="mcp">
           🔌 MCP Server (JSON-RPC 2.0)
         </button>
-        <button type="button" class="gumroad-mini-sticker" style="${activeStackTab === 'studio' ? 'background:#FFC900;' : 'background:#FFF;'}" data-switch-stack-tab="studio">
+        <button type="button" class="cothread-mini-sticker" style="${activeStackTab === 'studio' ? 'background:#FFC900;' : 'background:#FFF;'}" data-switch-stack-tab="studio">
           🔥 Firebase Studio (.idx)
         </button>
       </div>
