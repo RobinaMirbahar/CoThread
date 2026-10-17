@@ -223,6 +223,7 @@
         activeSessionId: defaultSess ? defaultSess.id : null,
         composerMode: 'ai',
         canvasOpen: false,
+        mobileSidebarOpen: false,
         draftText: ''
       };
     } else if (!state.paneState[userId].activeSessionId && state.sessions.length > 0) {
@@ -888,8 +889,14 @@ export async function executeAdkCollaborativeTurn() {
         }
 
         <div class="pane-body-grid">
+          <div
+            class="mobile-sidebar-backdrop ${pane.mobileSidebarOpen ? 'open' : ''}"
+            data-action="close-mobile-sidebar"
+            data-user="${userId}"
+          ></div>
+
           <!-- LEFT SIDEBAR -->
-          <aside class="pane-sidebar" aria-label="${escapeHtml(account.name)} Sidebar">
+          <aside class="pane-sidebar ${pane.mobileSidebarOpen ? 'mobile-open' : ''}" aria-label="${escapeHtml(account.name)} Sidebar">
             <div class="sidebar-new-chat-wrap">
               <button
                 type="button"
@@ -909,6 +916,13 @@ export async function executeAdkCollaborativeTurn() {
               >
                 + Shared
               </button>
+              <button
+                type="button"
+                class="mobile-sidebar-close-btn"
+                data-action="close-mobile-sidebar"
+                data-user="${userId}"
+                title="Close Sidebar"
+              >✕</button>
             </div>
 
             <div class="sidebar-scroll-area">
@@ -1034,6 +1048,15 @@ export async function executeAdkCollaborativeTurn() {
             <header class="session-docs-header">
               <div class="session-header-top-row">
                 <div class="session-title-cluster">
+                  <button
+                    type="button"
+                    class="hdr-btn mobile-sidebar-toggle-btn"
+                    data-action="toggle-mobile-sidebar"
+                    data-user="${userId}"
+                    title="Open Sessions & Quota Sidebar"
+                  >
+                    <span>☰ Chats</span>
+                  </button>
                   <span class="session-mode-badge ${isSharedActive ? 'shared-mode' : 'personal-mode'}">
                     ${
                       isSharedActive
@@ -1480,10 +1503,20 @@ export async function executeAdkCollaborativeTurn() {
 
       if (action === 'select-session') {
         const sId = btn.getAttribute('data-session-id');
-        ensurePaneStateForUser(targetUser).activeSessionId = sId;
+        const p = ensurePaneStateForUser(targetUser);
+        p.activeSessionId = sId;
+        p.mobileSidebarOpen = false;
         saveAndBroadcastState();
         renderApp();
         scrollChatToBottom(sId);
+      } else if (action === 'toggle-mobile-sidebar') {
+        const p = ensurePaneStateForUser(targetUser);
+        p.mobileSidebarOpen = !p.mobileSidebarOpen;
+        renderApp();
+      } else if (action === 'close-mobile-sidebar') {
+        const p = ensurePaneStateForUser(targetUser);
+        p.mobileSidebarOpen = false;
+        renderApp();
       } else if (action === 'set-composer-mode') {
         ensurePaneStateForUser(targetUser).composerMode = btn.getAttribute('data-mode');
         renderApp();
@@ -1507,10 +1540,13 @@ export async function executeAdkCollaborativeTurn() {
       } else if (action === 'open-share-modal') {
         openShareModal(btn.getAttribute('data-session-id'));
       } else if (action === 'continue-independently') {
+        ensurePaneStateForUser(targetUser).mobileSidebarOpen = false;
         continueIndependentlyToMyChats(targetUser, btn.getAttribute('data-session-id'));
       } else if (action === 'new-shared-session') {
+        ensurePaneStateForUser(targetUser).mobileSidebarOpen = false;
         createNewSharedSession(targetUser);
       } else if (action === 'new-personal-chat') {
+        ensurePaneStateForUser(targetUser).mobileSidebarOpen = false;
         createNewPersonalChat(targetUser);
       } else if (action === 'open-account-quota-modal') {
         openAccountQuotaModal(targetUser);
