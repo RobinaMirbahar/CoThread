@@ -489,6 +489,11 @@
         <!-- Live Collaborators Presence Stack (Owner filtered OUT!) -->
         <div class="presence-avatar-stack" id="headerPresenceStack" title="Collaborators in this chat"></div>
 
+        <!-- Gemini Chat Agent & API Key Button -->
+        <button type="button" class="share-chat-action-btn" id="headerGeminiKeyBtn" title="Configure Gemini Chat Agent &amp; API Key" style="background: var(--surface-card); color: var(--ink-primary); border: 1px solid var(--border-subtle);">
+          <span id="headerGeminiKeyStatus">&#x2726; Gemini Agent</span>
+        </button>
+
         <!-- Share Button in Top Right on Desktop & Mobile -->
         <button type="button" class="share-chat-action-btn" id="headerShareBtn" title="Share Chat">
           <span>&#x1F517; Share</span>
@@ -567,10 +572,53 @@
     </div>
   </div>
 
+  <!-- =========================================================================
+       5. GEMINI CHAT AGENT & API KEY MODAL
+       ========================================================================= -->
+  <div class="modal-backdrop hidden" id="geminiAgentModalBackdrop">
+    <div class="modal-card share-dialog-card">
+      <div class="modal-header">
+        <div class="modal-title-cluster">
+          <span class="sparkle-icon">&#x2726;</span>
+          <h3>Gemini Chat Agent Settings</h3>
+        </div>
+        <button type="button" class="modal-close-btn" id="closeGeminiAgentModalBtn">&#x2715;</button>
+      </div>
+      <div class="modal-body share-modal-body">
+        <p class="share-modal-desc">
+          Connect your personal <strong>Google Gemini API Key</strong> to run live multi-turn interactions with <code>gemini-3.8-flash</code> and <code>gemini-4-argon</code> via the Gemini Interactions API (<code>/v1beta/interactions</code>). Your key is stored only in your browser&#x2019;s local storage and is never uploaded to GitHub.
+        </p>
+        <form id="geminiAgentKeyForm" class="share-email-form" style="margin-bottom: 14px;">
+          <input
+            type="password"
+            id="geminiApiKeyInput"
+            class="share-email-input"
+            placeholder="Paste your GEMINI_API_KEY (AIzaSy...)..."
+            autocomplete="off"
+          />
+          <button type="submit" class="share-invite-submit-btn">
+            Save API Key
+          </button>
+        </form>
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px;">
+          <span id="geminiKeySavedBadge" style="font-size: 12.5px; font-weight: 600; color: var(--ink-muted);">
+            Status: Using CoThread ADK Collaborative Agent
+          </span>
+          <button type="button" id="clearGeminiKeyBtn" class="acct-btn" style="padding: 6px 12px; font-size: 12px; width: auto;">
+            Clear Key
+          </button>
+        </div>
+        <div class="share-notice-box">
+          &#x2726; <strong>Multi-Participant Context:</strong> The Gemini Chat Agent automatically formats every teammate&#x2019;s name and role (<code>[Host]</code> vs <code>[Collaborator]</code>), maintains stateful <code>previous_interaction_id</code> turns, and seamlessly falls back to the CoThread ADK Architect if API credits are depleted.
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="toast-container" id="toastContainer" aria-live="polite"></div>
 
-  <script src="../src/core/quota-engine.js?v=ct21"></script>
-  <script src="../src/ai/gemini-service.js?v=ct21"></script>
-  <script src="./app.js?v=ct21"></script>
+  <script src="./src/core/quota-engine.js?v=ct22"></script>
+  <script src="./src/ai/gemini-service.js?v=ct22"></script>
+  <script src="./public/app.js?v=ct22"></script>
 </body>
 </html>
