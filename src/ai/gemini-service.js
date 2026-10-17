@@ -1,5 +1,5 @@
 /**
- * CoThread — Gemini AI & Multi-Participant Context Engine
+ * CoThread - Gemini AI & Multi-Participant Context Engine
  * Universal module usable in both Node.js (`server.js`) and Browser (`public/app.js`).
  *
  * Strictly adheres to the Google GenAI Interactions API (`@google/genai` >= 2.29.1):
@@ -56,7 +56,7 @@
     'gemini-3.8-flash': {
       id: 'gemini-3.8-flash',
       name: 'Gemini 3.8 Flash',
-      badge: 'Default • Collaborative Multimodal',
+      badge: 'Default \u2022 Collaborative Multimodal',
       contextWindow: 1000000,
       description: '1M token context, fast & balanced performance for multi-participant reasoning and multimodal tasks.',
       costMultiplier: 1.0,
@@ -434,7 +434,7 @@
         msg.channel === 'team-chat' ||
         msg.mode === 'chat-only' ||
         msg.triggerAi === false ||
-        /^(lol|haha|thanks|thx|sounds good|got it|wait|hold on|agreed|\+1|👍|checking|one sec)/i.test(text);
+        /^(lol|haha|thanks|thx|sounds good|got it|wait|hold on|agreed|\+1|\uD83D\uDC4D|checking|one sec)/i.test(text);
 
       const isOlderTurn = idx < cutoffIndex;
 
@@ -480,14 +480,14 @@
     if (keyDecisions.length > 0) {
       sections.push(
         `[Compressed Earlier CoThread Context via ${COMPRESSION_MODEL}]\n` +
-          keyDecisions.map((d) => `• ${d}`).join('\n')
+          keyDecisions.map((d) => `\u2022 ${d}`).join('\n')
       );
     }
 
     if (banterNotes.length > 0) {
       sections.push(
         `[Condensed Team Side-Chat & Alignment (${banterNotes.length} messages compressed via ${COMPRESSION_MODEL})]\n` +
-          banterNotes.slice(-5).map((b) => `• ${b}`).join('\n')
+          banterNotes.slice(-5).map((b) => `\u2022 ${b}`).join('\n')
       );
     }
 
@@ -590,7 +590,7 @@
     const rosterMap = new Map();
     rosterMap.set(
       hostUser.name.toLowerCase(),
-      `[Host - ${hostUser.name}] (Session Owner • CoThread ${hostUser.planTier || 'Pro 250k'} Account Quota)`
+      `[Host - ${hostUser.name}] (Session Owner \u2022 CoThread ${hostUser.planTier || 'Pro 250k'} Account Quota)`
     );
 
     if (Array.isArray(normalizedSession.participants)) {
@@ -602,7 +602,7 @@
           pName.toLowerCase(),
           `${tag}${
             p.role === 'host' || p.isHost
-              ? ` (Session Owner • CoThread ${hostUser.planTier || 'Pro 250k'} Account Quota)`
+              ? ` (Session Owner \u2022 CoThread ${hostUser.planTier || 'Pro 250k'} Account Quota)`
               : ' (Joined Collaborator via Share Link)'
           }`
         );
@@ -624,7 +624,7 @@
       activeUser.name.toLowerCase(),
       `${activeSenderTag}${
         activeUser.isHost
-          ? ` (Session Owner • CoThread ${hostUser.planTier || 'Pro 250k'} Account Quota)`
+          ? ` (Session Owner \u2022 CoThread ${hostUser.planTier || 'Pro 250k'} Account Quota)`
           : ' (Active Speaker - Joined Collaborator)'
       }`
     );
@@ -904,9 +904,9 @@
     ) {
       return (
         `Building on **${hostName}**'s Cloud Run webhook pipeline, here is the **Exponential Backoff & Dead Letter Topic (DLT)** strategy for **${speakerName}** (${speakerRoleBadge}):${attachmentIntro}\n\n` +
-        `• **Jittered Exponential Backoff:** Configure the Cloud Pub/Sub push subscription with \`minimumBackoff: 10s\`, \`maximumBackoff: 600s\`, and full jitter ($t = \\min(600, 10 \\cdot 2^{\\text{attempt}})$) to prevent downstream thundering herds.\n` +
-        `• **Dead Letter Topic (\`webhooks-dlt\`):** Set \`maxDeliveryAttempts: 5\`. Any poison payload failing 5 times is automatically routed to \`projects/cothread/topics/webhooks-dlt\` with diagnostic attributes.\n` +
-        `• **Automated Replay & Alerting:** A Cloud Run worker persists DLT events to **Cloud Firestore (\`dead_letter_events\`)** for 1-click replay once the downstream service recovers.\n\n` +
+        `\u2022 **Jittered Exponential Backoff:** Configure the Cloud Pub/Sub push subscription with \`minimumBackoff: 10s\`, \`maximumBackoff: 600s\`, and full jitter ($t = \\min(600, 10 \\cdot 2^{\\text{attempt}})$) to prevent downstream thundering herds.\n` +
+        `\u2022 **Dead Letter Topic (\`webhooks-dlt\`):** Set \`maxDeliveryAttempts: 5\`. Any poison payload failing 5 times is automatically routed to \`projects/cothread/topics/webhooks-dlt\` with diagnostic attributes.\n` +
+        `\u2022 **Automated Replay & Alerting:** A Cloud Run worker persists DLT events to **Cloud Firestore (\`dead_letter_events\`)** for 1-click replay once the downstream service recovers.\n\n` +
         `<canvas title="pubsub_backoff_dlt_config.yaml" type="code"># Google Cloud Pub/Sub Subscription with Exponential Backoff & Dead Letter Topic\n` +
         `name: projects/cothread-prod/subscriptions/webhooks-worker-sub\n` +
         `topic: projects/cothread-prod/topics/webhooks-ingest\n` +
@@ -925,11 +925,11 @@
 
     if (qLower.includes('webhook') || qLower.includes('ingestion') || qLower.includes('pipeline')) {
       return (
-        `Here is the **4-point fault-tolerant webhook ingestion pipeline on Google Cloud Run** requested by **${speakerName}** (${speakerRoleBadge} • \`${modelLabel}\`):${attachmentIntro}\n\n` +
-        `• **1. Stateless Cloud Run Ingress & HMAC Auth:** Terminate TLS at the Cloud Run ingress, validate HMAC-SHA256 signatures in memory, and return \`202 Accepted\` within 15ms so senders never time out.\n` +
-        `• **2. Cloud Pub/Sub Durable Buffering:** Immediately publish verified payloads to a regional **Cloud Pub/Sub** topic (\`webhooks-ingest\`) to decouple burst traffic (10,000+ RPS) from downstream processing.\n` +
-        `• **3. Cloud Firestore Idempotency Ledger:** Deduplicate webhook \`event_id\` keys using atomic **Cloud Firestore** document creation (\`webhook_events/{eventId}\`) before executing business side effects.\n` +
-        `• **4. Auto-Scaling Worker Pool & Dead-Letter Isolation:** Process events asynchronously via concurrency-tuned Cloud Run push workers (\`maxInstanceRequestConcurrency: 80\`) backed by exponential backoff and a Dead Letter Topic.\n\n` +
+        `Here is the **4-point fault-tolerant webhook ingestion pipeline on Google Cloud Run** requested by **${speakerName}** (${speakerRoleBadge} \u2022 \`${modelLabel}\`):${attachmentIntro}\n\n` +
+        `\u2022 **1. Stateless Cloud Run Ingress & HMAC Auth:** Terminate TLS at the Cloud Run ingress, validate HMAC-SHA256 signatures in memory, and return \`202 Accepted\` within 15ms so senders never time out.\n` +
+        `\u2022 **2. Cloud Pub/Sub Durable Buffering:** Immediately publish verified payloads to a regional **Cloud Pub/Sub** topic (\`webhooks-ingest\`) to decouple burst traffic (10,000+ RPS) from downstream processing.\n` +
+        `\u2022 **3. Cloud Firestore Idempotency Ledger:** Deduplicate webhook \`event_id\` keys using atomic **Cloud Firestore** document creation (\`webhook_events/{eventId}\`) before executing business side effects.\n` +
+        `\u2022 **4. Auto-Scaling Worker Pool & Dead-Letter Isolation:** Process events asynchronously via concurrency-tuned Cloud Run push workers (\`maxInstanceRequestConcurrency: 80\`) backed by exponential backoff and a Dead Letter Topic.\n\n` +
         `<canvas title="cloudrun_webhook_architecture.ts" type="code">// Fault-Tolerant Google Cloud Run Webhook Ingestion Pipeline\n` +
         `export interface WebhookPipelineConfig {\n` +
         `  ingressService: 'cothread-webhook-ingress';\n` +
@@ -949,9 +949,9 @@
     ) {
       return (
         `Here is how **CoThread** transforms single-player AI web apps (**Claude \`claude.ai\`**, **ChatGPT \`chatgpt.com\`**, and **Gemini \`gemini.google.com\`**) into a true multiplayer enterprise platform for **${speakerName}** (${speakerRoleBadge}):${attachmentIntro}\n\n` +
-        `• **Live Shared \`/s/\` Sublinks vs. Dead Snapshots:** Unlike Claude, ChatGPT, and Gemini where sharing exports a static read-only transcript, CoThread's \`/s/${session.shareCode || 'cothread-arch-9x2k'}\` sublink puts **${hostName}** and **${referencedTeammate}** in the exact same live context window.\n` +
-        `• **Host-Sponsored Token Quotas:** Teammates on a Free/Starter plan can co-prompt **Gemini 4 Argon** & **Gemini 3.8 Flash** sponsored by the Host's \`250k Pro\` / \`1M Enterprise\` quota—with zero client API keys.\n` +
-        `• **1-Click Independent Continuation (\`Copy to My Chats\`):** Any collaborator can fork the live conversation into their private \`/app\` workspace at any time, switching all future token deductions to their own personal quota.\n\n` +
+        `\u2022 **Live Shared \`/s/\` Sublinks vs. Dead Snapshots:** Unlike Claude, ChatGPT, and Gemini where sharing exports a static read-only transcript, CoThread's \`/s/${session.shareCode || 'cothread-arch-9x2k'}\` sublink puts **${hostName}** and **${referencedTeammate}** in the exact same live context window.\n` +
+        `\u2022 **Host-Sponsored Token Quotas:** Teammates on a Free/Starter plan can co-prompt **Gemini 4 Argon** & **Gemini 3.8 Flash** sponsored by the Host's \`250k Pro\` / \`1M Enterprise\` quota\u2014with zero client API keys.\n` +
+        `\u2022 **1-Click Independent Continuation (\`Copy to My Chats\`):** Any collaborator can fork the live conversation into their private \`/app\` workspace at any time, switching all future token deductions to their own personal quota.\n\n` +
         `<canvas title="cothread_vs_single_player_ai.md" type="markdown"># Enterprise AI Comparison: CoThread vs. Single-Player Silos\n\n` +
         `| Capability | Claude / ChatGPT / Gemini Web | CoThread Enterprise AI |\n` +
         `| :--- | :--- | :--- |\n` +
@@ -976,7 +976,7 @@
         `Great follow-up, **${speakerName}** (${speakerRoleBadge}). Building directly on **${referencedTeammate}**'s earlier architecture constraints in this shared CoThread session:${attachmentIntro}\n\n` +
         `### Multi-Participant Synthesis (${modelLabel})\n` +
         `1. **Cloud Firestore Transactional Quota Ledger:** CoThread maintains an atomic token ledger in **Cloud Firestore** (\`users/{uid}\` and \`sessions/{sessionId}\`) enforced by \`firestore.rules\` and \`QuotaGuardTool\`.\n` +
-        `2. **Zero-Drop Real-Time Delta Fanout:** When **${speakerName}** or **${referencedTeammate}** prompts the AI, \`${resolvedModel}\` streams chunks once and multicasts to all connected teammates—cutting redundant context tokens by **~41%** via \`gemini-3.5-flash-lite\`.\n` +
+        `2. **Zero-Drop Real-Time Delta Fanout:** When **${speakerName}** or **${referencedTeammate}** prompts the AI, \`${resolvedModel}\` streams chunks once and multicasts to all connected teammates\u2014cutting redundant context tokens by **~41%** via \`gemini-3.5-flash-lite\`.\n` +
         `3. **Software-Assigned Account Quota Guard:** Pre-flight token estimation reserves budget against **${hostName}**'s CoThread account allocation (\`Pro 250k\` / \`Enterprise 1M\`), with instant 1-click **Copy to My Chats** so colleagues can branch onto their own personal quota (\`Starter 25k\`).\n\n` +
         `<canvas title="cothread_quota_guard.ts" type="code">export async function reserveCoThreadSessionQuota(session, sender, estimatedTokens) {\n` +
         `  // Enforced via Cloud Firestore & Google ADK QuotaGuardTool\n` +
@@ -1002,7 +1002,7 @@
       return (
         `Addressing **${speakerName}**'s database & schema design while preserving **${referencedTeammate}**'s data-integrity requirements in this CoThread session:${attachmentIntro}\n\n` +
         `### Cloud Firestore & SQL Schema (${modelLabel})\n` +
-        `- **\`users/{userId}\` Collection:** Stores software-assigned account quota tiers (\`starter: 25,000\`, \`pro: 250,000\`, \`enterprise: 1,000,000\`) and live token consumption—zero user API keys required.\n` +
+        `- **\`users/{userId}\` Collection:** Stores software-assigned account quota tiers (\`starter: 25,000\`, \`pro: 250,000\`, \`enterprise: 1,000,000\`) and live token consumption\u2014zero user API keys required.\n` +
         `- **\`sessions/{sessionId}\` Collection:** Tracks \`hostId\`, \`shareCode\` (\`/s/cothread-...\`), \`permissionMode\` (\`can_prompt\` vs \`view_only\`), and \`tokenCap\`.\n` +
         `- **Independent Personal Forks:** Clicking **Copy to My Chats** creates a new \`type: "personal"\` document owned by \`${speakerName}\` billed strictly to their personal quota.\n\n` +
         `<canvas title="cothread_firestore_schema.sql" type="code">-- CoThread Enterprise Multi-Tenant Quota & Session Schema\n` +
@@ -1041,7 +1041,7 @@
         `2. **Live Permission Lockout:** Switching a room to \`View Only\` immediately blocks guest AI prompts server-side while keeping **Copy to My Chats** active.\n` +
         `3. **Atomic Quota Circuit Breaker:** \`QuotaGuardTool\` verifies \`tokensUsed + tokenCost <= tokenCap\` before committing any token deduction.\n\n` +
         `<canvas title="security_audit_checklist.md" type="markdown"># Multi-User Concurrency & Security Audit\n` +
-        `*Reviewed by ${speakerName} & ${referencedTeammate} • Model: ${resolvedModel}*\n\n` +
+        `*Reviewed by ${speakerName} & ${referencedTeammate} \u2022 Model: ${resolvedModel}*\n\n` +
         `- [x] **Speaker Attribution Integrity:** Server-enforced \`[Host - ${hostName}]\` and \`[Collaborator - ${speakerName}]\` framing\n` +
         `- [x] **Context Compression:** \`gemini-3.5-flash-lite\` condenses multi-turn history automatically\n` +
         `- [x] **Firestore Rules Guard:** Enforces \`tokensUsed <= tokenCap\` and \`quotaUsed <= quotaTotal\`\n` +
@@ -1060,11 +1060,11 @@
         .slice(0, 28) || 'executeWorkflow';
 
     return (
-      `Here is the technical synthesis and implementation for **${speakerName}** (${speakerRoleBadge} • \`${modelLabel}\`), building on **${referencedTeammate}**'s context:${attachmentIntro}\n\n` +
+      `Here is the technical synthesis and implementation for **${speakerName}** (${speakerRoleBadge} \u2022 \`${modelLabel}\`), building on **${referencedTeammate}**'s context:${attachmentIntro}\n\n` +
       `### Solution for: *"${conciseTopic}"*\n` +
-      `• **1. Architecture & Execution Flow:** Designed a modular Cloud Run + Firestore handler for *"${conciseTopic}"* with deterministic error recovery and sub-50ms state synchronization.\n` +
-      `• **2. Context & Quota Optimization:** \`gemini-3.5-flash-lite\` compressed ${messages.length} prior messages in this thread (saving **${promptData.compressedTokensSaved || 140} tokens**), charging this turn to **${session.type === 'shared' ? hostName + "'s Host Quota" : speakerName + "'s Personal Quota"}**.\n` +
-      `• **3. Live Artifact Canvas Updated:** Generated the production TypeScript module in the **Artifact Canvas** so everyone in this room can inspect or fork it.\n\n` +
+      `\u2022 **1. Architecture & Execution Flow:** Designed a modular Cloud Run + Firestore handler for *"${conciseTopic}"* with deterministic error recovery and sub-50ms state synchronization.\n` +
+      `\u2022 **2. Context & Quota Optimization:** \`gemini-3.5-flash-lite\` compressed ${messages.length} prior messages in this thread (saving **${promptData.compressedTokensSaved || 140} tokens**), charging this turn to **${session.type === 'shared' ? hostName + "'s Host Quota" : speakerName + "'s Personal Quota"}**.\n` +
+      `\u2022 **3. Live Artifact Canvas Updated:** Generated the production TypeScript module in the **Artifact Canvas** so everyone in this room can inspect or fork it.\n\n` +
       `<canvas title="${fnIdentifier}.ts" type="code">// Generated by ${modelLabel} for ${speakerName} (${speakerRoleBadge})\n` +
       `// Prompt: ${rawQuestion.replace(/\n+/g, ' ')}\n\n` +
       `export interface ExecutionResult {\n` +
@@ -1096,7 +1096,7 @@
    * when running on a backend server with `process.env.GEMINI_API_KEY`, or seamlessly
    * runs the high-realism CoThread multi-participant simulation engine.
    *
-   * End users NEVER manage or enter API keys—token usage is metered against
+   * End users NEVER manage or enter API keys-token usage is metered against
    * software-assigned CoThread user account quotas (`Starter 25k`, `Pro 250k`, `Enterprise 1M`).
    */
   async function generateCollaborativeResponse({
@@ -1128,8 +1128,8 @@
         code: quotaCheck.code,
         model: resolvedModel,
         modelResolution,
-        text: `⚠️ **CoThread Quota Guard:** ${quotaCheck.reason}`,
-        cleanText: `⚠️ **CoThread Quota Guard:** ${quotaCheck.reason}`,
+        text: `\u26A0\uFE0F **CoThread Quota Guard:** ${quotaCheck.reason}`,
+        cleanText: `\u26A0\uFE0F **CoThread Quota Guard:** ${quotaCheck.reason}`,
         canvasUpdate: null,
         billingTarget: quotaCheck.billingTarget,
         billingOwnerName: quotaCheck.billingOwnerName,
