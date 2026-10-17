@@ -48,7 +48,7 @@ try {
     $RepoExists = $false
 }
 
-$RepoDescription = "CoThread - Enterprise Collaborative AI Platform (Project Lead, Principal AI Architect: Robina Mirbahar @RobinaMirbahar | Original Idea, Co-Builder & Collaborator: Muhammad Hasnain @hasnain-kk)"
+$RepoDescription = 'CoThread - Enterprise Collaborative AI Platform on Google Cloud Run, Firestore, Google ADK & MCP. Turn single-player AI (Claude, ChatGPT, Gemini) into live /s/ rooms on Host-Sponsored Token Quotas. Project Lead, Principal AI Architect: Robina Mirbahar (@RobinaMirbahar) | Original Idea, Co-Builder & Collaborator: Muhammad Hasnain (@hasnain-kk)'
 
 if (-not $RepoExists) {
     $CreateBody = @{
