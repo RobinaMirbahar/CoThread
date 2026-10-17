@@ -3,6 +3,9 @@ const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const { QuotaEngine, PLAN_TIERS } = require('./src/core/quota-engine');
+const { CoThreadFirestoreDB } = require('./src/db/firestore-db');
+const { CoThreadADKOrchestrator } = require('./src/adk/cothread-adk-agent');
+const { MCP_TOOLS, handleMcpJsonRpcRequest } = require('./src/mcp/cothread-mcp-server');
 
 let geminiService = null;
 function getGeminiService() {
@@ -26,13 +29,17 @@ app.use(express.json({ limit: '2mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/src', express.static(path.join(__dirname, 'src')));
 
-// Initialize in-memory CoThread Quota, Auth & Session Engine
+// Initialize Persistent Cloud Firestore Database + Quota Engine + Google ADK Orchestrator
+const db = new CoThreadFirestoreDB();
 const engine = new QuotaEngine();
+engine.state = db.loadSnapshot(() => engine.getState());
+const adkOrchestrator = new CoThreadADKOrchestrator({ quotaEngine: engine, db });
 
 // Real-time Server-Sent Events (SSE) clients for instant multi-window sync
 const sseClients = new Set();
 
 function broadcastStateUpdate(eventType, payload = {}) {
+  db.saveSnapshot(engine.state);
   const message = JSON.stringify({
     eventType,
     timestamp: new Date().toISOString(),
@@ -49,7 +56,7 @@ function broadcastStateUpdate(eventType, payload = {}) {
 }
 
 /**
- * Health & Cloud Run readiness check
+ * Health & Google Stack Readiness Check (Cloud Run, Firestore, ADK, MCP, Gemini)
  */
 app.get('/api/health', (req, res) => {
   const svc = getGeminiService();
@@ -57,13 +64,49 @@ app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
     platform: 'CoThread Enterprise AI',
-    service: 'CoThread Quota, Auth & Multiplayer Engine',
+    database: db.getDatabaseStatus(),
+    adk: adkOrchestrator.getManifest(),
+    mcpToolsCount: MCP_TOOLS.length,
     userApiKeyRequired: false,
-    geminiMode: hasApiKey ? 'live-gemini-api' : 'intelligent-fallback-simulator',
+    geminiMode: hasApiKey ? 'live-gemini-api' : 'adk-runtime',
     sdkLoaded: Boolean(svc),
     planTiers: PLAN_TIERS,
     timestamp: new Date().toISOString()
   });
+});
+
+/**
+ * Google Stack & Architecture Manifest Endpoint (Firestore + Firebase Studio + ADK + MCP)
+ */
+app.get('/api/stack', (req, res) => {
+  res.json({
+    ok: true,
+    database: db.getDatabaseStatus(),
+    firebaseStudio: {
+      nixConfig: '.idx/dev.nix',
+      mcpConfig: '.idx/mcp.json',
+      firebaseConfig: 'firebase.json',
+      firestoreRules: 'firestore.rules'
+    },
+    adk: adkOrchestrator.getManifest(),
+    mcp: {
+      endpoint: '/api/mcp',
+      tools: MCP_TOOLS
+    }
+  });
+});
+
+/**
+ * Model Context Protocol (MCP) Server Endpoints
+ */
+app.get('/api/mcp/tools', (req, res) => {
+  res.json({ ok: true, tools: MCP_TOOLS });
+});
+
+app.post('/api/mcp', async (req, res) => {
+  const response = await handleMcpJsonRpcRequest(req.body, { engine, adkOrchestrator, db });
+  broadcastStateUpdate('MCP_TOOL_CALLED', { method: req.body?.method, tool: req.body?.params?.name });
+  res.json(response);
 });
 
 /**
@@ -103,10 +146,13 @@ app.get('/api/state', (req, res) => {
   res.json({
     ...fullState,
     visibleSessions: userId ? engine.getSessionsForUser(userId) : fullState.sessions,
+    database: db.getDatabaseStatus(),
+    adk: adkOrchestrator.getManifest(),
+    mcpTools: MCP_TOOLS,
     aiStatus: {
-      mode: hasApiKey ? 'live' : 'simulated',
+      mode: hasApiKey ? 'live' : 'adk-runtime',
       userApiKeyRequired: false,
-      modelDefault: 'gemini-2.5-flash',
+      modelDefault: 'gemini-3.8-flash',
       googleClientId: process.env.GOOGLE_CLIENT_ID || null
     }
   });
@@ -355,7 +401,7 @@ app.post('/api/sessions/:id/messages', async (req, res) => {
     const {
       userId = 'user_a',
       content,
-      model = 'gemini-2.5-flash',
+      model = 'gemini-3.8-flash',
       useCompression = true,
       updateCanvasDoc = false
     } = req.body || {};
@@ -374,28 +420,14 @@ app.post('/api/sessions/:id/messages', async (req, res) => {
       return res.status(404).json({ ok: false, error: 'User not found.' });
     }
 
-    // Delegate AI response + token compression telemetry to gemini-service.js
-    const svc = getGeminiService();
-    let aiResult;
-    if (svc && typeof svc.generateWorkspaceResponse === 'function') {
-      aiResult = await svc.generateWorkspaceResponse({
-        session,
-        user: sender,
-        prompt: String(content).trim(),
-        model,
-        useCompression
-      });
-    } else {
-      const estimatedCost = Math.max(420, Math.round(String(content).length * 6));
-      const estimatedSaved = useCompression ? Math.round(estimatedCost * 1.4) : 0;
-      aiResult = {
-        replyText: `### CoThread AI Response\n\nProcessed prompt from **${sender.shortName}**:\n> "${String(content).trim()}"\n\n- **Session Mode:** \`${session.type.toUpperCase()}\`\n- **Model:** \`${model}\``,
-        tokenCost: estimatedCost,
-        tokensSaved: estimatedSaved,
-        modelUsed: model,
-        canvasUpdate: null
-      };
-    }
+    // Execute Google ADK Multi-Agent Workflow (QuotaGuardTool -> ContextCompressionSubAgent -> CollaborativeArchitectSubAgent)
+    const aiResult = await adkOrchestrator.runAgentWorkflow({
+      session,
+      user: sender,
+      prompt: String(content).trim(),
+      model,
+      useCompression
+    });
 
     // Validate & charge the appropriate quota (Host's quota for shared sessions, Owner's personal quota for personal sessions)
     const chargeResult = engine.validateAndChargeQuota(
