@@ -4,15 +4,15 @@
 [![Google GenAI SDK](https://img.shields.io/badge/%40google%2Fgenai-v1.x-34A853?logo=google&logoColor=white)](https://www.npmjs.com/package/@google/genai)
 [![Gemini Models](https://img.shields.io/badge/Models-gemini--3.8--flash%20%7C%20gemini--4--argon%20%7C%20gemini--3.5--flash--lite-8E75B2)](https://ai.google.dev/)
 [![AI Builder Cup 2026](https://img.shields.io/badge/AI_Builder_Cup-2026_Submission-FBBC04)](https://cloud.google.com/)
-[![Idea & Concept](https://img.shields.io/badge/Original_Idea_%26_Concept-Muhammad_Hasnain_(%40hasnain--kk)-D97757?logo=github&logoColor=white)](https://github.com/hasnain-kk)
+[![Project Lead](https://img.shields.io/badge/Project_Lead_%26_Architect-Robina_Mirbahar_(%40RobinaMirbahar)-FF90E8?logo=github&logoColor=black)](https://github.com/RobinaMirbahar)
 
 > **Stop pasting screenshots of AI chats into Slack.**
-> **CoThread** is an enterprise SaaS collaborative AI platform (built like `gemini.google.com` and `chatgpt.com`, but natively multiplayer) powered by **Google Cloud Run** and the official **`@google/genai`** SDK.
+> **CoThread** is an enterprise SaaS collaborative AI platform (built like `gemini.google.com` and `chatgpt.com`, but natively multiplayer) powered by **Google Cloud Run**, **Cloud Firestore**, **Google ADK**, **Model Context Protocol (MCP)**, **Firebase Studio**, and the official **`@google/genai`** SDK.
 > Users sign in with **Google OAuth ("Continue with Google")** or **Work Email & Password**—never managing or entering raw API keys. CoThread automatically provisions software-assigned token quotas by subscription tier (`Starter 25k`, `Pro 250k`, `Enterprise 1M`), lets a Host share any live conversation via a secure sublink (`/s/cothread-...`) sponsored by the Host's quota, and lets any colleague click **"Continue Independently (Copy to My Chats)"** to clone the conversation into their private workspace and switch billing to their own account quota.
 
-### 💡 Idea Credits & Team
-- **Original Idea & Concept Creator**: **Muhammad Hasnain** ([@hasnain-kk](https://github.com/hasnain-kk) • `hasnainrashi@gmail.com`) — Conceived the core vision of real-time multiplayer AI chat sessions with Host-Sponsored Token Quotas, Google-Docs-style sublink sharing, and seamless independent continuation on personal quotas.
-- **Lead Builder & Platform Architect**: **Robina Mirbahar** ([@RobinaMirbahar](https://github.com/RobinaMirbahar)) & **Muhammad Hasnain** ([@hasnain-kk](https://github.com/hasnain-kk))
+### 👩‍💻 Leadership & Engineering Team
+- **Project Lead & Principal AI Architect**: **Robina Mirbahar** ([@RobinaMirbahar](https://github.com/RobinaMirbahar) • `robina@cothread.ai`) — Lead architect and builder of the CoThread Enterprise Collaborative AI Platform, Host-Sponsored Token Quota Engine, Cloud Firestore Security Rules, Google ADK Multi-Agent Orchestrator, and MCP Server.
+- **Co-Builder & Collaborator**: **Muhammad Hasnain** ([@hasnain-kk](https://github.com/hasnain-kk))
 
 ---
 
@@ -37,7 +37,7 @@ Modern software teams, researchers, and enterprise squads rely on consumer/enter
 
 ### B. Real-Time Shared Sessions via Sublinks (`/s/cothread-...`)
 - When User A (the Host) clicks **Share**, CoThread generates a dedicated collaborative sublink (`/s/cothread-...`).
-- Colleagues who open the sublink sign in with their own CoThread account and join the **exact same live conversation thread** with real-time presence avatars, typing indicators (`"Hasnain is typing a prompt..."`), and synchronized token-by-token Gemini streaming.
+- Colleagues who open the sublink sign in with their own CoThread account and join the **exact same live conversation thread** with real-time presence avatars, typing indicators, and synchronized token-by-token Gemini streaming.
 - Every prompt and response clearly attributes which authenticated teammate authored the message and which Gemini model responded.
 
 ### C. Host-Sponsored Subscription & Token Quota Engine
@@ -59,21 +59,21 @@ Modern software teams, researchers, and enterprise squads rely on consumer/enter
 ```mermaid
 flowchart LR
     subgraph Clients["Authenticated Web Clients (No User API Keys)"]
-        Host["User A: Host Client\n(Google OAuth / Work Email)\nPro Plan • 250k Software Quota"]
-        Guest["User B: Hasnain (Colleague)\n(Google OAuth / Work Email)\nStarter Plan • 25k Software Quota"]
+        Host["User A: Robina Mirbahar (Lead & Host)\n(Google OAuth / Work Email)\nPro Plan • 250k Software Quota"]
+        Guest["User B: Hasnain (Collaborator)\n(Google OAuth / Work Email)\nStarter Plan • 25k Software Quota"]
     end
 
     subgraph CloudRun["Google Cloud Run (CoThread SaaS Backend • Port 8080)"]
-        Auth["Auth & Session Service\n(Google OAuth + Work Email/Password)"]
+        Auth["Auth & Session Service\n(Google OAuth + Cloud Firestore DB)"]
         Sublink["Shared Sublink Router\n(/s/cothread-... + Role Guard)"]
         Ledger["Software Token Quota Ledger\n(Starter 25k | Pro 250k | Enterprise 1M)"]
         Clone["Independent Workspace Cloner\n(Continue Independently -> Copy to My Chats)"]
     end
 
-    subgraph Gemini["Master Platform @google/genai Integration"]
+    subgraph Gemini["Google ADK & Master @google/genai Integration"]
         Flash["gemini-3.8-flash\n(Low-Latency Collaborative Default)"]
         Argon["gemini-4-argon\n(Pro/Enterprise Deep Reasoning)"]
-        Lite["gemini-3.5-flash-lite\n(High-Efficiency Starter Model)"]
+        Lite["gemini-3.5-flash-lite\n(Context Compression Sub-Agent)"]
     end
 
     Host <-->|"Create Thread & Share /s/cothread-..."| Auth
@@ -90,32 +90,32 @@ flowchart LR
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Host as You (Host • Pro 250k Quota)
-    participant Server as CoThread SaaS Backend (Cloud Run)
-    participant GenAI as Google GenAI (@google/genai)
-    actor Guest as Hasnain (Colleague • Starter 25k Quota)
+    actor Host as Robina Mirbahar (Lead & Host • Pro 250k)
+    participant Server as CoThread SaaS Backend (Cloud Run + Firestore)
+    participant GenAI as Google ADK & GenAI (@google/genai)
+    actor Guest as Hasnain (Collaborator • Starter 25k)
 
     Host->>Server: Sign in via Google OAuth & start thread (gemini-4-argon)
     Host->>Server: Generate Share Sublink (/s/cothread-xxx, Default: Can Prompt, Cap: 25k)
     Guest->>Server: Open /s/cothread-xxx & Sign in (Google OAuth / Work Email)
     Server-->>Host: Broadcast Presence ("Hasnain joined /s/cothread-xxx as Can Prompt")
-    Server-->>Guest: Hydrate Live Thread + "Sponsored by Host (Pro 250k)" Telemetry
+    Server-->>Guest: Hydrate Live Thread + "Sponsored by Host (Robina • Pro 250k)" Telemetry
 
     Guest->>Server: Submit Prompt in Shared Thread
     Server->>Server: Verify Role == "can_prompt" & Host Session Quota Available
-    Server->>GenAI: ai.models.generateContentStream (Master Platform GEMINI_API_KEY)
+    Server->>GenAI: ADK Orchestrator + generateContentStream (Master GEMINI_API_KEY)
     GenAI-->>Server: Stream Token Chunks + Usage Metadata
-    Server-->>Host: Stream Tokens Live + Deduct from Host's 250k Quota & Room Cap
+    Server-->>Host: Stream Tokens Live + Deduct from Robina's 250k Host Quota & Room Cap
     Server-->>Guest: Stream Tokens Live (Hasnain's 25k Starter Quota Untouched)
 
-    Host->>Server: Switch Hasnain Role -> "View Only"
+    Host->>Server: Switch Collaborator Role -> "View Only"
     Server-->>Guest: Real-Time Role Update (Shared Composer Locked)
 
     Guest->>Server: Click "Continue Independently (Copy to My Chats)"
-    Server->>Server: Clone Conversation History to Hasnain's Private Chats
-    Server-->>Guest: Open Private Thread (Billed to Hasnain's Starter 25k Quota)
-    Guest->>Server: Prompt in Private Copy (gemini-3.5-flash-lite)
-    Server->>GenAI: ai.models.generateContentStream (Deducts from Hasnain's 25k Quota)
+    Server->>Server: Clone Conversation History to Collaborator's Private Chats
+    Server-->>Guest: Open Private Thread (Billed to Collaborator's Starter 25k Quota)
+    Guest->>Server: Prompt in Private Copy (gemini-3.8-flash)
+    Server->>GenAI: generateContentStream (Deducts from Collaborator's 25k Quota)
 ```
 
 ---
