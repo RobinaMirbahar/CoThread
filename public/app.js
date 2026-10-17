@@ -508,7 +508,7 @@
       id: 'm_ai_' + Date.now(),
       senderId: 'gemini',
       senderName: 'CoThread AI',
-      senderRole: 'AI Assistant',
+      senderRole: aiReply.isLiveApi ? 'Gemini Live Agent' : 'AI Assistant',
       kind: 'ai',
       modelUsed: state.primaryModel || 'gemini-3.8-flash',
       timestamp: nowTimeLabel(),
@@ -516,20 +516,34 @@
       codeSnippet: aiReply.codeSnippet || null
     };
 
+    if (aiReply.interactionId) {
+      session.lastInteractionId = aiReply.interactionId;
+    }
+
     session.messages.push(aiMsg);
     saveAndBroadcastState();
     renderApp();
     scrollChatToBottom(sessionId);
   }
 
+  function getSavedGeminiApiKey() {
+    try {
+      return (localStorage.getItem('cothread_gemini_api_key') || '').trim();
+    } catch (e) {
+      return '';
+    }
+  }
+
   async function synthesizeCoThreadAIResponse(session, triggeringAccount, promptText) {
     const cleanPrompt = promptText.replace(/^@gemini\s*/i, '').trim();
+    const userApiKey = getSavedGeminiApiKey();
 
-    // 1. Try server backend endpoint if available
-    if (window.location.protocol.startsWith('http')) {
+    // 1. Try server backend endpoint if available (not on static github.io)
+    const isGitHubPages = window.location.hostname.endsWith('github.io');
+    if (window.location.protocol.startsWith('http') && !isGitHubPages) {
       try {
         const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 4500);
+        const timer = setTimeout(() => controller.abort(), 12000);
         const res = await fetch(`/api/sessions/${encodeURIComponent(session.id)}/messages`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -539,6 +553,7 @@
             content: cleanPrompt,
             text: cleanPrompt,
             isAiPrompt: true,
+            apiKey: userApiKey || undefined,
             model: state.primaryModel || 'gemini-3.8-flash'
           }),
           signal: controller.signal
@@ -550,14 +565,15 @@
           if (aiMsg && (aiMsg.content || aiMsg.text || aiMsg.reply)) {
             return {
               text: aiMsg.content || aiMsg.text || aiMsg.reply,
-              codeSnippet: aiMsg.codeSnippet || null
+              codeSnippet: aiMsg.codeSnippet || null,
+              isLiveApi: Boolean(aiMsg.isLiveApi)
             };
           }
         }
       } catch (e) {}
     }
 
-    // 2. Try universal GeminiService engine
+    // 2. Call universal GeminiService engine (calls live Gemini /v1beta/interactions when API key is present)
     const aiEngine = window.CoThreadAI || window.GeminiService;
     if (aiEngine && typeof aiEngine.generateCollaborativeResponse === 'function') {
       try {
@@ -573,13 +589,20 @@
             senderName: triggeringAccount.name
           },
           senderUser: triggeringAccount,
+          apiKey: userApiKey || null,
           model: state.primaryModel || 'gemini-3.8-flash'
         });
+
+        if (result && result.liveApiNotice && userApiKey) {
+          showToast(`Gemini API Notice: ${result.liveApiNotice}`, 'personal');
+        }
 
         if (result && (result.cleanText || result.text)) {
           return {
             text: result.cleanText || result.text,
-            codeSnippet: result.codeSnippet || null
+            codeSnippet: result.codeSnippet || (result.canvasUpdate ? result.canvasUpdate.content : null),
+            interactionId: result.interactionId || null,
+            isLiveApi: Boolean(result.isLiveApi)
           };
         }
       } catch (e) {}
@@ -591,7 +614,8 @@
       text: `Hello ${triggeringAccount.shortName}! I received your prompt: "${cleanPrompt}".\n\nSince this is a collaborative CoThread conversation, all participants in this chat (${(session.participants || []).map((p) => state.accounts[p]?.shortName || p).join(', ')}) share this exact AI context. Feel free to continue chatting together!`,
       codeSnippet: cleanPrompt.toLowerCase().includes('code') || cleanPrompt.toLowerCase().includes('script')
         ? `// Collaborative CoThread Snippet\nconsole.log("Shared context active for:", "${triggeringAccount.name}");`
-        : null
+        : null,
+      isLiveApi: false
     };
   }
 
@@ -809,11 +833,44 @@
       }
     }
 
-    // 3. Wire Share Button in Top Right
+    // 3. Wire Share Button & Gemini Agent Button in Top Right
     const shareBtn = document.getElementById('headerShareBtn');
     if (shareBtn) {
       shareBtn.onclick = () => openShareModal(activeSession.id);
     }
+
+    const geminiBtn = document.getElementById('headerGeminiKeyBtn');
+    const geminiStatusEl = document.getElementById('headerGeminiKeyStatus');
+    const hasCustomKey = Boolean(getSavedGeminiApiKey());
+    if (geminiStatusEl) {
+      geminiStatusEl.textContent = hasCustomKey ? '\u2726 Gemini Agent (Key Active)' : '\u2726 Gemini Agent';
+    }
+    if (geminiBtn) {
+      geminiBtn.onclick = () => openGeminiAgentModal();
+    }
+  }
+
+  function openGeminiAgentModal() {
+    const modal = document.getElementById('geminiAgentModalBackdrop');
+    if (!modal) return;
+    const keyInp = document.getElementById('geminiApiKeyInput');
+    const badge = document.getElementById('geminiKeySavedBadge');
+    const saved = getSavedGeminiApiKey();
+    if (keyInp) {
+      keyInp.value = saved;
+    }
+    if (badge) {
+      badge.textContent = saved
+        ? 'Status: Connected to Live Gemini API Key (' + saved.slice(0, 6) + '...)'
+        : 'Status: Using CoThread ADK Collaborative Agent';
+      badge.style.color = saved ? 'var(--accent-emerald)' : 'var(--ink-muted)';
+    }
+    modal.classList.remove('hidden');
+  }
+
+  function closeGeminiAgentModal() {
+    const modal = document.getElementById('geminiAgentModalBackdrop');
+    if (modal) modal.classList.add('hidden');
   }
 
   function renderWorkspaceStage() {
@@ -1313,6 +1370,40 @@
         }
         showToast('Public view & copy link copied to clipboard!', 'shared');
       }
+    });
+
+    // Gemini Agent Modal Events
+    document.getElementById('closeGeminiAgentModalBtn')?.addEventListener('click', closeGeminiAgentModal);
+    document.getElementById('geminiAgentModalBackdrop')?.addEventListener('click', (e) => {
+      if (e.target.id === 'geminiAgentModalBackdrop') closeGeminiAgentModal();
+    });
+
+    document.getElementById('geminiAgentKeyForm')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const inp = document.getElementById('geminiApiKeyInput');
+      const val = String(inp?.value || '').trim();
+      try {
+        if (val) {
+          localStorage.setItem('cothread_gemini_api_key', val);
+          showToast('Gemini API Key saved for live Chat Agent!', 'shared');
+        } else {
+          localStorage.removeItem('cothread_gemini_api_key');
+          showToast('Cleared custom Gemini API key.', 'personal');
+        }
+      } catch (err) {}
+      renderTopWorkspaceHeader();
+      closeGeminiAgentModal();
+    });
+
+    document.getElementById('clearGeminiKeyBtn')?.addEventListener('click', () => {
+      try {
+        localStorage.removeItem('cothread_gemini_api_key');
+      } catch (err) {}
+      const inp = document.getElementById('geminiApiKeyInput');
+      if (inp) inp.value = '';
+      renderTopWorkspaceHeader();
+      closeGeminiAgentModal();
+      showToast('Cleared custom Gemini API key.', 'personal');
     });
   }
 
