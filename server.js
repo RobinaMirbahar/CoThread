@@ -402,6 +402,7 @@ app.post('/api/sessions/:id/messages', async (req, res) => {
       userId = 'user_a',
       content,
       model = 'gemini-3.8-flash',
+      apiKey = null,
       useCompression = true,
       updateCanvasDoc = false
     } = req.body || {};
@@ -426,6 +427,7 @@ app.post('/api/sessions/:id/messages', async (req, res) => {
       user: sender,
       prompt: String(content).trim(),
       model,
+      apiKey,
       useCompression
     });
 
