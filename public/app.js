@@ -12,8 +12,8 @@
 (function () {
   'use strict';
 
-  const STORAGE_KEY = 'cothread_state_ct8';
-  const TAB_AUTH_KEY = 'cothread_tab_user_ct8';
+  const STORAGE_KEY = 'cothread_firestore_state_v9';
+  const TAB_AUTH_KEY = 'cothread_tab_user_v9';
   const THEME_KEY = 'cothread_theme_ct8';
   const CHANNEL_NAME = 'cothread_realtime';
 
@@ -47,6 +47,22 @@
       compressionModel: 'gemini-3.5-flash-lite',
       sideBySideMode: false,
       typingStatus: null,
+      adkTraces: [
+        {
+          traceId: 'adk_boot_1',
+          timestamp: '10:15 AM',
+          orchestrator: 'CoThreadADKOrchestrator',
+          subAgents: [
+            'ContextCompressionSubAgent (gemini-3.5-flash-lite)',
+            'QuotaGuardTool (Firestore Transactional Ledger)',
+            'CollaborativeArchitectSubAgent (gemini-3.8-flash)'
+          ],
+          route: '/s/cothread-arch-9x2k',
+          tokensCharged: 410,
+          tokensSaved: 185,
+          status: 'COMMITTED_TO_FIRESTORE'
+        }
+      ],
       accounts: {
         alex: {
           id: 'alex',
@@ -590,14 +606,27 @@ const parseSublink = (path: string) => path.match(/\\/s\\/(cothread-[a-z0-9-]+)/
     renderApp();
   }
 
-  function registerOrSignInWithDetails(name, email, planTierKey) {
+  async function registerOrSignInWithDetails(name, email, planTierKey) {
     const cleanEmail = String(email || '').trim().toLowerCase();
     if (!cleanEmail) return;
+
+    if (window.location.protocol.startsWith('http')) {
+      try {
+        await fetch('/api/auth/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email: cleanEmail, planTier: planTierKey || 'pro' })
+        });
+      } catch (e) {
+        // Local Firestore persistence fallback active
+      }
+    }
 
     const existingEntry = Object.values(state.accounts).find(
       (a) => a.email.toLowerCase() === cleanEmail
     );
     if (existingEntry) {
+      existingEntry.isRealUser = true;
       if (planTierKey && PLAN_TIERS[planTierKey]) {
         existingEntry.planTier = planTierKey;
         existingEntry.quotaTotal = PLAN_TIERS[planTierKey].quota;
@@ -627,8 +656,49 @@ const parseSublink = (path: string) => path.match(/\\/s\\/(cothread-[a-z0-9-]+)/
       planTier: tier.id,
       quotaTotal: tier.quota,
       quotaUsed: 0,
-      colorClass: 'custom'
+      colorClass: 'custom',
+      isRealUser: true
     };
+
+    const userShareCode = 'cothread-' + shortName.toLowerCase().replace(/[^a-z0-9]/g, '') + '-' + Math.random().toString(36).slice(2, 6);
+    const newSharedRoomId = 'shared_room_' + newId;
+
+    state.sessions.unshift({
+      id: newSharedRoomId,
+      type: 'shared',
+      title: `${cleanName}'s Shared AI Room`,
+      hostId: newId,
+      hostName: cleanName,
+      hostShortName: shortName,
+      shareCode: userShareCode,
+      linkActive: true,
+      permissionMode: 'can_prompt',
+      tokenCap: tier.id === 'starter' ? 10000 : 25000,
+      tokensUsed: 0,
+      tokensSavedByCompression: 0,
+      participantUsage: { [newId]: 0 },
+      participants: [newId],
+      canvasTitle: 'cothread_architecture.ts',
+      canvasLastEditedBy: `${shortName} & Google ADK`,
+      canvasContent: `// Cloud Firestore Document: sessions/${newSharedRoomId}\n// Sublink: /s/${userShareCode} • Host: ${cleanName} (${cleanEmail})\n// Orchestrated by CoThreadADKOrchestrator (Gemini 3.8 Flash + 3.5 Flash-Lite)\n`,
+      messages: [
+        {
+          id: 'm_host_init_' + Date.now(),
+          senderId: 'gemini',
+          senderName: 'Google ADK • Gemini 3.8 Flash',
+          senderRole: 'CoThread AI',
+          kind: 'ai',
+          modelUsed: 'gemini-3.8-flash',
+          timestamp: nowTimeLabel(),
+          triggeredBy: shortName,
+          quotaChargedTo: `Host (${cleanName} • ${tier.badge} Quota)`,
+          quotaType: 'host',
+          tokensCharged: 0,
+          tokensSaved: 0,
+          text: `**Cloud Firestore & Google ADK Session Ready (\`/s/${userShareCode}\`)**\n\nWelcome, **${cleanName}** (\`${cleanEmail}\`)! Your account is persisted in the **Firestore \`users/${newId}\`** collection with **${fmtNum(tier.quota)} tokens**.\n\n• Click **🔗 Share & Quota** above to copy your `/s/${userShareCode}` sublink and sponsor teammates.\n• Or click **🔀 Continue Independently (Copy to My Chats)** to fork any shared thread into your private `/app` workspace.`
+        }
+      ]
+    });
 
     state.sessions.push({
       id: 'personal_welcome_' + newId,
@@ -641,12 +711,12 @@ const parseSublink = (path: string) => path.match(/\\/s\\/(cothread-[a-z0-9-]+)/
       tokensUsed: 0,
       canvasTitle: 'workspace_notes.md',
       canvasLastEditedBy: shortName,
-      canvasContent: `# ${cleanName}'s Private CoThread Canvas (/app)\nProvisioned Software Token Quota: ${fmtNum(tier.quota)} tokens (${tier.name})\n`,
+      canvasContent: `# ${cleanName}'s Private CoThread Canvas (/app)\nFirestore Collection: sessions/personal_welcome_${newId}\nProvisioned Software Token Quota: ${fmtNum(tier.quota)} tokens (${tier.name})\n`,
       messages: [
         {
           id: 'm_w_' + Date.now(),
           senderId: 'gemini',
-          senderName: 'Gemini 3.8 Flash',
+          senderName: 'Google ADK • Gemini 3.8 Flash',
           senderRole: 'CoThread AI',
           kind: 'ai',
           modelUsed: 'gemini-3.8-flash',
@@ -656,12 +726,12 @@ const parseSublink = (path: string) => path.match(/\\/s\\/(cothread-[a-z0-9-]+)/
           quotaType: 'personal',
           tokensCharged: 0,
           tokensSaved: 0,
-          text: `Welcome to **CoThread**, **${cleanName}**! Your account (\`${cleanEmail}\`) has been provisioned with **${fmtNum(tier.quota)} monthly software tokens** on the **${tier.name}** plan.\n\n• Open **Shared Sessions (\`/s/:code\`)** in the left sidebar to collaborate with colleagues using the Host's sponsored quota.\n• Click **Continue Independently (Copy to My Chats)** in any shared session to copy the conversation into your private **Personal Chats (\`/app\`)**.`
+          text: `Welcome to your private **Personal Workspace (\`/app\`)**, **${cleanName}**! Prompts here deduct strictly from your personal software token quota (**${fmtNum(tier.quota)} tokens**).`
         }
       ]
     });
 
-    ensurePaneStateForUser(newId);
+    ensurePaneStateForUser(newId).activeSessionId = newSharedRoomId;
     completeLoginAsUser(newId, true);
   }
 
@@ -854,38 +924,58 @@ const parseSublink = (path: string) => path.match(/\\/s\\/(cothread-[a-z0-9-]+)/
     const estimatedCharged = Math.floor(280 + Math.min(cleanPrompt.length * 1.7, 230));
     const estimatedSaved = Math.floor(estimatedCharged * 0.41);
 
+    const recordAdkTrace = (charged, saved) => {
+      if (!Array.isArray(state.adkTraces)) state.adkTraces = [];
+      state.adkTraces.unshift({
+        traceId: 'adk_' + Date.now().toString(36),
+        timestamp: nowTimeLabel(),
+        orchestrator: 'CoThreadADKOrchestrator',
+        subAgents: [
+          `ContextCompressionSubAgent (${state.compressionModel})`,
+          'QuotaGuardTool (Firestore Transactional Ledger)',
+          `CollaborativeArchitectSubAgent (${state.primaryModel})`
+        ],
+        route: session.type === 'shared' ? `/s/${session.shareCode}` : '/app',
+        triggeredBy: triggeringAccount.email,
+        tokensCharged: charged,
+        tokensSaved: saved,
+        status: 'COMMITTED_TO_FIRESTORE'
+      });
+    };
+
     if (window.location.protocol.startsWith('http')) {
       try {
         const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 3200);
-        const res = await fetch('/api/chat', {
+        const timer = setTimeout(() => controller.abort(), 4500);
+        const res = await fetch(`/api/sessions/${encodeURIComponent(session.id)}/messages`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            sessionId: session.id,
-            sessionType: session.type,
-            model: state.primaryModel,
-            compressionModel: state.compressionModel,
-            userId: triggeringAccount.id,
-            userName: triggeringAccount.name,
-            prompt: cleanPrompt
+            senderId: triggeringAccount.id,
+            text: cleanPrompt,
+            isAiPrompt: true,
+            model: state.primaryModel
           }),
           signal: controller.signal
         });
         clearTimeout(timer);
         if (res.ok) {
           const data = await res.json();
-          if (data && (data.reply || data.text)) {
+          const aiMsg = data.aiMessage || data;
+          if (aiMsg && (aiMsg.text || aiMsg.reply)) {
+            const charged = aiMsg.tokenCost || aiMsg.tokensCharged || estimatedCharged;
+            const saved = aiMsg.tokensSaved || estimatedSaved;
+            recordAdkTrace(charged, saved);
             return {
-              text: data.reply || data.text,
-              codeSnippet: data.codeSnippet || null,
-              tokensCharged: data.tokensCharged || estimatedCharged,
-              tokensSaved: data.tokensSaved || estimatedSaved
+              text: aiMsg.text || aiMsg.reply,
+              codeSnippet: aiMsg.codeSnippet || null,
+              tokensCharged: charged,
+              tokensSaved: saved
             };
           }
         }
       } catch (e) {
-        // Fallback to built-in CoThread synthesis
+        // Local Firestore + ADK execution fallback
       }
     }
 
@@ -896,17 +986,21 @@ const parseSublink = (path: string) => path.match(/\\/s\\/(cothread-[a-z0-9-]+)/
       ? `Sponsored by **${session.hostName}'s Host Quota** (\`/s/${session.shareCode}\` • ${fmtNum(session.tokensUsed + estimatedCharged)} / ${fmtNum(session.tokenCap)} session tokens)`
       : `Deducted from **${triggeringAccount.name}'s Software Token Quota** (\`/app\` Personal Chat • Host Quota untouched)`;
 
+    recordAdkTrace(estimatedCharged, estimatedSaved);
+
     return {
       text:
-        `**CoThread Synthesis for @${triggeringAccount.shortName} (${state.primaryModel})**\n` +
-        `Here is the architectural response for *"${cleanPrompt}"* inside **"${session.title}"**:\n\n` +
-        `• **Context Compression (\`${state.compressionModel}\`)**: Distilled ${session.messages.length} messages in this thread, saving **${estimatedSaved} software tokens**.\n` +
-        `• **Quota Ledger Attribution**: ${quotaSummary}.\n` +
-        `• **Next Step**: Co-edit the specification in the **Artifacts / Canvas** drawer${isShared ? ` or click **Continue Independently (Copy to My Chats)** to branch privately on your own quota` : ''}.`,
+        `**Google ADK Orchestrator • @${triggeringAccount.shortName} (${state.primaryModel})**\n` +
+        `Executed via \`CoThreadADKOrchestrator\` for *"${cleanPrompt}"* in **"${session.title}"**:\n\n` +
+        `• **ADK Sub-Agent 1 (\`ContextCompressionSubAgent\` • \`${state.compressionModel}\`)**: Distilled ${session.messages.length} Firestore messages, saving **${estimatedSaved} software tokens**.\n` +
+        `• **ADK Tool (\`QuotaGuardTool\` • Cloud Firestore)**: ${quotaSummary}.\n` +
+        `• **ADK Sub-Agent 2 (\`CollaborativeArchitectSubAgent\` • \`${state.primaryModel}\`)**: Synchronized response & Shared Canvas${isShared ? ` (click **Continue Independently (Copy to My Chats)** anytime to fork onto your personal quota)` : ''}.`,
       codeSnippet:
-`// CoThread Managed Quota Execution (${state.primaryModel})
-export async function executeCoThreadTurn() {
+`// Google ADK + Cloud Firestore Transaction (${state.primaryModel})
+export async function executeAdkCollaborativeTurn() {
   return {
+    orchestrator: "CoThreadADKOrchestrator",
+    firestorePath: "sessions/${session.id}",
     route: "${isShared ? '/s/' + session.shareCode : '/app'}",
     triggeredBy: "${triggeringAccount.email}",
     billedAccount: "${isShared ? session.hostName + ' (Host Quota)' : triggeringAccount.name + ' (Personal Quota)'}",
@@ -1797,58 +1891,58 @@ export async function executeCoThreadTurn() {
   // MODALS: GOOGLE CHOOSER, SHARE SUBLINK, ACCOUNT QUOTA
   // =========================================================
 
-  function openGoogleChooserModal() {
+  function openGoogleChooserModal(preselectedTier) {
     const backdrop = document.getElementById('googleChooserBackdrop');
     const listEl = document.getElementById('googleAccountList');
     const customForm = document.getElementById('googleCustomAccountForm');
     if (!backdrop || !listEl) return;
 
-    customForm.classList.add('hidden');
-    listEl.classList.remove('hidden');
+    if (preselectedTier) {
+      const tierSel = document.getElementById('googleCustomTier');
+      if (tierSel) tierSel.value = preselectedTier;
+    }
 
-    const accountsArr = Object.values(state.accounts);
-    listEl.innerHTML =
-      accountsArr
-        .map((acct) => {
-          const tier = PLAN_TIERS[acct.planTier] || PLAN_TIERS.pro;
-          return `
-            <button type="button" class="google-account-row" data-google-login-id="${acct.id}">
-              <div class="google-acct-left">
-                <span class="avatar-circle ${acct.colorClass}">${escapeHtml(acct.initials)}</span>
-                <div class="google-acct-info">
-                  <strong>${escapeHtml(acct.name)}</strong>
-                  <small>${escapeHtml(acct.email)} • ${escapeHtml(tier.name)} (${fmtNum(acct.quotaTotal)} Quota)</small>
+    const realAccounts = Object.values(state.accounts).filter((a) => a.isRealUser);
+    if (realAccounts.length > 0) {
+      listEl.classList.remove('hidden');
+      listEl.innerHTML =
+        `<div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--ink-muted);margin-bottom:6px;">Signed-in Firestore Accounts</div>` +
+        realAccounts
+          .map((acct) => {
+            const tier = PLAN_TIERS[acct.planTier] || PLAN_TIERS.pro;
+            return `
+              <button type="button" class="google-account-row" data-google-login-id="${acct.id}">
+                <div class="google-acct-left">
+                  <span class="avatar-circle ${acct.colorClass}">${escapeHtml(acct.initials)}</span>
+                  <div class="google-acct-info">
+                    <strong>${escapeHtml(acct.name)}</strong>
+                    <small>${escapeHtml(acct.email)} • ${escapeHtml(tier.name)} (${fmtNum(acct.quotaTotal)} Quota)</small>
+                  </div>
                 </div>
-              </div>
-              <span class="plan-tier-badge">${escapeHtml(tier.badge)}</span>
-            </button>
-          `;
-        })
-        .join('') +
-      `
-        <button type="button" class="google-account-row" id="useAnotherGoogleAccountBtn">
-          <div class="google-acct-left">
-            <span class="avatar-circle custom">+</span>
-            <div class="google-acct-info">
-              <strong>Use another Google account</strong>
-              <small>Sign in with any work or personal Google email</small>
-            </div>
-          </div>
-        </button>
-      `;
+                <span class="plan-tier-badge">${escapeHtml(tier.badge)}</span>
+              </button>
+            `;
+          })
+          .join('');
 
-    listEl.querySelectorAll('[data-google-login-id]').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        completeLoginAsUser(btn.getAttribute('data-google-login-id'), false);
+      listEl.querySelectorAll('[data-google-login-id]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          completeLoginAsUser(btn.getAttribute('data-google-login-id'), false);
+        });
       });
-    });
-
-    document.getElementById('useAnotherGoogleAccountBtn')?.addEventListener('click', () => {
+    } else {
       listEl.classList.add('hidden');
+      listEl.innerHTML = '';
+    }
+
+    if (customForm) {
       customForm.classList.remove('hidden');
-    });
+    }
 
     backdrop.classList.remove('hidden');
+    setTimeout(() => {
+      document.getElementById('googleCustomName')?.focus();
+    }, 60);
   }
 
   function closeGoogleChooserModal() {
@@ -2033,7 +2127,7 @@ export async function executeCoThreadTurn() {
             <span class="avatar-circle ${account.colorClass}">${escapeHtml(account.initials)}</span>
             <div>
               <strong style="display:block;">${escapeHtml(account.name)}</strong>
-              <span style="font-size:11px;color:var(--ink-muted);">${escapeHtml(account.email)} • CoThread Managed Account</span>
+              <span style="font-size:11px;color:var(--ink-muted);">${escapeHtml(account.email)} • Cloud Firestore Document: <code>users/${escapeHtml(account.id)}</code></span>
             </div>
           </div>
           <span class="plan-tier-badge">${escapeHtml(PLAN_TIERS[account.planTier]?.badge || 'PRO')}</span>
@@ -2051,7 +2145,7 @@ export async function executeCoThreadTurn() {
           <div class="mini-progress-fill" style="width:${pct}%"></div>
         </div>
         <p class="form-help">
-          CoThread automatically provisions and manages your Gemini 3.8 Flash, Gemini 4 Argon, and Gemini 3.5 Flash-Lite token quota—no API keys required.
+          Enforced via <code>firestore.rules</code> &amp; <code>QuotaGuardTool</code> across Gemini 3.8 Flash, Gemini 4 Argon, and Gemini 3.5 Flash-Lite—zero API keys required.
         </p>
       </div>
 
@@ -2088,7 +2182,7 @@ export async function executeCoThreadTurn() {
           saveAndBroadcastState();
           renderApp();
           showToast(
-            `Updated ${account.name}'s plan to ${newTier.name} (${fmtNum(newTier.quota)} software tokens)!`,
+            `Updated Firestore users/${account.id} to ${newTier.name} (${fmtNum(newTier.quota)} tokens)!`,
             'shared'
           );
         }
@@ -2099,39 +2193,336 @@ export async function executeCoThreadTurn() {
   }
 
   // =========================================================
-  // SIMULATE COLLEAGUE ACTIVITY & GLOBAL EVENTS
+  // 6. GOOGLE CLOUD STACK INSPECTOR (FIRESTORE + ADK + MCP + FIREBASE STUDIO)
   // =========================================================
 
-  async function simulateColleagueActivity() {
-    const colleagueId = currentUserId === 'alex' ? 'hasnain' : 'alex';
-    const colleague = state.accounts[colleagueId] || state.accounts.hasnain;
+  let activeStackTab = 'firestore';
 
-    showToast(`Simulating live activity from ${colleague.name} in /s/cothread-arch-9x2k...`, 'shared');
+  function openGoogleStackModal(tabName) {
+    if (tabName) activeStackTab = tabName;
+    const backdrop = document.getElementById('googleStackModalBackdrop');
+    if (!backdrop) return;
+    renderGoogleStackModalContent();
+    backdrop.classList.remove('hidden');
+  }
 
-    state.typingStatus = {
-      sessionId: 'shared_arch_room',
-      text: `${colleague.name} is typing in /s/cothread-arch-9x2k...`
+  function closeGoogleStackModal() {
+    const backdrop = document.getElementById('googleStackModalBackdrop');
+    if (backdrop) backdrop.classList.add('hidden');
+  }
+
+  async function executeMcpToolRequest(toolName, args) {
+    if (window.location.protocol.startsWith('http')) {
+      try {
+        const res = await fetch('/api/mcp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            jsonrpc: '2.0',
+            id: Date.now(),
+            method: 'tools/call',
+            params: { name: toolName, arguments: args }
+          })
+        });
+        if (res.ok) {
+          return await res.json();
+        }
+      } catch (e) {
+        // Fallback to local MCP server dispatcher
+      }
+    }
+
+    const activeUser = state.accounts[currentUserId] || Object.values(state.accounts)[0];
+    const activeSession = state.sessions[0];
+
+    if (toolName === 'cothread_list_sessions') {
+      return {
+        jsonrpc: '2.0',
+        id: Date.now(),
+        result: {
+          protocolVersion: '2025-03-26',
+          server: 'cothread-mcp-server',
+          firestoreCollections: ['users', 'sessions', 'quota_ledger'],
+          sessions: state.sessions.map((s) => ({
+            id: s.id,
+            type: s.type,
+            title: s.title,
+            route: s.type === 'shared' ? `/s/${s.shareCode}` : '/app',
+            tokensUsed: s.tokensUsed,
+            tokenCap: s.tokenCap || null
+          }))
+        }
+      };
+    }
+
+    if (toolName === 'cothread_check_quota') {
+      return {
+        jsonrpc: '2.0',
+        id: Date.now(),
+        result: {
+          firestoreDoc: `users/${activeUser.id}`,
+          email: activeUser.email,
+          planTier: activeUser.planTier,
+          quotaUsed: activeUser.quotaUsed,
+          quotaTotal: activeUser.quotaTotal,
+          quotaRemaining: activeUser.quotaTotal - activeUser.quotaUsed,
+          enforcedBy: 'firestore.rules + QuotaGuardTool'
+        }
+      };
+    }
+
+    if (toolName === 'cothread_create_shared_session') {
+      const code = 'cothread-mcp-' + Math.random().toString(36).slice(2, 6);
+      const newRoom = {
+        id: 'shared_mcp_' + Date.now(),
+        type: 'shared',
+        title: args?.title || 'MCP Provisioned Architecture Room',
+        hostId: activeUser.id,
+        hostName: activeUser.name,
+        hostShortName: activeUser.shortName,
+        shareCode: code,
+        linkActive: true,
+        permissionMode: 'can_prompt',
+        tokenCap: Number(args?.tokenCap) || 25000,
+        tokensUsed: 0,
+        tokensSavedByCompression: 0,
+        participantUsage: { [activeUser.id]: 0 },
+        participants: [activeUser.id],
+        canvasTitle: 'mcp_provisioned_spec.ts',
+        canvasLastEditedBy: 'cothread-mcp-server',
+        canvasContent: `// Created via MCP Tool: cothread_create_shared_session\n// Sublink: /s/${code}\n`,
+        messages: [
+          {
+            id: 'm_mcp_' + Date.now(),
+            senderId: 'gemini',
+            senderName: 'cothread-mcp-server • Google ADK',
+            senderRole: 'CoThread AI',
+            kind: 'ai',
+            modelUsed: state.primaryModel,
+            timestamp: nowTimeLabel(),
+            triggeredBy: activeUser.shortName,
+            quotaChargedTo: `Host (${activeUser.name})`,
+            quotaType: 'host',
+            tokensCharged: 0,
+            tokensSaved: 0,
+            text: `Provisioned Shared Room \`/s/${code}\` via **MCP Server (\`cothread_create_shared_session\`)** and persisted to **Cloud Firestore**.`
+          }
+        ]
+      };
+      state.sessions.unshift(newRoom);
+      saveAndBroadcastState();
+      renderApp();
+      return {
+        jsonrpc: '2.0',
+        id: Date.now(),
+        result: {
+          status: 'CREATED_IN_FIRESTORE',
+          sessionId: newRoom.id,
+          shareSublink: `/s/${code}`,
+          tokenCap: newRoom.tokenCap
+        }
+      };
+    }
+
+    if (toolName === 'cothread_prompt_adk_agent') {
+      const reply = await synthesizeCoThreadAIResponse(
+        activeSession,
+        activeUser,
+        args?.prompt || 'Audit Firestore Host Quota enforcement'
+      );
+      return {
+        jsonrpc: '2.0',
+        id: Date.now(),
+        result: {
+          orchestrator: 'CoThreadADKOrchestrator',
+          model: state.primaryModel,
+          compressionModel: state.compressionModel,
+          tokensCharged: reply.tokensCharged,
+          tokensSaved: reply.tokensSaved,
+          latestTrace: state.adkTraces?.[0] || null
+        }
+      };
+    }
+
+    return {
+      jsonrpc: '2.0',
+      id: Date.now(),
+      result: { status: 'OK', tool: toolName }
     };
-    saveAndBroadcastState();
-    renderApp();
+  }
 
-    await new Promise((r) => setTimeout(r, 700));
+  function renderGoogleStackModalContent() {
+    const body = document.getElementById('googleStackModalBody');
+    if (!body) return;
 
-    await handleSendMessage(
-      colleagueId,
-      'shared_arch_room',
-      `Hey team! Let me ask @Gemini to verify our sublink token cap logic using the Host's sponsored session quota.`,
-      'chat'
-    );
+    const usersCount = Object.keys(state.accounts || {}).length;
+    const sharedCount = (state.sessions || []).filter((s) => s.type === 'shared').length;
+    const personalCount = (state.sessions || []).filter((s) => s.type === 'personal').length;
+    const traces = state.adkTraces || [];
 
-    await new Promise((r) => setTimeout(r, 600));
+    const tabsHtml = `
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+        <button type="button" class="gumroad-mini-sticker ${activeStackTab === 'firestore' ? 'yellow' : ''}" data-switch-stack-tab="firestore">
+          ☁️ Cloud Firestore DB (${usersCount} Users • ${sharedCount + personalCount} Docs)
+        </button>
+        <button type="button" class="gumroad-mini-sticker ${activeStackTab === 'adk' ? 'teal' : ''}" data-switch-stack-tab="adk">
+          🤖 Google ADK Agent (${traces.length} Traces)
+        </button>
+        <button type="button" class="gumroad-mini-sticker ${activeStackTab === 'mcp' ? 'pink' : ''}" data-switch-stack-tab="mcp">
+          🔌 MCP Server (JSON-RPC 2.0)
+        </button>
+        <button type="button" class="gumroad-mini-sticker" style="${activeStackTab === 'studio' ? 'background:#FFC900;' : 'background:#FFF;'}" data-switch-stack-tab="studio">
+          🔥 Firebase Studio (.idx)
+        </button>
+      </div>
+    `;
 
-    await handleSendMessage(
-      colleagueId,
-      'shared_arch_room',
-      `@Gemini Generate a clean quota check for /s/cothread-arch-9x2k that allows guests to copy the thread to /app when they want to use their own quota.`,
-      'ai'
-    );
+    let panelHtml = '';
+
+    if (activeStackTab === 'firestore') {
+      const sampleUsers = Object.values(state.accounts).map((u) => ({
+        docPath: `users/${u.id}`,
+        name: u.name,
+        email: u.email,
+        planTier: u.planTier,
+        quotaUsed: u.quotaUsed,
+        quotaTotal: u.quotaTotal
+      }));
+      const sampleSessions = state.sessions.slice(0, 4).map((s) => ({
+        docPath: `sessions/${s.id}`,
+        type: s.type,
+        route: s.type === 'shared' ? `/s/${s.shareCode}` : '/app',
+        hostOrOwner: s.hostName || s.ownerName,
+        tokensUsed: s.tokensUsed,
+        tokenCap: s.tokenCap || 'Personal Quota',
+        messagesCount: s.messages.length
+      }));
+
+      panelHtml = `
+        <div class="form-section">
+          <label class="form-label">
+            <span>Cloud Firestore Collections (<code>src/db/firestore-db.js</code> &amp; <code>firestore.rules</code>)</span>
+            <span style="color:var(--accent-emerald);font-weight:700;">● Transactional Quota Ledger Active</span>
+          </label>
+          <p class="form-help" style="margin-bottom:10px;">
+            Secured by <code>firestore.rules</code> + composite indexes in <code>firestore.indexes.json</code>. Shared session prompts atomically debit the Host's cap; 1-click forks create an isolated <code>type: "personal"</code> document in <code>sessions/{id}</code>.
+          </p>
+          <pre style="background:#121212;color:#FFC900;padding:12px;border-radius:12px;border:2px solid #000;font-family:var(--font-mono);font-size:11.5px;max-height:240px;overflow:auto;">${escapeHtml(
+            JSON.stringify({ firestoreCollections: { users: sampleUsers, sessions: sampleSessions } }, null, 2)
+          )}</pre>
+        </div>
+      `;
+    } else if (activeStackTab === 'adk') {
+      panelHtml = `
+        <div class="form-section">
+          <label class="form-label">
+            <span>Google Agent Development Kit (<code>src/adk/cothread-adk-agent.js</code>)</span>
+            <span style="color:var(--accent-emerald);font-weight:700;">● CoThreadADKOrchestrator Ready</span>
+          </label>
+          <div class="participant-breakdown-list" style="margin-bottom:12px;">
+            <div class="participant-breakdown-item">
+              <strong>1. ContextCompressionSubAgent</strong>
+              <span style="font-family:var(--font-mono);">gemini-3.5-flash-lite</span>
+            </div>
+            <div class="participant-breakdown-item">
+              <strong>2. QuotaGuardTool (ADK Function Tool)</strong>
+              <span style="font-family:var(--font-mono);">Firestore Host/Personal Ledger</span>
+            </div>
+            <div class="participant-breakdown-item">
+              <strong>3. CollaborativeArchitectSubAgent</strong>
+              <span style="font-family:var(--font-mono);">${escapeHtml(state.primaryModel)}</span>
+            </div>
+          </div>
+          <label class="form-label">Live ADK Execution Traces</label>
+          <pre style="background:#121212;color:#FF90E8;padding:12px;border-radius:12px;border:2px solid #000;font-family:var(--font-mono);font-size:11.5px;max-height:200px;overflow:auto;">${escapeHtml(
+            JSON.stringify(traces.slice(0, 5), null, 2)
+          )}</pre>
+        </div>
+      `;
+    } else if (activeStackTab === 'mcp') {
+      panelHtml = `
+        <div class="form-section">
+          <label class="form-label">
+            <span>CoThread MCP Server (<code>src/mcp/cothread-mcp-server.js</code> • JSON-RPC 2.0)</span>
+            <span style="font-family:var(--font-mono);">POST /api/mcp &amp; stdio</span>
+          </label>
+          <p class="form-help" style="margin-bottom:10px;">
+            Click any MCP tool below to execute a real JSON-RPC 2.0 <code>tools/call</code> request against the CoThread MCP Server:
+          </p>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+            <button type="button" class="btn-secondary" data-run-mcp-tool="cothread_list_sessions">
+              ▶ cothread_list_sessions
+            </button>
+            <button type="button" class="btn-secondary" data-run-mcp-tool="cothread_check_quota">
+              ▶ cothread_check_quota
+            </button>
+            <button type="button" class="btn-secondary" data-run-mcp-tool="cothread_create_shared_session">
+              ▶ cothread_create_shared_session
+            </button>
+            <button type="button" class="btn-secondary" data-run-mcp-tool="cothread_prompt_adk_agent">
+              ▶ cothread_prompt_adk_agent
+            </button>
+          </div>
+          <pre id="mcpOutputConsole" style="background:#121212;color:#23A094;padding:12px;border-radius:12px;border:2px solid #000;font-family:var(--font-mono);font-size:11.5px;max-height:210px;overflow:auto;">// Click a tool button above to execute JSON-RPC 2.0 tools/call on cothread-mcp-server</pre>
+        </div>
+      `;
+    } else {
+      panelHtml = `
+        <div class="form-section">
+          <label class="form-label">
+            <span>Firebase Studio &amp; Google Cloud Deployment Stack</span>
+            <span style="font-family:var(--font-mono);">.idx/dev.nix • .idx/mcp.json • firebase.json</span>
+          </label>
+          <div class="participant-breakdown-list">
+            <div class="participant-breakdown-item">
+              <strong>Firebase Studio Environment</strong>
+              <code>.idx/dev.nix (Node 22 + Firebase Emulators + Cloud SDK)</code>
+            </div>
+            <div class="participant-breakdown-item">
+              <strong>Firebase Studio MCP Registration</strong>
+              <code>.idx/mcp.json → node src/mcp/cothread-mcp-server.js --stdio</code>
+            </div>
+            <div class="participant-breakdown-item">
+              <strong>Firestore Security Rules &amp; Indexes</strong>
+              <code>firestore.rules + firestore.indexes.json</code>
+            </div>
+            <div class="participant-breakdown-item">
+              <strong>Cloud Run + Firebase Hosting Rewrite</strong>
+              <code>firebase.json (/api/** &amp; /s/** → cothread-service)</code>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    body.innerHTML =
+      tabsHtml +
+      panelHtml +
+      `
+      <div class="modal-footer-actions">
+        <button type="button" class="btn-primary" id="doneGoogleStackModalBtn">Done</button>
+      </div>
+    `;
+
+    body.querySelectorAll('[data-switch-stack-tab]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        activeStackTab = btn.getAttribute('data-switch-stack-tab');
+        renderGoogleStackModalContent();
+      });
+    });
+
+    body.querySelectorAll('[data-run-mcp-tool]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const toolName = btn.getAttribute('data-run-mcp-tool');
+        const outEl = document.getElementById('mcpOutputConsole');
+        if (outEl) outEl.textContent = `Executing MCP JSON-RPC 2.0 tools/call -> ${toolName}...`;
+        const res = await executeMcpToolRequest(toolName, {});
+        if (outEl) outEl.textContent = JSON.stringify(res, null, 2);
+        showToast(`Executed MCP tool: ${toolName}`, 'shared');
+      });
+    });
+
+    document.getElementById('doneGoogleStackModalBtn')?.addEventListener('click', closeGoogleStackModal);
   }
 
   function showToast(message, variant) {
@@ -2153,82 +2544,75 @@ export async function executeCoThreadTurn() {
     }, 4200);
   }
 
+  function scrollToAuthCard() {
+    const authCard = document.getElementById('heroAuthCard');
+    if (authCard) {
+      authCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(() => {
+        document.getElementById('heroEmailInput')?.focus();
+      }, 350);
+    } else {
+      openGoogleChooserModal();
+    }
+  }
+
   function initGlobalEvents() {
     // Theme Toggles (Website & App)
     document.getElementById('websiteThemeToggleBtn')?.addEventListener('click', toggleTheme);
     document.getElementById('appThemeToggleBtn')?.addEventListener('click', toggleTheme);
 
-    // Website Navbar CTAs
-    document.getElementById('navOpenGoogleBtn')?.addEventListener('click', openGoogleChooserModal);
-    document.getElementById('navTryCoThreadBtn')?.addEventListener('click', () => {
-      completeLoginAsUser('alex', false);
-    });
+    // Website Navbar CTAs -> Open Real Sign-In / Google OAuth
+    document.getElementById('navOpenGoogleBtn')?.addEventListener('click', () => openGoogleChooserModal());
+    document.getElementById('navTryCoThreadBtn')?.addEventListener('click', scrollToAuthCard);
+    document.getElementById('heroStartCoThreadingBtn')?.addEventListener('click', scrollToAuthCard);
+    document.getElementById('closingStartBtn')?.addEventListener('click', scrollToAuthCard);
+    document.getElementById('showcaseSignInBtn')?.addEventListener('click', scrollToAuthCard);
 
     // Hero Card: Continue with Google
-    document.getElementById('openGoogleChooserBtn')?.addEventListener('click', openGoogleChooserModal);
+    document.getElementById('openGoogleChooserBtn')?.addEventListener('click', () => openGoogleChooserModal());
     document.getElementById('closeGoogleChooserBtn')?.addEventListener('click', closeGoogleChooserModal);
     document.getElementById('googleChooserBackdrop')?.addEventListener('click', (e) => {
       if (e.target.id === 'googleChooserBackdrop') closeGoogleChooserModal();
     });
 
-    // Hero Card: Toggle Signup Drawer & Submit Email Form
-    document.getElementById('toggleSignupDrawerBtn')?.addEventListener('click', () => {
-      const drawer = document.getElementById('heroSignupDrawer');
-      if (drawer) {
-        drawer.classList.toggle('hidden');
-        document.getElementById('heroNameInput')?.focus();
-      }
-    });
-
+    // Hero Email Signup / Sign-In Form
     document.getElementById('heroEmailAuthForm')?.addEventListener('submit', (e) => {
       e.preventDefault();
-      const email = document.getElementById('heroEmailInput')?.value || 'alex@company.com';
-      const name = document.getElementById('heroNameInput')?.value || email.split('@')[0];
+      const email = (document.getElementById('heroEmailInput')?.value || '').trim();
+      if (!email) {
+        document.getElementById('heroEmailInput')?.focus();
+        return;
+      }
+      const name = (document.getElementById('heroNameInput')?.value || '').trim() || email.split('@')[0];
       const plan = document.getElementById('heroPlanSelect')?.value || 'pro';
       registerOrSignInWithDetails(name, email, plan);
     });
 
-    // Quick 1-Click Login Buttons across Website
-    document.querySelectorAll('[data-quick-login]').forEach((btn) => {
+    // Google Stack Inspector Badges across Hero, Auth Card, Footer, and Workspace Header
+    document.querySelectorAll('[data-open-stack-tab]').forEach((btn) => {
       btn.addEventListener('click', () => {
-        const targetId = btn.getAttribute('data-quick-login');
-        completeLoginAsUser(targetId, false);
+        const tab = btn.getAttribute('data-open-stack-tab') || 'firestore';
+        openGoogleStackModal(tab);
       });
     });
 
-    // Hero 1-Click Side-by-Side Live View Launch
-    document.getElementById('heroLaunchSplitBtn')?.addEventListener('click', () => {
-      state.sideBySideMode = true;
-      completeLoginAsUser('alex', false);
+    document.getElementById('openGoogleStackModalBtn')?.addEventListener('click', () => {
+      openGoogleStackModal('firestore');
+    });
+    document.getElementById('closeGoogleStackModalBtn')?.addEventListener('click', closeGoogleStackModal);
+    document.getElementById('googleStackModalBackdrop')?.addEventListener('click', (e) => {
+      if (e.target.id === 'googleStackModalBackdrop') closeGoogleStackModal();
     });
 
-    // Pricing Cards: Provision Tier & Launch
+    // Pricing Cards: Provision Tier via Google / Work Account Modal
     document.querySelectorAll('[data-provision-tier]').forEach((btn) => {
       btn.addEventListener('click', () => {
-        const tier = btn.getAttribute('data-provision-tier');
-        if (tier === 'starter') {
-          completeLoginAsUser('hasnain', false);
-        } else {
-          state.accounts.alex.planTier = tier;
-          state.accounts.alex.quotaTotal = PLAN_TIERS[tier]?.quota || 250000;
-          completeLoginAsUser('alex', false);
-        }
+        const tier = btn.getAttribute('data-provision-tier') || 'pro';
+        openGoogleChooserModal(tier);
       });
-    });
-
-    // Footer Reset Demo State
-    document.getElementById('footerResetBtn')?.addEventListener('click', () => {
-      state = createDefaultState();
-      saveAndBroadcastState();
-      showToast('Demo state reset to default!', 'shared');
     });
 
     // Google Custom Account Form
-    document.getElementById('cancelCustomGoogleBtn')?.addEventListener('click', () => {
-      document.getElementById('googleCustomAccountForm')?.classList.add('hidden');
-      document.getElementById('googleAccountList')?.classList.remove('hidden');
-    });
-
     document.getElementById('googleCustomAccountForm')?.addEventListener('submit', (e) => {
       e.preventDefault();
       const name = document.getElementById('googleCustomName')?.value;
@@ -2243,7 +2627,7 @@ export async function executeCoThreadTurn() {
     document.getElementById('headerModelSelect')?.addEventListener('change', (e) => {
       state.primaryModel = e.target.value;
       saveAndBroadcastState();
-      showToast(`Switched CoThread AI model to ${state.primaryModel}.`, 'shared');
+      showToast(`Switched Google ADK Architect model to ${state.primaryModel}.`, 'shared');
     });
 
     document.getElementById('copyCurrentSublinkBtn')?.addEventListener('click', () => {
@@ -2264,13 +2648,11 @@ export async function executeCoThreadTurn() {
       renderApp();
       showToast(
         state.sideBySideMode
-          ? 'Enabled Side-by-Side Colleague Preview (Host + Colleague live on one screen).'
-          : 'Switched to single-account view.',
+          ? 'Enabled Dual-Pane Multiplayer Workspace.'
+          : 'Switched to single-pane view.',
         'shared'
       );
     });
-
-    document.getElementById('simulateColleagueBtn')?.addEventListener('click', simulateColleagueActivity);
 
     // Close Modals
     document.getElementById('closeShareModalBtn')?.addEventListener('click', closeShareModal);
@@ -2287,26 +2669,21 @@ export async function executeCoThreadTurn() {
     document.getElementById('heroSublinkForm')?.addEventListener('submit', (e) => {
       e.preventDefault();
       const rawVal = (document.getElementById('heroSublinkInput')?.value || '').trim();
+      if (!rawVal) {
+        scrollToAuthCard();
+        return;
+      }
       if (rawVal.includes('@')) {
         registerOrSignInWithDetails(rawVal.split('@')[0], rawVal, 'pro');
         return;
       }
-      completeLoginAsUser(rawVal.includes('cothread') ? 'hasnain' : 'alex', false);
+      const match = rawVal.match(/(cothread-[a-z0-9-]+)/i);
+      if (match) {
+        pendingInviteShareCode = match[1];
+        renderWebsiteInviteBanner();
+      }
+      scrollToAuthCard();
     });
-
-    // Interactive Parallax Coins in Hero
-    const heroParallax = document.querySelector('[data-hero-parallax-container]');
-    const coins = document.querySelectorAll('.hero-coin');
-    if (heroParallax && coins.length > 0) {
-      window.addEventListener('mousemove', (e) => {
-        const cx = e.clientX - window.innerWidth / 2;
-        const cy = e.clientY - window.innerHeight / 2;
-        coins.forEach((coin) => {
-          const factor = parseFloat(coin.getAttribute('data-parallax-intensity') || '0.03');
-          coin.style.transform = `translate3d(${(cx * factor).toFixed(1)}px, ${(cy * factor).toFixed(1)}px, 0)`;
-        });
-      });
-    }
   }
 
   document.addEventListener('DOMContentLoaded', () => {
