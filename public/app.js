@@ -12,8 +12,8 @@
 (function () {
   'use strict';
 
-  const STORAGE_KEY = 'cothread_firestore_state_v9';
-  const TAB_AUTH_KEY = 'cothread_tab_user_v9';
+  const STORAGE_KEY = 'cothread_firestore_state_v10';
+  const TAB_AUTH_KEY = 'cothread_tab_user_v10';
   const THEME_KEY = 'cothread_theme_ct8';
   const CHANNEL_NAME = 'cothread_realtime';
 
@@ -47,325 +47,17 @@
       compressionModel: 'gemini-3.5-flash-lite',
       sideBySideMode: false,
       typingStatus: null,
-      adkTraces: [
-        {
-          traceId: 'adk_boot_1',
-          timestamp: '10:15 AM',
-          orchestrator: 'CoThreadADKOrchestrator',
-          subAgents: [
-            'ContextCompressionSubAgent (gemini-3.5-flash-lite)',
-            'QuotaGuardTool (Firestore Transactional Ledger)',
-            'CollaborativeArchitectSubAgent (gemini-3.8-flash)'
-          ],
-          route: '/s/cothread-arch-9x2k',
-          tokensCharged: 410,
-          tokensSaved: 185,
-          status: 'COMMITTED_TO_FIRESTORE'
-        }
-      ],
-      accounts: {
-        alex: {
-          id: 'alex',
-          name: 'Alex Rivera',
-          shortName: 'Alex',
-          email: 'alex@company.com',
-          initials: 'AR',
-          planTier: 'pro',
-          quotaTotal: 250000,
-          quotaUsed: 14820,
-          colorClass: 'alex'
-        },
-        hasnain: {
-          id: 'hasnain',
-          name: 'Hasnain Khan',
-          shortName: 'Hasnain',
-          email: 'hasnain@company.com',
-          initials: 'HK',
-          planTier: 'starter',
-          quotaTotal: 25000,
-          quotaUsed: 3420,
-          colorClass: 'hasnain'
-        },
-        sarah: {
-          id: 'sarah',
-          name: 'Sarah Chen',
-          shortName: 'Sarah',
-          email: 'sarah@company.com',
-          initials: 'SC',
-          planTier: 'pro',
-          quotaTotal: 250000,
-          quotaUsed: 6150,
-          colorClass: 'sarah'
-        }
-      },
-      paneState: {
-        alex: {
-          activeSessionId: 'shared_arch_room',
-          composerMode: 'ai',
-          canvasOpen: true,
-          draftText: ''
-        },
-        hasnain: {
-          activeSessionId: 'shared_arch_room',
-          composerMode: 'ai',
-          canvasOpen: false,
-          draftText: ''
-        }
-      },
-      sessions: [
-        {
-          id: 'shared_arch_room',
-          type: 'shared',
-          title: 'Cloud Run Multiplayer Architecture & Quota Router',
-          hostId: 'alex',
-          hostName: 'Alex Rivera',
-          hostShortName: 'Alex',
-          shareCode: 'cothread-arch-9x2k',
-          linkActive: true,
-          permissionMode: 'can_prompt',
-          tokenCap: 25000,
-          tokensUsed: 4820,
-          tokensSavedByCompression: 1940,
-          participantUsage: {
-            alex: 2190,
-            hasnain: 1840,
-            sarah: 790
-          },
-          participants: ['alex', 'hasnain', 'sarah'],
-          canvasTitle: 'cothread_quota_router.ts',
-          canvasLastEditedBy: 'Alex & Gemini 3.8 Flash',
-          canvasContent:
-`// CoThread Shared Architecture Artifact (/s/cothread-arch-9x2k)
-// Sponsored by Host Quota: Alex Rivera (Pro Plan • 25,000 Session Cap)
-
-export interface CoThreadSessionLedger {
-  sessionId: string;
-  shareSublink: string; // "/s/cothread-arch-9x2k"
-  hostAccountId: string;
-  sessionTokenCap: number;
-  sessionTokensUsed: number;
-  guestPermission: 'can_prompt' | 'view_only';
-}
-
-export async function routeCoThreadQuota(ctx: {
-  sessionType: 'shared' | 'personal';
-  hostAccountId: string;
-  activeAccountId: string;
-  tokens: number;
-}) {
-  // Shared Session prompts deduct from the Host's software-assigned quota
-  if (ctx.sessionType === 'shared') {
-    return debitAccountQuota(ctx.hostAccountId, ctx.tokens, 'HOST_SPONSORED_SESSION');
-  }
-  // Personal Chats (including copied threads) deduct from the user's own account quota
-  return debitAccountQuota(ctx.activeAccountId, ctx.tokens, 'PERSONAL_ACCOUNT_QUOTA');
-}`,
-          messages: [
-            {
-              id: 'm_1',
-              senderId: 'alex',
-              senderName: 'Alex Rivera',
-              senderRole: 'Host',
-              kind: 'chat',
-              timestamp: '10:14 AM',
-              text: "Hey @Hasnain and @Sarah! I shared this live CoThread session (/s/cothread-arch-9x2k) and allocated a 25,000 token allowance from my CoThread Pro quota. Prompt @Gemini directly in here so we can finalize the architecture together."
-            },
-            {
-              id: 'm_2',
-              senderId: 'hasnain',
-              senderName: 'Hasnain Khan',
-              senderRole: 'Colleague',
-              kind: 'prompt',
-              timestamp: '10:15 AM',
-              text: "@Gemini Design a real-time token metering pipeline for CoThread that charges shared session prompts to Alex's Host Quota while compressing context via gemini-3.5-flash-lite."
-            },
-            {
-              id: 'm_3',
-              senderId: 'gemini',
-              senderName: 'Gemini 3.8 Flash',
-              senderRole: 'CoThread AI',
-              kind: 'ai',
-              modelUsed: 'gemini-3.8-flash',
-              timestamp: '10:15 AM',
-              triggeredBy: 'Hasnain',
-              quotaChargedTo: 'Host (Alex Rivera • Pro Quota)',
-              quotaType: 'host',
-              tokensCharged: 410,
-              tokensSaved: 185,
-              text: "Here is the **CoThread Host-Sponsored Quota Metering Pipeline** for `/s/cothread-arch-9x2k`:\n\n1. **Zero API Key SaaS Provisioning**: CoThread assigns a managed software token quota to each user account (`Starter: 25k`, `Pro: 250k`, `Enterprise: 1M`).\n2. **Host-Sponsored Shared Sublinks**: While inside `/s/cothread-arch-9x2k`, prompts from any permitted colleague (`Hasnain`, `Sarah`) are debited against **Alex's 25,000 session cap**.\n3. **1-Click Independent Copy**: Clicking **Continue Independently (Copy to My Chats)** clones the history into the colleague's private `/app` workspace where future prompts debit their own software quota.",
-              codeSnippet:
-`// CoThread Quota Enforcement Middleware
-if (session.tokensUsed + estimatedTokens > session.tokenCap) {
-  throw new CoThreadQuotaError('Host session allowance reached');
-}
-const distilled = await flashLiteCompressor.compress(session.messages);
-const reply = await gemini38Flash.generate({ context: distilled, prompt });
-await ledger.debitHostSession(session.hostId, session.id, reply.tokens);`
-            },
-            {
-              id: 'm_4',
-              senderId: 'sarah',
-              senderName: 'Sarah Chen',
-              senderRole: 'Colleague',
-              kind: 'chat',
-              timestamp: '10:17 AM',
-              text: "This is so much cleaner than pasting screenshots in Slack. And whenever I want to test my own microservice edge-cases privately, I just click 'Continue Independently (Copy to My Chats)'."
-            }
-          ]
-        },
-        {
-          id: 'shared_launch_room',
-          type: 'shared',
-          title: 'Product Launch & Enterprise Security Review',
-          hostId: 'alex',
-          hostName: 'Alex Rivera',
-          hostShortName: 'Alex',
-          shareCode: 'cothread-sec-4m8p',
-          linkActive: true,
-          permissionMode: 'can_prompt',
-          tokenCap: 15000,
-          tokensUsed: 2150,
-          tokensSavedByCompression: 820,
-          participantUsage: {
-            alex: 1250,
-            hasnain: 900
-          },
-          participants: ['alex', 'hasnain'],
-          canvasTitle: 'security_checklist.md',
-          canvasLastEditedBy: 'Hasnain',
-          canvasContent:
-`# CoThread Enterprise Security & Quota Governance
-- Google Workspace OAuth 2.0 SSO
-- Per-session Host Token Cap slider (5,000 to 100,000 tokens)
-- Instant sublink revocation (/s/cothread-sec-4m8p)
-- Independent Personal Chat isolation (/app)`,
-          messages: [
-            {
-              id: 'm_p1',
-              senderId: 'alex',
-              senderName: 'Alex Rivera',
-              senderRole: 'Host',
-              kind: 'chat',
-              timestamp: '09:45 AM',
-              text: "Hasnain, I opened `/s/cothread-sec-4m8p` for our security review. Feel free to prompt @Gemini here."
-            },
-            {
-              id: 'm_p2',
-              senderId: 'hasnain',
-              senderName: 'Hasnain Khan',
-              senderRole: 'Colleague',
-              kind: 'prompt',
-              timestamp: '09:46 AM',
-              text: "@Gemini Summarize how CoThread isolates Shared Sessions (/s/:code) from Personal Chats (/app)."
-            },
-            {
-              id: 'm_p3',
-              senderId: 'gemini',
-              senderName: 'Gemini 3.8 Flash',
-              senderRole: 'CoThread AI',
-              kind: 'ai',
-              modelUsed: 'gemini-3.8-flash',
-              timestamp: '09:46 AM',
-              triggeredBy: 'Hasnain',
-              quotaChargedTo: 'Host (Alex Rivera • Pro Quota)',
-              quotaType: 'host',
-              tokensCharged: 320,
-              tokensSaved: 140,
-              text: "• **Shared Sessions (`/s/:shareCode`)**: Live multi-participant rooms where the Host sponsors the token allowance and controls permissions (`Can Prompt AI` vs `View Only`).\n• **Personal Chats (`/app`)**: Private conversations billed strictly to the logged-in user's own CoThread software token quota.\n• **Continue Independently (Copy to My Chats)**: Creates a clean one-way copy into `/app` so colleagues can explore tangents on their own quota without affecting the shared room."
-            }
-          ]
-        },
-        {
-          id: 'personal_alex_1',
-          type: 'personal',
-          ownerId: 'alex',
-          ownerName: 'Alex',
-          forkedFromSessionId: null,
-          forkedFromTitle: null,
-          title: 'Q4 Cloud Run Autoscaling & Token Economics',
-          tokensUsed: 1240,
-          canvasTitle: 'q4_token_economics.md',
-          canvasLastEditedBy: 'Alex (Private)',
-          canvasContent:
-`# Alex's Private Cost & Quota Notes (/app)
-- Billed 100% to Alex Rivera's CoThread Pro Quota (250,000 tokens)`,
-          messages: [
-            {
-              id: 'm_pa1',
-              senderId: 'alex',
-              senderName: 'Alex Rivera',
-              senderRole: 'Personal Owner',
-              kind: 'prompt',
-              timestamp: 'Yesterday',
-              text: "@Gemini Estimate monthly token savings for a 40-engineer org using Gemini 3.5 Flash-Lite compression."
-            },
-            {
-              id: 'm_pa2',
-              senderId: 'gemini',
-              senderName: 'Gemini 3.8 Flash',
-              senderRole: 'CoThread AI',
-              kind: 'ai',
-              modelUsed: 'gemini-3.8-flash',
-              timestamp: 'Yesterday',
-              triggeredBy: 'Alex',
-              quotaChargedTo: 'Alex Rivera (My Pro Quota)',
-              quotaType: 'personal',
-              tokensCharged: 360,
-              tokensSaved: 110,
-              text: "With **Gemini 3.5 Flash-Lite** compressing rolling thread history by ~38%, a 40-engineer organization saves approximately **1.4M tokens per month** while maintaining full architectural fidelity."
-            }
-          ]
-        },
-        {
-          id: 'personal_hasnain_1',
-          type: 'personal',
-          ownerId: 'hasnain',
-          ownerName: 'Hasnain',
-          forkedFromSessionId: null,
-          forkedFromTitle: null,
-          title: 'WebSocket Reconnection & Sublink Router Notes',
-          tokensUsed: 980,
-          canvasTitle: 'sublink_router.ts',
-          canvasLastEditedBy: 'Hasnain (Private)',
-          canvasContent:
-`// Hasnain's Private Workspace (/app)
-// Billed to Hasnain Khan's Starter Quota (25,000 tokens)
-const parseSublink = (path: string) => path.match(/\\/s\\/(cothread-[a-z0-9-]+)/i);`,
-          messages: [
-            {
-              id: 'm_ph1',
-              senderId: 'hasnain',
-              senderName: 'Hasnain Khan',
-              senderRole: 'Personal Owner',
-              kind: 'prompt',
-              timestamp: 'Yesterday',
-              text: "@Gemini Write a clean regex parser to detect CoThread share sublinks (/s/cothread-...) and route users after Google Sign-In."
-            },
-            {
-              id: 'm_ph2',
-              senderId: 'gemini',
-              senderName: 'Gemini 3.8 Flash',
-              senderRole: 'CoThread AI',
-              kind: 'ai',
-              modelUsed: 'gemini-3.8-flash',
-              timestamp: 'Yesterday',
-              triggeredBy: 'Hasnain',
-              quotaChargedTo: 'Hasnain Khan (My Starter Quota)',
-              quotaType: 'personal',
-              tokensCharged: 340,
-              tokensSaved: 95,
-              text: "You can match `/s/(cothread-[a-z0-9-]+)` in `location.pathname`, `location.hash`, or `?s=` query parameters, store the pending invite token, and immediately join the room once Google OAuth completes."
-            }
-          ]
-        }
-      ]
+      adkTraces: [],
+      accounts: {},
+      paneState: {},
+      sessions: []
     };
   }
 
   let state = loadState();
   let currentUserId = loadTabUser();
   let pendingInviteShareCode = detectSublinkShareCode();
-  let activeShareModalSessionId = 'shared_arch_room';
+  let activeShareModalSessionId = null;
   let activeQuotaModalUserId = null;
 
   // Initialize Theme (Default: Warm Editorial Light like claude.com & gemini.google)
@@ -518,17 +210,23 @@ const parseSublink = (path: string) => path.match(/\\/s\\/(cothread-[a-z0-9-]+)/
   }
 
   function getSessionById(sessionId) {
-    return state.sessions.find((s) => s.id === sessionId) || state.sessions[0];
+    return state.sessions.find((s) => s.id === sessionId) || state.sessions[0] || null;
   }
 
   function ensurePaneStateForUser(userId) {
     if (!state.paneState[userId]) {
+      const defaultSess =
+        state.sessions.find((s) => s.type === 'shared' && s.participants?.includes(userId)) ||
+        state.sessions.find((s) => s.hostId === userId || s.ownerId === userId) ||
+        state.sessions[0];
       state.paneState[userId] = {
-        activeSessionId: 'shared_arch_room',
+        activeSessionId: defaultSess ? defaultSess.id : null,
         composerMode: 'ai',
         canvasOpen: false,
         draftText: ''
       };
+    } else if (!state.paneState[userId].activeSessionId && state.sessions.length > 0) {
+      state.paneState[userId].activeSessionId = state.sessions[0].id;
     }
     return state.paneState[userId];
   }
@@ -549,7 +247,7 @@ const parseSublink = (path: string) => path.match(/\\/s\\/(cothread-[a-z0-9-]+)/
     let safe = escapeHtml(rawText);
     safe = safe.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
     safe = safe.replace(/`([^`]+)`/g, '<code>$1</code>');
-    safe = safe.replace(/@(Gemini|Hasnain|Alex|Sarah)/gi, '<strong style="color:var(--accent-terracotta)">@$1</strong>');
+    safe = safe.replace(/@([a-zA-Z0-9_-]+)/g, '<strong style="color:var(--accent-terracotta)">@$1</strong>');
     return safe;
   }
 
@@ -561,9 +259,9 @@ const parseSublink = (path: string) => path.match(/\\/s\\/(cothread-[a-z0-9-]+)/
   function pulseSyncBadge(text) {
     const el = document.getElementById('syncStatusText');
     if (!el) return;
-    el.textContent = text || 'Live Sync';
+    el.textContent = text || 'Firestore Sync';
     setTimeout(() => {
-      if (el) el.textContent = 'Live Sync';
+      if (el) el.textContent = 'Firestore Sync';
     }, 2200);
   }
 
@@ -600,7 +298,12 @@ const parseSublink = (path: string) => path.match(/\\/s\\/(cothread-[a-z0-9-]+)/
       );
     }
 
-    setTabUser(userId);
+    if (Object.keys(state.accounts).length < 2) {
+      setTabUser(userId);
+    } else if (!currentUserId || !state.sideBySideMode) {
+      setTabUser(userId);
+    }
+
     saveAndBroadcastState();
     closeGoogleChooserModal();
     renderApp();
@@ -660,45 +363,59 @@ const parseSublink = (path: string) => path.match(/\\/s\\/(cothread-[a-z0-9-]+)/
       isRealUser: true
     };
 
-    const userShareCode = 'cothread-' + shortName.toLowerCase().replace(/[^a-z0-9]/g, '') + '-' + Math.random().toString(36).slice(2, 6);
-    const newSharedRoomId = 'shared_room_' + newId;
+    const existingSharedRoom = state.sessions.find((s) => s.type === 'shared');
+    let targetSharedSessionId = null;
 
-    state.sessions.unshift({
-      id: newSharedRoomId,
-      type: 'shared',
-      title: `${cleanName}'s Shared AI Room`,
-      hostId: newId,
-      hostName: cleanName,
-      hostShortName: shortName,
-      shareCode: userShareCode,
-      linkActive: true,
-      permissionMode: 'can_prompt',
-      tokenCap: tier.id === 'starter' ? 10000 : 25000,
-      tokensUsed: 0,
-      tokensSavedByCompression: 0,
-      participantUsage: { [newId]: 0 },
-      participants: [newId],
-      canvasTitle: 'cothread_architecture.ts',
-      canvasLastEditedBy: `${shortName} & Google ADK`,
-      canvasContent: `// Cloud Firestore Document: sessions/${newSharedRoomId}\n// Sublink: /s/${userShareCode} • Host: ${cleanName} (${cleanEmail})\n// Orchestrated by CoThreadADKOrchestrator (Gemini 3.8 Flash + 3.5 Flash-Lite)\n`,
-      messages: [
-        {
-          id: 'm_host_init_' + Date.now(),
-          senderId: 'gemini',
-          senderName: 'Google ADK • Gemini 3.8 Flash',
-          senderRole: 'CoThread AI',
-          kind: 'ai',
-          modelUsed: 'gemini-3.8-flash',
-          timestamp: nowTimeLabel(),
-          triggeredBy: shortName,
-          quotaChargedTo: `Host (${cleanName} • ${tier.badge} Quota)`,
-          quotaType: 'host',
-          tokensCharged: 0,
-          tokensSaved: 0,
-          text: `**Cloud Firestore & Google ADK Session Ready (\`/s/${userShareCode}\`)**\n\nWelcome, **${cleanName}** (\`${cleanEmail}\`)! Your account is persisted in the **Firestore \`users/${newId}\`** collection with **${fmtNum(tier.quota)} tokens**.\n\n• Click **🔗 Share & Quota** above to copy your `/s/${userShareCode}` sublink and sponsor teammates.\n• Or click **🔀 Continue Independently (Copy to My Chats)** to fork any shared thread into your private `/app` workspace.`
-        }
-      ]
-    });
+    if (existingSharedRoom) {
+      if (!existingSharedRoom.participants.includes(newId)) {
+        existingSharedRoom.participants.push(newId);
+      }
+      if (existingSharedRoom.participantUsage[newId] === undefined) {
+        existingSharedRoom.participantUsage[newId] = 0;
+      }
+      targetSharedSessionId = existingSharedRoom.id;
+    } else {
+      const userShareCode = 'cothread-' + shortName.toLowerCase().replace(/[^a-z0-9]/g, '') + '-' + Math.random().toString(36).slice(2, 6);
+      const newSharedRoomId = 'shared_room_' + newId;
+      targetSharedSessionId = newSharedRoomId;
+
+      state.sessions.unshift({
+        id: newSharedRoomId,
+        type: 'shared',
+        title: `${cleanName}'s Shared AI Room`,
+        hostId: newId,
+        hostName: cleanName,
+        hostShortName: shortName,
+        shareCode: userShareCode,
+        linkActive: true,
+        permissionMode: 'can_prompt',
+        tokenCap: tier.id === 'starter' ? 10000 : 25000,
+        tokensUsed: 0,
+        tokensSavedByCompression: 0,
+        participantUsage: { [newId]: 0 },
+        participants: [newId],
+        canvasTitle: 'cothread_architecture.ts',
+        canvasLastEditedBy: `${shortName} & Google ADK`,
+        canvasContent: `// Cloud Firestore Document: sessions/${newSharedRoomId}\n// Sublink: /s/${userShareCode} • Host: ${cleanName} (${cleanEmail})\n// Orchestrated by CoThreadADKOrchestrator (Gemini 3.8 Flash + 3.5 Flash-Lite)\n`,
+        messages: [
+          {
+            id: 'm_host_init_' + Date.now(),
+            senderId: 'gemini',
+            senderName: 'Google ADK • Gemini 3.8 Flash',
+            senderRole: 'CoThread AI',
+            kind: 'ai',
+            modelUsed: 'gemini-3.8-flash',
+            timestamp: nowTimeLabel(),
+            triggeredBy: shortName,
+            quotaChargedTo: `Host (${cleanName} • ${tier.badge} Quota)`,
+            quotaType: 'host',
+            tokensCharged: 0,
+            tokensSaved: 0,
+            text: `**Cloud Firestore & Google ADK Session Ready (\`/s/${userShareCode}\`)**\n\nWelcome, **${cleanName}** (\`${cleanEmail}\`)! Your account is persisted in the **Firestore \`users/${newId}\`** collection with **${fmtNum(tier.quota)} tokens**.\n\n• Click **🔗 Share & Quota** above to copy your `/s/${userShareCode}` sublink and sponsor teammates.\n• Or click **🔀 Continue Independently (Copy to My Chats)** to fork any shared thread into your private `/app` workspace.`
+          }
+        ]
+      });
+    }
 
     state.sessions.push({
       id: 'personal_welcome_' + newId,
@@ -731,7 +448,7 @@ const parseSublink = (path: string) => path.match(/\\/s\\/(cothread-[a-z0-9-]+)/
       ]
     });
 
-    ensurePaneStateForUser(newId).activeSessionId = newSharedRoomId;
+    ensurePaneStateForUser(newId).activeSessionId = targetSharedSessionId;
     completeLoginAsUser(newId, true);
   }
 
@@ -892,7 +609,7 @@ const parseSublink = (path: string) => path.match(/\\/s\\/(cothread-[a-z0-9-]+)/
       account.quotaUsed = Math.min(account.quotaTotal, (account.quotaUsed || 0) + tokensCharged);
     }
 
-    const hostAccount = state.accounts[session.hostId] || state.accounts.alex;
+    const hostAccount = state.accounts[session.hostId] || account;
     const aiMsg = {
       id: 'm_ai_' + Date.now(),
       senderId: 'gemini',
@@ -1044,6 +761,9 @@ export async function executeAdkCollaborativeTurn() {
     ) {
       renderAccountQuotaModalContent(activeQuotaModalUserId);
     }
+    if (!document.getElementById('googleStackModalBackdrop').classList.contains('hidden')) {
+      renderGoogleStackModalContent();
+    }
   }
 
   function renderWebsiteInviteBanner() {
@@ -1113,12 +833,12 @@ export async function executeAdkCollaborativeTurn() {
     const stage = document.getElementById('workspaceStage');
     if (!stage) return;
 
-    const isSplit = Boolean(state.sideBySideMode);
+    const secondUser = Object.keys(state.accounts).find((id) => id !== currentUserId);
+    const isSplit = Boolean(state.sideBySideMode && secondUser);
     stage.classList.toggle('split-mode', isSplit);
 
     let paneUsers = [currentUserId];
-    if (isSplit) {
-      const secondUser = currentUserId === 'alex' ? 'hasnain' : 'alex';
+    if (isSplit && secondUser) {
       paneUsers = [currentUserId, secondUser];
     }
 
@@ -1130,9 +850,11 @@ export async function executeAdkCollaborativeTurn() {
   }
 
   function renderWorkspacePaneHTML(userId, paneIdx, isSplit) {
-    const account = state.accounts[userId] || state.accounts.alex;
+    const account = state.accounts[userId] || Object.values(state.accounts)[0];
+    if (!account) return '';
     const pane = ensurePaneStateForUser(userId);
     const activeSession = getSessionById(pane.activeSessionId);
+    if (!activeSession) return '';
     const planObj = PLAN_TIERS[account.planTier] || PLAN_TIERS.pro;
 
     const sharedSessions = state.sessions.filter((s) => s.type === 'shared');
@@ -1331,7 +1053,11 @@ export async function executeAdkCollaborativeTurn() {
                         <div class="presence-avatar-stack">
                           ${activeSession.participants
                             .map((pid) => {
-                              const pAcct = state.accounts[pid] || state.accounts.alex;
+                              const pAcct = state.accounts[pid] || {
+                                initials: 'CT',
+                                colorClass: 'custom',
+                                shortName: pid
+                              };
                               return `
                                 <span class="presence-pill">
                                   <span class="avatar-circle ${pAcct.colorClass}">
@@ -1810,7 +1536,8 @@ export async function executeAdkCollaborativeTurn() {
   }
 
   function createNewSharedSession(hostUserId) {
-    const host = state.accounts[hostUserId] || state.accounts.alex;
+    const host = state.accounts[hostUserId] || Object.values(state.accounts)[0];
+    if (!host) return;
     const newId = 'shared_' + Date.now();
     const shareCode = 'cothread-' + Math.random().toString(36).slice(2, 6) + '-' + Math.random().toString(36).slice(2, 5);
 
@@ -1853,7 +1580,8 @@ export async function executeAdkCollaborativeTurn() {
   }
 
   function createNewPersonalChat(userId) {
-    const account = state.accounts[userId] || state.accounts.alex;
+    const account = state.accounts[userId] || Object.values(state.accounts)[0];
+    if (!account) return;
     const newId = 'personal_' + userId + '_' + Date.now();
     const newPersonal = {
       id: newId,
@@ -2033,7 +1761,12 @@ export async function executeAdkCollaborativeTurn() {
         <div class="participant-breakdown-list">
           ${session.participants
             .map((pid) => {
-              const pAcct = state.accounts[pid] || state.accounts.alex;
+              const pAcct = state.accounts[pid] || {
+                initials: 'CT',
+                colorClass: 'custom',
+                name: pid,
+                email: `${pid}@workspace`
+              };
               const used = session.participantUsage[pid] || 0;
               return `
                 <div class="participant-breakdown-item">
@@ -2232,8 +1965,28 @@ export async function executeAdkCollaborativeTurn() {
       }
     }
 
-    const activeUser = state.accounts[currentUserId] || Object.values(state.accounts)[0];
-    const activeSession = state.sessions[0];
+    const activeUser = state.accounts[currentUserId] || Object.values(state.accounts)[0] || {
+      id: 'mcp_service_principal',
+      name: 'CoThread MCP Service Principal',
+      shortName: 'MCP Host',
+      email: 'mcp-server@cothread.ai',
+      role: 'MCP Service Principal',
+      planTier: 'enterprise',
+      quotaTotal: 1000000,
+      quotaUsed: 0
+    };
+    const activeSession = state.sessions[0] || {
+      id: 'mcp_ephemeral_session',
+      type: 'shared',
+      title: 'MCP Server Session',
+      hostId: activeUser.id,
+      hostName: activeUser.name,
+      hostShortName: activeUser.shortName,
+      shareCode: 'cothread-mcp-live',
+      tokenCap: 25000,
+      tokensUsed: 0,
+      messages: []
+    };
 
     if (toolName === 'cothread_list_sessions') {
       return {
@@ -2631,7 +2384,9 @@ export async function executeAdkCollaborativeTurn() {
     });
 
     document.getElementById('copyCurrentSublinkBtn')?.addEventListener('click', () => {
-      const pane = ensurePaneStateForUser(currentUserId || 'alex');
+      const uid = currentUserId || Object.keys(state.accounts)[0];
+      if (!uid) return;
+      const pane = ensurePaneStateForUser(uid);
       const activeSession = getSessionById(pane.activeSessionId);
       if (activeSession && activeSession.type === 'shared') {
         const url = buildShareableSublinkUrl(activeSession.shareCode);
@@ -2644,6 +2399,16 @@ export async function executeAdkCollaborativeTurn() {
     });
 
     document.getElementById('toggleSideBySideBtn')?.addEventListener('click', () => {
+      const accountIds = Object.keys(state.accounts || {});
+      if (!state.sideBySideMode && accountIds.length < 2) {
+        state.sideBySideMode = true;
+        openGoogleChooserModal('starter');
+        showToast(
+          'Sign in a 2nd Google/Work account to display alongside your primary account in Dual-Pane mode.',
+          'shared'
+        );
+        return;
+      }
       state.sideBySideMode = !state.sideBySideMode;
       renderApp();
       showToast(
