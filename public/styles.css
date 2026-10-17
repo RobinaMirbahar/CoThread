@@ -4199,31 +4199,42 @@ svg {
   border-color: var(--border-strong);
 }
 
+/* ==========================================================================
+   Chat Sidebar Nav Items with Clean Menu Spacing (No Overlap!)
+   ========================================================================== */
 .session-nav-item-wrap {
   position: relative;
   display: flex;
   align-items: center;
   width: 100%;
+  gap: 4px;
+  margin-bottom: 2px;
 }
 
 .session-nav-item-wrap .session-nav-item {
   flex: 1;
   min-width: 0;
+  display: flex;
+  align-items: center;
 }
 
 .chat-item-menu-btn {
-  opacity: 0.5;
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: transparent;
   border: none;
   font-size: 16px;
   line-height: 1;
-  padding: 6px 8px;
-  border-radius: 6px;
   cursor: pointer;
   color: var(--ink-secondary);
+  border-radius: 6px;
+  opacity: 0.45;
   transition: opacity 0.15s ease, background 0.15s ease;
-  margin-left: -28px;
-  z-index: 5;
+  margin-left: 0 !important;
 }
 
 .session-nav-item-wrap:hover .chat-item-menu-btn,
@@ -4273,7 +4284,84 @@ svg {
   background: #FEE2E2;
 }
 
-/* Share Modal Custom Styling */
+/* ==========================================================================
+   Gemini Style Minimalist Icon Action Bar (Copy & New Chat)
+   ========================================================================== */
+.gemini-action-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 10px;
+  padding-top: 6px;
+  border-top: 1px dashed var(--border-hairline);
+}
+
+.gemini-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--ink-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.gemini-icon-btn:hover {
+  background: rgba(0, 0, 0, 0.08);
+  color: var(--ink-primary);
+}
+
+[data-theme="dark"] .gemini-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #FFFFFF;
+}
+
+/* Sidebar Toggle Button in Top Header */
+.sidebar-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 2px solid var(--border-strong);
+  background: var(--bg-elevated);
+  color: var(--ink-primary);
+  cursor: pointer;
+  box-shadow: 2px 2px 0px var(--border-strong);
+  transition: all 0.12s ease;
+  flex-shrink: 0;
+}
+
+.sidebar-toggle-btn:hover {
+  background: var(--ct-yellow);
+  transform: translate(-1px, -1px);
+}
+
+.header-chat-title {
+  font-family: var(--font-serif);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 280px;
+  margin-left: 8px;
+}
+
+/* Desktop Sidebar Collapsed state */
+.pane-sidebar.desktop-collapsed {
+  display: none !important;
+}
+
+/* ==========================================================================
+   Share Modal (Private Collab vs Public Link)
+   ========================================================================== */
 .share-dialog-card {
   max-width: 480px;
   width: 90%;
@@ -4296,51 +4384,101 @@ svg {
   line-height: 1.5;
 }
 
-.share-privacy-options {
+.share-mode-tabs {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
+  gap: 8px;
+  border-bottom: 2px solid var(--border-hairline);
+  padding-bottom: 8px;
 }
 
-.share-privacy-label {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 10px 14px;
-  border-radius: 10px;
-  border: 1.5px solid var(--border-hairline);
+.share-tab-btn {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1.5px solid transparent;
   background: var(--bg-page);
+  font-size: 12px;
+  font-weight: 700;
   cursor: pointer;
+  color: var(--ink-secondary);
   transition: all 0.12s ease;
 }
 
-.share-privacy-label:hover {
+.share-tab-btn.active {
+  background: var(--ct-yellow);
+  color: #000;
   border-color: var(--border-strong);
-  background: var(--bg-sand);
+  box-shadow: 2px 2px 0px var(--border-strong);
 }
 
-.share-privacy-label input[type="radio"] {
-  margin-top: 3px;
-  accent-color: var(--border-strong);
+.share-email-form {
+  display: flex;
+  gap: 8px;
+  margin: 10px 0;
 }
 
-.share-privacy-info strong {
-  display: block;
+.share-email-input {
+  flex: 1;
+  padding: 9px 12px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border-strong);
   font-size: 13px;
+  background: var(--bg-page);
   color: var(--ink-primary);
 }
 
-.share-privacy-info small {
-  display: block;
+.share-invite-submit-btn {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 2px solid var(--border-strong);
+  background: var(--ct-yellow);
+  color: #000;
+  font-weight: 700;
+  font-size: 12px;
+  cursor: pointer;
+  box-shadow: 2px 2px 0px var(--border-strong);
+  white-space: nowrap;
+}
+
+.share-invite-submit-btn:hover {
+  transform: translate(-1px, -1px);
+}
+
+.share-collaborators-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 6px 0 10px 0;
+  max-height: 140px;
+  overflow-y: auto;
+}
+
+.share-collab-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: var(--bg-page);
+  border: 1px solid var(--border-hairline);
+  font-size: 12px;
+}
+
+.share-notice-box {
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--bg-sand);
+  border: 1px solid var(--border-hairline);
   font-size: 11.5px;
-  color: var(--ink-muted);
+  color: var(--ink-secondary);
+  line-height: 1.4;
 }
 
 .share-url-row {
   display: flex;
   align-items: stretch;
   gap: 8px;
-  margin-top: 4px;
+  margin-top: 8px;
 }
 
 .share-url-input {
@@ -4388,3 +4526,31 @@ svg {
   color: var(--ink-primary);
   text-decoration: underline;
 }
+
+/* ==========================================================================
+   Mobile Header & Responsive Overrides
+   ========================================================================== */
+@media (max-width: 768px) {
+  .session-docs-header {
+    display: none !important;
+  }
+
+  .header-chat-title {
+    max-width: 140px;
+    font-size: 13.5px;
+  }
+
+  .workspace-top-header {
+    padding: 0 10px !important;
+  }
+
+  .top-header-right {
+    gap: 6px !important;
+  }
+
+  .share-chat-action-btn {
+    padding: 5px 10px !important;
+    font-size: 11px !important;
+  }
+}
+

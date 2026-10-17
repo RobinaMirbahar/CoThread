@@ -343,20 +343,34 @@
        3. PRODUCTION COTHREAD WORKSPACE (/chat or domain.com/chat)
        ========================================================================= -->
   <div class="app-shell hidden" id="appShell">
-    <header class="workspace-top-header">
+    <header class="workspace-top-header" id="workspaceTopHeader">
       <div class="top-header-left">
+        <button type="button" class="sidebar-toggle-btn" id="sidebarToggleBtn" title="Toggle Sidebar" aria-label="Toggle Sidebar">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+
         <button type="button" class="back-to-site-brand" id="backToWebsiteBtn" title="Return to Company Website">
-          <img src="./logo.svg?v=ct20" width="32" height="32" alt="CoThread Logo" />
+          <img src="./logo.svg?v=ct21" width="30" height="30" alt="CoThread Logo" />
           <span class="wordmark-serif sm">CoThread</span>
         </button>
+
+        <span class="header-chat-title" id="headerChatTitle">New Chat</span>
       </div>
 
       <div class="top-header-right">
-        <!-- Live pulse dot without "Live Sync" text as requested -->
-        <div class="sync-status-pill" title="Real-time Multiplayer Sync Active">
-          <span class="live-pulse-dot"></span>
-        </div>
+        <!-- Live Collaborators Presence Stack (Owner filtered OUT!) -->
+        <div class="presence-avatar-stack" id="headerPresenceStack" title="Collaborators in this chat"></div>
 
+        <!-- Share Button in Top Right on Desktop & Mobile -->
+        <button type="button" class="share-chat-action-btn" id="headerShareBtn" title="Share Chat">
+          <span>🔗 Share</span>
+        </button>
+
+        <!-- Theme Toggle -->
         <button type="button" class="header-utility-btn" id="appThemeToggleBtn" title="Toggle Theme">
           <span id="appThemeIcon">&#x2600;&#xFE0F;</span>
         </button>
@@ -367,44 +381,63 @@
   </div>
 
   <!-- =========================================================================
-       4. SHARE MODAL (Public vs Private)
+       4. SHARE MODAL (Private Collaboration vs Public Copy-to-Chat)
        ========================================================================= -->
   <div class="modal-backdrop hidden" id="shareModalBackdrop">
     <div class="modal-card share-dialog-card">
       <div class="modal-header">
         <div class="modal-title-cluster">
           <span class="sparkle-icon">🔗</span>
-          <h3>Share Collaborative Chat</h3>
+          <h3>Share Chat</h3>
         </div>
-        <button type="button" class="modal-close-btn" id="closeShareModalBtn">✕</button>
+        <button type="button" class="modal-close-btn" id="closeShareModalBtn">&#x2715;</button>
       </div>
       <div class="modal-body share-modal-body">
-        <p class="share-modal-desc">
-          Invite teammates to this chat. They will join with Google Docs-style live presence and can prompt Gemini in this same thread.
-        </p>
-        
-        <div class="share-privacy-options">
-          <label class="share-privacy-label">
-            <input type="radio" name="sharePrivacy" value="public" checked id="shareOptPublic" />
-            <div class="share-privacy-info">
-              <strong>🌐 Public CoThread Link</strong>
-              <small>Anyone with this link can join, see history, and chat.</small>
-            </div>
-          </label>
-          <label class="share-privacy-label">
-            <input type="radio" name="sharePrivacy" value="private" id="shareOptPrivate" />
-            <div class="share-privacy-info">
-              <strong>🔒 Private / Direct Link</strong>
-              <small>Restricted: only direct collaborators with this link can participate.</small>
-            </div>
-          </label>
+        <div class="share-mode-tabs">
+          <button type="button" class="share-tab-btn active" id="tabSharePrivateBtn">
+            &#x1F512; Private Collaboration
+          </button>
+          <button type="button" class="share-tab-btn" id="tabSharePublicBtn">
+            &#x1F310; Public (Copy to Chat)
+          </button>
         </div>
 
-        <div class="share-url-row">
-          <input type="text" id="shareModalLinkInput" class="share-url-input" readonly />
-          <button type="button" class="share-modal-copy-btn" id="shareModalCopyBtn">
-            <span>Copy Link</span>
-          </button>
+        <!-- Private Collaboration Section -->
+        <div class="share-pane-content" id="sharePanePrivate">
+          <p class="share-modal-desc">
+            Invite teammates by email to collaborate live in this chat with Google Docs-style presence.
+          </p>
+          <form id="shareInviteEmailForm" class="share-email-form">
+            <input
+              type="email"
+              id="shareInviteEmailInput"
+              class="share-email-input"
+              placeholder="Enter collaborator email (e.g. sarah@cothread.ai)..."
+              required
+            />
+            <button type="submit" class="share-invite-submit-btn">
+              Invite &amp; Copy Link
+            </button>
+          </form>
+
+          <div class="share-collaborators-list" id="shareCollaboratorsList"></div>
+
+          <div class="share-notice-box">
+            &#x2139;&#xFE0F; If they have an account, they join directly. If not, they sign up and then collaborate immediately.
+          </div>
+        </div>
+
+        <!-- Public Copy-to-Chat Section -->
+        <div class="share-pane-content hidden" id="sharePanePublic">
+          <p class="share-modal-desc">
+            Non-CoThread public link. Anyone with this link can view this chat and <strong>Copy to their own Chat</strong> without modifying your shared thread.
+          </p>
+          <div class="share-url-row">
+            <input type="text" id="sharePublicLinkInput" class="share-url-input" readonly />
+            <button type="button" class="share-modal-copy-btn" id="sharePublicCopyBtn">
+              <span>Copy Public Link</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>

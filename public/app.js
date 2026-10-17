@@ -2,21 +2,22 @@
  * CoThread — Collaborative AI Platform
  * - Company Website at `/` (domain.com)
  * - Chat Workspace at `/chat` (or `#/chat` or `chat.domain.com`)
- * - Google Docs style live presence (name only on hover)
- * - Gemini/Claude chat layout with Model selector inside the composer box
- * - Share modal with Public vs Private link options
- * - 3-dot kebab menu on each chat in sidebar (Rename, Delete)
- * - Action buttons on each AI response (Copy, Start New Chat)
- * - Dummy Login/Signup portal with 1-click test personas (Hasnain, Sarah, Alex)
+ * - Top header with Sidebar Toggle, Brand, Chat Title, Live Collaborators (Name ONLY, owner filtered out), Share Button, Theme Toggle
+ * - No green dot in top nav
+ * - Model selector inside the Chat Composer Box (Gemini style)
+ * - Gemini style minimal icon action bar on AI responses (Copy, New Chat, Retry)
+ * - Left sidebar with clean 3-dot kebab menu (Rename, Delete) without badge overlap
+ * - Share modal with Private Collaboration (email invite) vs Public Copy-to-Chat
+ * - Full responsive layout for mobile and desktop
  */
 
 (function () {
   'use strict';
 
-  const STORAGE_KEY = 'cothread_chat_state_v21';
-  const TAB_AUTH_KEY = 'cothread_active_user_v21';
-  const THEME_KEY = 'cothread_theme_v21';
-  const CHANNEL_NAME = 'cothread_realtime_v21';
+  const STORAGE_KEY = 'cothread_chat_state_v22';
+  const TAB_AUTH_KEY = 'cothread_active_user_v22';
+  const THEME_KEY = 'cothread_theme_v22';
+  const CHANNEL_NAME = 'cothread_realtime_v22';
 
   // Seed Default Accounts
   const DEFAULT_ACCOUNTS = {
@@ -65,6 +66,7 @@
           hostId: 'user_hasnain',
           shareCode: 'cothread-team-chat',
           participants: ['user_hasnain', 'user_sarah'],
+          invitedEmails: ['sarah@cothread.ai'],
           messages: [
             {
               id: 'm_welcome',
@@ -73,7 +75,7 @@
               senderRole: 'AI Assistant',
               kind: 'ai',
               timestamp: nowTimeLabel(),
-              text: `Welcome to **CoThread**! ✦\n\nThis is a real-time collaborative AI chat — like **Google Docs for AI**:\n\n• **Share this chat**: Click **🔗 Share** in the top bar to invite teammates (Public or Private).\n• **Multiplayer presence**: When someone joins, their avatar immediately appears in the top bar.\n• **Shared context**: Anyone in the chat can send prompts, and everyone sees who asked what with their name and avatar.`
+              text: `Welcome to **CoThread**! ✦\n\nThis is a real-time collaborative AI chat — like **Google Docs for AI**:\n\n• **Share this chat**: Click **🔗 Share** in the top right to invite teammates privately or create a public link.\n• **Multiplayer presence**: When someone joins, their avatar immediately appears in the top right presence stack.\n• **Shared context**: Anyone in the chat can send prompts, and everyone sees who asked what with their name and avatar.`
             }
           ]
         }
@@ -84,6 +86,7 @@
   let state = loadState();
   let currentUserId = loadTabUser();
   let pendingInviteShareCode = detectSublinkShareCode();
+  let pendingInviteeEmail = detectInviteeEmail();
   let activeShareSessionId = null;
 
   // Determine current route: 'home' vs 'chat'
@@ -245,6 +248,15 @@
     return null;
   }
 
+  function detectInviteeEmail() {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const email = params.get('invitee');
+      if (email) return email.trim().toLowerCase();
+    } catch (e) {}
+    return null;
+  }
+
   function findSessionByShareCode(code) {
     if (!code) return null;
     return state.sessions.find(
@@ -263,7 +275,7 @@
         state.sessions[0];
       state.paneState[userId] = {
         activeSessionId: defaultSess ? defaultSess.id : null,
-        mobileSidebarOpen: false,
+        sidebarOpen: true,
         openMenuSessionId: null,
         draftText: ''
       };
@@ -354,6 +366,7 @@
         showToast(`Joined chat: "${invitedSession.title}"!`, 'shared');
       }
       pendingInviteShareCode = null;
+      pendingInviteeEmail = null;
     }
 
     saveAndBroadcastState();
@@ -385,6 +398,7 @@
       hostId: userId,
       shareCode: shareCode,
       participants: [userId],
+      invitedEmails: [],
       messages: []
     };
 
@@ -590,10 +604,18 @@
     activeShareSessionId = sessionId;
 
     const modal = document.getElementById('shareModalBackdrop');
-    const input = document.getElementById('shareModalLinkInput');
-    if (!modal || !input) return;
+    if (!modal) return;
 
-    updateShareModalUrl();
+    // Reset tabs to Private tab by default
+    switchShareTab('private');
+    renderShareCollaboratorsList(session);
+
+    // Setup public link input
+    const pubInput = document.getElementById('sharePublicLinkInput');
+    if (pubInput) {
+      pubInput.value = `${window.location.origin}/chat?join=${encodeURIComponent(session.shareCode)}&mode=public_copy`;
+    }
+
     modal.classList.remove('hidden');
   }
 
@@ -603,16 +625,62 @@
     activeShareSessionId = null;
   }
 
-  function updateShareModalUrl() {
-    const session = getSessionById(activeShareSessionId);
-    if (!session) return;
-    const input = document.getElementById('shareModalLinkInput');
-    if (!input) return;
+  function switchShareTab(mode) {
+    const tabPrivate = document.getElementById('tabSharePrivateBtn');
+    const tabPublic = document.getElementById('tabSharePublicBtn');
+    const panePrivate = document.getElementById('sharePanePrivate');
+    const panePublic = document.getElementById('sharePanePublic');
 
-    const isPrivate = document.getElementById('shareOptPrivate')?.checked;
-    const privacyParam = isPrivate ? '&privacy=private' : '&privacy=public';
-    const baseUrl = `${window.location.origin}/chat`;
-    input.value = `${baseUrl}?join=${encodeURIComponent(session.shareCode)}${privacyParam}`;
+    if (mode === 'private') {
+      tabPrivate?.classList.add('active');
+      tabPublic?.classList.remove('active');
+      panePrivate?.classList.remove('hidden');
+      panePublic?.classList.add('hidden');
+    } else {
+      tabPublic?.classList.add('active');
+      tabPrivate?.classList.remove('active');
+      panePublic?.classList.remove('hidden');
+      panePrivate?.classList.add('hidden');
+    }
+  }
+
+  function renderShareCollaboratorsList(session) {
+    const container = document.getElementById('shareCollaboratorsList');
+    if (!container) return;
+
+    const participants = session.participants || [];
+    const invitedEmails = session.invitedEmails || [];
+
+    const activeItems = participants.map((pid) => {
+      const acct = state.accounts[pid] || { name: 'User', email: '' };
+      const isOwner = pid === session.hostId;
+      return `
+        <div class="share-collab-item">
+          <div>
+            <strong>${escapeHtml(acct.name)}</strong>
+            <small style="color:var(--ink-muted); margin-left:6px;">${escapeHtml(acct.email)}</small>
+          </div>
+          <span style="font-size:11px; font-weight:700; color:var(--accent-emerald);">
+            ${isOwner ? 'Owner' : 'Active'}
+          </span>
+        </div>
+      `;
+    });
+
+    const pendingItems = invitedEmails
+      .filter((email) => !participants.some((pid) => state.accounts[pid]?.email.toLowerCase() === email.toLowerCase()))
+      .map((email) => `
+        <div class="share-collab-item">
+          <div>
+            <strong>${escapeHtml(email)}</strong>
+          </div>
+          <span style="font-size:11px; font-weight:700; color:var(--ink-muted);">
+            Invited
+          </span>
+        </div>
+      `);
+
+    container.innerHTML = activeItems.concat(pendingItems).join('');
   }
 
   // =========================================================
@@ -634,7 +702,7 @@
       return;
     }
 
-    // User is on /chat (chat workspace route)
+    // User is on /chat route
     if (websiteRoot) websiteRoot.classList.add('hidden');
 
     if (!currentUserId || !state.accounts[currentUserId]) {
@@ -655,6 +723,14 @@
       } else if (inviteNotice) {
         inviteNotice.classList.add('hidden');
       }
+
+      // Pre-fill email if invited via private email link
+      if (pendingInviteeEmail) {
+        const loginInp = document.getElementById('loginEmail');
+        const signupInp = document.getElementById('signupEmail');
+        if (loginInp && !loginInp.value) loginInp.value = pendingInviteeEmail;
+        if (signupInp && !signupInp.value) signupInp.value = pendingInviteeEmail;
+      }
       return;
     }
 
@@ -672,10 +748,61 @@
         showToast(`Joined chat: "${invitedSession.title}"!`, 'shared');
       }
       pendingInviteShareCode = null;
+      pendingInviteeEmail = null;
       saveAndBroadcastState();
     }
 
+    renderTopWorkspaceHeader();
     renderWorkspaceStage();
+  }
+
+  function renderTopWorkspaceHeader() {
+    const pane = ensurePaneStateForUser(currentUserId);
+    const activeSession = getSessionById(pane.activeSessionId);
+    if (!activeSession) return;
+
+    // 1. Update Title in Top Header
+    const titleEl = document.getElementById('headerChatTitle');
+    if (titleEl) {
+      titleEl.textContent = activeSession.title || 'New Chat';
+      titleEl.title = activeSession.title || 'New Chat';
+    }
+
+    // 2. Render Collaborators Presence Avatars Stack (FILTER OUT CURRENT USER!)
+    const presenceStack = document.getElementById('headerPresenceStack');
+    if (presenceStack) {
+      // ONLY show other collaborators who joined the chat (NOT current user)!
+      const otherCollaborators = (activeSession.participants || []).filter((pid) => pid !== currentUserId);
+
+      if (otherCollaborators.length > 0) {
+        presenceStack.classList.remove('hidden');
+        presenceStack.innerHTML = otherCollaborators.map((pid) => {
+          const pAcct = state.accounts[pid] || {
+            name: 'Collaborator',
+            initials: 'CT',
+            colorClass: 'custom'
+          };
+          // Tooltip shows NAME ONLY! (No email as requested)
+          return `
+            <div class="presence-avatar-item" data-tooltip="${escapeHtml(pAcct.name)}">
+              <span class="avatar-circle ${pAcct.colorClass || 'custom'}">
+                ${escapeHtml(pAcct.initials || 'U')}
+              </span>
+            </div>
+          `;
+        }).join('');
+      } else {
+        // If no other collaborators, leave empty
+        presenceStack.innerHTML = '';
+        presenceStack.classList.add('hidden');
+      }
+    }
+
+    // 3. Wire Share Button in Top Right
+    const shareBtn = document.getElementById('headerShareBtn');
+    if (shareBtn) {
+      shareBtn.onclick = () => openShareModal(activeSession.id);
+    }
   }
 
   function renderWorkspaceStage() {
@@ -693,18 +820,19 @@
     if (!activeSession) return '';
 
     const sessions = state.sessions;
+    const isSidebarCollapsed = !pane.sidebarOpen;
 
     return `
       <section class="workspace-pane" data-pane-user="${userId}">
         <div class="pane-body-grid">
           <div
-            class="mobile-sidebar-backdrop ${pane.mobileSidebarOpen ? 'open' : ''}"
-            data-action="close-mobile-sidebar"
+            class="mobile-sidebar-backdrop ${pane.sidebarOpen ? 'open' : ''}"
+            data-action="close-sidebar"
             data-user="${userId}"
           ></div>
 
-          <!-- LEFT SIDEBAR (Claude / Gemini style) -->
-          <aside class="pane-sidebar ${pane.mobileSidebarOpen ? 'mobile-open' : ''}" aria-label="Sidebar">
+          <!-- LEFT SIDEBAR (Claude / Gemini style, toggleable) -->
+          <aside class="pane-sidebar ${pane.sidebarOpen ? 'mobile-open' : ''} ${isSidebarCollapsed ? 'desktop-collapsed' : ''}" aria-label="Sidebar">
             <div class="sidebar-new-chat-wrap">
               <button
                 type="button"
@@ -718,7 +846,7 @@
               <button
                 type="button"
                 class="mobile-sidebar-close-btn"
-                data-action="close-mobile-sidebar"
+                data-action="close-sidebar"
                 data-user="${userId}"
                 title="Close Sidebar"
               >✕</button>
@@ -804,60 +932,6 @@
 
           <!-- CENTER CHAT COLUMN -->
           <div class="pane-main-column">
-            <!-- TOP NAVBAR (Google Docs style presence) -->
-            <header class="session-docs-header">
-              <div class="session-header-top-row">
-                <div class="session-title-cluster">
-                  <button
-                    type="button"
-                    class="hdr-btn mobile-sidebar-toggle-btn"
-                    data-action="toggle-mobile-sidebar"
-                    data-user="${userId}"
-                    title="Toggle Chats Sidebar"
-                  >
-                    <span>☰ Chats</span>
-                  </button>
-                  <h1 class="session-title-heading" title="${escapeHtml(activeSession.title)}">
-                    ${escapeHtml(activeSession.title)}
-                  </h1>
-                </div>
-
-                <div class="session-header-actions docs-presence-bar">
-                  <!-- Google Docs Presence Avatars Stack (NAME ONLY on hover!) -->
-                  <div class="presence-avatar-stack" title="Collaborators in this chat">
-                    ${(activeSession.participants || [userId]).map((pid) => {
-                      const pAcct = state.accounts[pid] || {
-                        name: 'Collaborator',
-                        initials: 'CT',
-                        colorClass: 'custom'
-                      };
-                      const isYou = pid === userId;
-                      // Display Name ONLY, not email!
-                      const tooltip = `${escapeHtml(pAcct.name)}${isYou ? ' (You)' : ''}`;
-                      return `
-                        <div class="presence-avatar-item" data-tooltip="${tooltip}">
-                          <span class="avatar-circle ${pAcct.colorClass || 'custom'}">
-                            ${escapeHtml(pAcct.initials || 'U')}
-                          </span>
-                        </div>
-                      `;
-                    }).join('')}
-                  </div>
-
-                  <!-- Share Chat Button -->
-                  <button
-                    type="button"
-                    class="share-chat-action-btn"
-                    data-action="open-share-modal"
-                    data-session-id="${activeSession.id}"
-                    title="Share this chat link (Public or Private)"
-                  >
-                    <span>🔗 Share</span>
-                  </button>
-                </div>
-              </div>
-            </header>
-
             <div class="chat-and-canvas-split">
               <div class="chat-stream-column">
                 <div class="messages-scroll-container" id="msgScroll_${userId}">
@@ -866,7 +940,7 @@
                       <div style="font-size: 38px; margin-bottom: 14px;">✦</div>
                       <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 8px;">How can CoThread AI help today?</h2>
                       <p style="color: var(--ink-muted); font-size: 13.5px; line-height: 1.6; max-width: 500px; text-align: center;">
-                        Ask anything, brainstorm ideas, or click <strong>🔗 Share</strong> in the top bar to collaborate live with teammates in real time like Google Docs.
+                        Ask anything, brainstorm ideas, or click <strong>🔗 Share</strong> in the top right to collaborate live with teammates in real time like Google Docs.
                       </p>
                     </div>
                   ` : activeSession.messages.map((msg) => renderMessageRowHTML(msg, userId, activeSession)).join('')}
@@ -882,7 +956,7 @@
                 <!-- COMPOSER DOCK (Gemini style with Model selector inside) -->
                 <div class="composer-dock">
                   <div class="composer-top-row">
-                    <!-- Model Selector inside the Chat Box like Gemini -->
+                    <!-- Model Selector inside Chat Box like Gemini -->
                     <div class="composer-model-pill" title="Active AI Model">
                       <span class="sparkle-icon">✦</span>
                       <select id="chatModelSelect" class="chat-model-select">
@@ -961,12 +1035,26 @@
           }
 
           ${isAI ? `
-            <div class="msg-action-bar">
-              <button type="button" class="msg-action-btn" data-action="copy-response" data-msg-id="${msg.id}" title="Copy response">
-                <span>📋 Copy</span>
+            <!-- Gemini Style Minimalist Icon Action Bar (Copy & New Chat) -->
+            <div class="gemini-action-bar">
+              <button type="button" class="gemini-icon-btn" data-action="copy-response" data-msg-id="${msg.id}" title="Copy response">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
               </button>
-              <button type="button" class="msg-action-btn" data-action="new-chat-from-prompt" data-user="${viewingUserId}" title="Start a new chat">
-                <span>💬 Start New Chat</span>
+              <button type="button" class="gemini-icon-btn" data-action="new-chat-from-prompt" data-user="${viewingUserId}" title="Start new chat">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                  <line x1="12" y1="8" x2="12" y2="14"></line>
+                  <line x1="9" y1="11" x2="15" y2="11"></line>
+                </svg>
+              </button>
+              <button type="button" class="gemini-icon-btn" data-action="retry-response" data-user="${viewingUserId}" title="Retry response">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="1 4 1 10 7 10"></polyline>
+                  <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+                </svg>
               </button>
             </div>
           ` : ''}
@@ -1010,7 +1098,7 @@
     paneEl.addEventListener('click', (e) => {
       const btn = e.target.closest('[data-action]');
       if (!btn) {
-        // If clicking outside dropdown menu, close any open menu
+        // If clicking outside dropdown menu, close menu
         const pane = ensurePaneStateForUser(userId);
         if (pane.openMenuSessionId) {
           pane.openMenuSessionId = null;
@@ -1026,7 +1114,6 @@
         const sId = btn.getAttribute('data-session-id');
         const p = ensurePaneStateForUser(targetUser);
         p.activeSessionId = sId;
-        p.mobileSidebarOpen = false;
         p.openMenuSessionId = null;
         saveAndBroadcastState();
         renderApp();
@@ -1047,13 +1134,9 @@
         deleteChat(sId, targetUser);
       } else if (action === 'new-chat') {
         createNewChat(targetUser);
-      } else if (action === 'toggle-mobile-sidebar') {
+      } else if (action === 'close-sidebar') {
         const p = ensurePaneStateForUser(targetUser);
-        p.mobileSidebarOpen = !p.mobileSidebarOpen;
-        renderApp();
-      } else if (action === 'close-mobile-sidebar') {
-        const p = ensurePaneStateForUser(targetUser);
-        p.mobileSidebarOpen = false;
+        p.sidebarOpen = false;
         renderApp();
       } else if (action === 'send-message') {
         const sId = btn.getAttribute('data-session-id');
@@ -1061,9 +1144,6 @@
         handleSendMessage(targetUser, sId, inp ? inp.value : '');
       } else if (action === 'logout') {
         logoutUser();
-      } else if (action === 'open-share-modal') {
-        const sId = btn.getAttribute('data-session-id');
-        openShareModal(sId);
       } else if (action === 'copy-response') {
         const msgId = btn.getAttribute('data-msg-id');
         const p = ensurePaneStateForUser(targetUser);
@@ -1071,15 +1151,26 @@
         const msg = session?.messages.find((m) => m.id === msgId);
         if (msg) {
           navigator.clipboard?.writeText(msg.text).catch(() => {});
-          const origText = btn.innerHTML;
-          btn.innerHTML = '<span>✓ Copied!</span>';
+          const origHtml = btn.innerHTML;
+          btn.innerHTML = `
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          `;
           setTimeout(() => {
-            btn.innerHTML = origText;
+            btn.innerHTML = origHtml;
           }, 1800);
           showToast('Response copied to clipboard!', 'shared');
         }
       } else if (action === 'new-chat-from-prompt') {
         createNewChat(targetUser);
+      } else if (action === 'retry-response') {
+        const p = ensurePaneStateForUser(targetUser);
+        const session = getSessionById(p.activeSessionId);
+        const lastHumanMsg = [...(session?.messages || [])].reverse().find((m) => m.kind === 'prompt');
+        if (lastHumanMsg) {
+          handleSendMessage(targetUser, session.id, lastHumanMsg.text);
+        }
       }
     });
   }
@@ -1088,6 +1179,16 @@
     // Theme toggle
     document.getElementById('websiteThemeToggleBtn')?.addEventListener('click', toggleTheme);
     document.getElementById('appThemeToggleBtn')?.addEventListener('click', toggleTheme);
+
+    // Sidebar Toggle button in top header
+    document.getElementById('sidebarToggleBtn')?.addEventListener('click', () => {
+      const uid = currentUserId || Object.keys(state.accounts)[0];
+      if (uid) {
+        const pane = ensurePaneStateForUser(uid);
+        pane.sidebarOpen = !pane.sidebarOpen;
+        renderApp();
+      }
+    });
 
     // Company Page Navigation CTAs -> Navigate to /chat
     document.getElementById('navOpenChatBtn')?.addEventListener('click', () => navigateTo('chat'));
@@ -1155,23 +1256,50 @@
       if (e.target.id === 'shareModalBackdrop') closeShareModal();
     });
 
-    document.querySelectorAll('input[name="sharePrivacy"]').forEach((radio) => {
-      radio.addEventListener('change', updateShareModalUrl);
+    // Share Modal Tabs
+    document.getElementById('tabSharePrivateBtn')?.addEventListener('click', () => switchShareTab('private'));
+    document.getElementById('tabSharePublicBtn')?.addEventListener('click', () => switchShareTab('public'));
+
+    // Private Invite by Email Form
+    document.getElementById('shareInviteEmailForm')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const emailInp = document.getElementById('shareInviteEmailInput');
+      const email = String(emailInp?.value || '').trim().toLowerCase();
+      if (!email) return;
+
+      const session = getSessionById(activeShareSessionId);
+      if (!session) return;
+
+      session.invitedEmails = session.invitedEmails || [];
+      if (!session.invitedEmails.includes(email)) {
+        session.invitedEmails.push(email);
+      }
+
+      // Generate direct private collaborator link
+      const inviteUrl = `${window.location.origin}/chat?join=${encodeURIComponent(session.shareCode)}&invitee=${encodeURIComponent(email)}`;
+      navigator.clipboard?.writeText(inviteUrl).catch(() => {});
+
+      saveAndBroadcastState();
+      renderShareCollaboratorsList(session);
+      if (emailInp) emailInp.value = '';
+
+      showToast(`Invited ${email}! Direct collaborator link copied to clipboard.`, 'shared');
     });
 
-    document.getElementById('shareModalCopyBtn')?.addEventListener('click', () => {
-      const input = document.getElementById('shareModalLinkInput');
+    // Public Link Copy Button
+    document.getElementById('sharePublicCopyBtn')?.addEventListener('click', () => {
+      const input = document.getElementById('sharePublicLinkInput');
       if (input && input.value) {
         navigator.clipboard?.writeText(input.value).catch(() => {});
-        const copyBtn = document.getElementById('shareModalCopyBtn');
-        if (copyBtn) {
-          const orig = copyBtn.innerHTML;
-          copyBtn.innerHTML = '<span>✓ Copied!</span>';
+        const btn = document.getElementById('sharePublicCopyBtn');
+        if (btn) {
+          const orig = btn.innerHTML;
+          btn.innerHTML = '<span>✓ Copied!</span>';
           setTimeout(() => {
-            copyBtn.innerHTML = orig;
+            btn.innerHTML = orig;
           }, 2000);
         }
-        showToast('Link copied to clipboard!', 'shared');
+        showToast('Public view & copy link copied to clipboard!', 'shared');
       }
     });
   }
@@ -1189,6 +1317,10 @@
       const joinCode = params.get('join') || params.get('s');
       if (joinCode) {
         pendingInviteShareCode = joinCode.trim();
+      }
+      const email = params.get('invitee');
+      if (email) {
+        pendingInviteeEmail = email.trim().toLowerCase();
       }
     } catch (e) {}
 
