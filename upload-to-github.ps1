@@ -49,11 +49,13 @@ try {
 }
 
 $RepoDescription = 'CoThread - Enterprise Collaborative AI Platform on Google Cloud Run, Firestore, Google ADK & MCP. Turn single-player AI (Claude, ChatGPT, Gemini) into live /s/ rooms on Host-Sponsored Token Quotas. Project Lead, Principal AI Architect: Robina Mirbahar (@RobinaMirbahar) | Original Idea, Co-Builder & Collaborator: Muhammad Hasnain (@hasnain-kk)'
+$RepoHomepage = 'https://robinamirbahar.github.io/CoThread/'
 
 if (-not $RepoExists) {
     $CreateBody = @{
         name        = $RepoName
         description = $RepoDescription
+        homepage    = $RepoHomepage
         private     = $false
         auto_init   = $true
     } | ConvertTo-Json
@@ -63,9 +65,10 @@ if (-not $RepoExists) {
 } else {
     $PatchBody = @{
         description = $RepoDescription
+        homepage    = $RepoHomepage
     } | ConvertTo-Json
     $Repo = Invoke-RestMethod -Uri "https://api.github.com/repos/$Owner/$RepoName" -Method Patch -Headers $Headers -Body $PatchBody -ContentType "application/json"
-    Write-Host "   Updated repository description with Project Lead Robina Mirbahar & Original Idea / Co-Builder Muhammad Hasnain" -ForegroundColor Green
+    Write-Host "   Updated repository description & live homepage ($RepoHomepage) with Project Lead Robina Mirbahar & Original Idea / Co-Builder Muhammad Hasnain" -ForegroundColor Green
 }
 
 # 4. Upload all project files via GitHub Contents API (Zero git.exe dependency!)
