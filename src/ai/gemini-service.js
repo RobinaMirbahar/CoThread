@@ -828,8 +828,8 @@
 
     const speakerName = promptData.activeUser.name || 'Hasnain';
     const isSpeakerHost = promptData.activeUser.isHost;
-    const hostName = promptData.hostUser.name || 'Alex Rivera';
-    const speakerRoleBadge = isSpeakerHost ? `Host (${speakerName})` : `Colleague (${speakerName})`;
+    const hostName = promptData.hostUser.name || 'Robina Mirbahar';
+    const speakerRoleBadge = isSpeakerHost ? `Host (${speakerName})` : `Collaborator (${speakerName})`;
 
     const messages = Array.isArray(session.messages) ? session.messages : [];
     const earlierHumanParticipants = [];
@@ -861,6 +861,109 @@
     const modelLabel = SUPPORTED_MODELS[resolvedModel]?.name || 'Gemini 3.8 Flash';
 
     if (
+      qLower.includes('webhook') &&
+      (qLower.includes('express') || qLower.includes('handler') || qLower.includes('node'))
+    ) {
+      return (
+        `Here is the production **Node.js Express handler** for the Google Cloud Run webhook endpoint, **${speakerName}** (${speakerRoleBadge}):${attachmentIntro}\n\n` +
+        `1. **HMAC-SHA256 Signature Verification:** Validates raw request payloads against \`WEBHOOK_SECRET\` using \`crypto.timingSafeEqual\` before parsing.\n` +
+        `2. **Firestore Idempotency Guard:** Uses \`db.collection('webhook_events').doc(eventId).create()\` so duplicate retries are safely ignored.\n` +
+        `3. **Fast \`202 Accepted\` + Pub/Sub Publish:** Enqueues the verified payload to \`projects/cothread/topics/webhooks-ingest\` in <15ms.\n\n` +
+        `<canvas title="cloudrun_webhook_handler.js" type="code">import express from 'express';\n` +
+        `import crypto from 'crypto';\n` +
+        `import { PubSub } from '@google-cloud/pubsub';\n` +
+        `import { Firestore } from '@google-cloud/firestore';\n\n` +
+        `const app = express();\n` +
+        `const pubsub = new PubSub();\n` +
+        `const firestore = new Firestore();\n\n` +
+        `app.post('/webhooks/ingest', express.raw({ type: 'application/json' }), async (req, res) => {\n` +
+        `  const signature = req.headers['x-webhook-signature'] || '';\n` +
+        `  const expected = crypto.createHmac('sha256', process.env.WEBHOOK_SECRET).update(req.body).digest('hex');\n` +
+        `  if (!crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) {\n` +
+        `    return res.status(401).json({ error: 'Invalid HMAC signature' });\n` +
+        `  }\n\n` +
+        `  const event = JSON.parse(req.body.toString('utf8'));\n` +
+        `  const docRef = firestore.collection('webhook_events').doc(event.id);\n` +
+        `  try {\n` +
+        `    await docRef.create({ receivedAt: new Date().toISOString(), status: 'QUEUED' });\n` +
+        `  } catch (err) {\n` +
+        `    return res.status(200).json({ status: 'DUPLICATE_IGNORED', eventId: event.id });\n` +
+        `  }\n\n` +
+        `  await pubsub.topic('webhooks-ingest').publishMessage({ json: event });\n` +
+        `  return res.status(202).json({ status: 'ACCEPTED', eventId: event.id });\n` +
+        `});</canvas>`
+      );
+    }
+
+    if (
+      qLower.includes('backoff') ||
+      qLower.includes('retry') ||
+      qLower.includes('dead letter') ||
+      qLower.includes('dlt') ||
+      qLower.includes('dlq')
+    ) {
+      return (
+        `Building on **${hostName}**'s Cloud Run webhook pipeline, here is the **Exponential Backoff & Dead Letter Topic (DLT)** strategy for **${speakerName}** (${speakerRoleBadge}):${attachmentIntro}\n\n` +
+        `• **Jittered Exponential Backoff:** Configure the Cloud Pub/Sub push subscription with \`minimumBackoff: 10s\`, \`maximumBackoff: 600s\`, and full jitter ($t = \\min(600, 10 \\cdot 2^{\\text{attempt}})$) to prevent downstream thundering herds.\n` +
+        `• **Dead Letter Topic (\`webhooks-dlt\`):** Set \`maxDeliveryAttempts: 5\`. Any poison payload failing 5 times is automatically routed to \`projects/cothread/topics/webhooks-dlt\` with diagnostic attributes.\n` +
+        `• **Automated Replay & Alerting:** A Cloud Run worker persists DLT events to **Cloud Firestore (\`dead_letter_events\`)** for 1-click replay once the downstream service recovers.\n\n` +
+        `<canvas title="pubsub_backoff_dlt_config.yaml" type="code"># Google Cloud Pub/Sub Subscription with Exponential Backoff & Dead Letter Topic\n` +
+        `name: projects/cothread-prod/subscriptions/webhooks-worker-sub\n` +
+        `topic: projects/cothread-prod/topics/webhooks-ingest\n` +
+        `pushConfig:\n` +
+        `  pushEndpoint: https://cothread-worker-uc.a.run.app/internal/process\n` +
+        `  oidcToken:\n` +
+        `    serviceAccountEmail: webhook-invoker@cothread-prod.iam.gserviceaccount.com\n` +
+        `retryPolicy:\n` +
+        `  minimumBackoff: 10s\n` +
+        `  maximumBackoff: 600s\n` +
+        `deadLetterPolicy:\n` +
+        `  deadLetterTopic: projects/cothread-prod/topics/webhooks-dlt\n` +
+        `  maxDeliveryAttempts: 5</canvas>`
+      );
+    }
+
+    if (qLower.includes('webhook') || qLower.includes('ingestion') || qLower.includes('pipeline')) {
+      return (
+        `Here is the **4-point fault-tolerant webhook ingestion pipeline on Google Cloud Run** requested by **${speakerName}** (${speakerRoleBadge} • \`${modelLabel}\`):${attachmentIntro}\n\n` +
+        `• **1. Stateless Cloud Run Ingress & HMAC Auth:** Terminate TLS at the Cloud Run ingress, validate HMAC-SHA256 signatures in memory, and return \`202 Accepted\` within 15ms so senders never time out.\n` +
+        `• **2. Cloud Pub/Sub Durable Buffering:** Immediately publish verified payloads to a regional **Cloud Pub/Sub** topic (\`webhooks-ingest\`) to decouple burst traffic (10,000+ RPS) from downstream processing.\n` +
+        `• **3. Cloud Firestore Idempotency Ledger:** Deduplicate webhook \`event_id\` keys using atomic **Cloud Firestore** document creation (\`webhook_events/{eventId}\`) before executing business side effects.\n` +
+        `• **4. Auto-Scaling Worker Pool & Dead-Letter Isolation:** Process events asynchronously via concurrency-tuned Cloud Run push workers (\`maxInstanceRequestConcurrency: 80\`) backed by exponential backoff and a Dead Letter Topic.\n\n` +
+        `<canvas title="cloudrun_webhook_architecture.ts" type="code">// Fault-Tolerant Google Cloud Run Webhook Ingestion Pipeline\n` +
+        `export interface WebhookPipelineConfig {\n` +
+        `  ingressService: 'cothread-webhook-ingress';\n` +
+        `  pubsubTopic: 'projects/cothread-prod/topics/webhooks-ingest';\n` +
+        `  idempotencyCollection: 'firestore://webhook_events/{eventId}';\n` +
+        `  deadLetterTopic: 'projects/cothread-prod/topics/webhooks-dlt';\n` +
+        `  maxDeliveryAttempts: 5;\n` +
+        `}</canvas>`
+      );
+    }
+
+    if (
+      qLower.includes('claude') ||
+      qLower.includes('chatgpt') ||
+      qLower.includes('compare') ||
+      qLower.includes('single-player')
+    ) {
+      return (
+        `Here is how **CoThread** transforms single-player AI web apps (**Claude \`claude.ai\`**, **ChatGPT \`chatgpt.com\`**, and **Gemini \`gemini.google.com\`**) into a true multiplayer enterprise platform for **${speakerName}** (${speakerRoleBadge}):${attachmentIntro}\n\n` +
+        `• **Live Shared \`/s/\` Sublinks vs. Dead Snapshots:** Unlike Claude, ChatGPT, and Gemini where sharing exports a static read-only transcript, CoThread's \`/s/${session.shareCode || 'cothread-arch-9x2k'}\` sublink puts **${hostName}** and **${referencedTeammate}** in the exact same live context window.\n` +
+        `• **Host-Sponsored Token Quotas:** Teammates on a Free/Starter plan can co-prompt **Gemini 4 Argon** & **Gemini 3.8 Flash** sponsored by the Host's \`250k Pro\` / \`1M Enterprise\` quota—with zero client API keys.\n` +
+        `• **1-Click Independent Continuation (\`Copy to My Chats\`):** Any collaborator can fork the live conversation into their private \`/app\` workspace at any time, switching all future token deductions to their own personal quota.\n\n` +
+        `<canvas title="cothread_vs_single_player_ai.md" type="markdown"># Enterprise AI Comparison: CoThread vs. Single-Player Silos\n\n` +
+        `| Capability | Claude / ChatGPT / Gemini Web | CoThread Enterprise AI |\n` +
+        `| :--- | :--- | :--- |\n` +
+        `| **Session Mode** | Single-player silo | Live multiplayer \`/s/\` room |\n` +
+        `| **Quota Sponsorship** | Every user needs own paid plan | Host sponsors room with hard Token Cap |\n` +
+        `| **Context Compression** | Manual truncation | Automated \`gemini-3.5-flash-lite\` (-41% tokens) |\n` +
+        `| **Private Forking** | Copy-paste text manually | 1-Click **Copy to My Chats** (Personal Quota) |\n` +
+        `</canvas>`
+      );
+    }
+
+    if (
       qLower.includes('redis') ||
       qLower.includes('cache') ||
       qLower.includes('rate limit') ||
@@ -872,28 +975,19 @@
       return (
         `Great follow-up, **${speakerName}** (${speakerRoleBadge}). Building directly on **${referencedTeammate}**'s earlier architecture constraints in this shared CoThread session:${attachmentIntro}\n\n` +
         `### Multi-Participant Synthesis (${modelLabel})\n` +
-        `1. **Shared Session State & Account Quota Ledger:** Instead of requiring teammates to configure personal API keys or start isolated chats, CoThread maintains a unified **Redis Streams + Sliding-Window Token Ledger** keyed by \`sessionId\`.\n` +
-        `2. **Zero-Drop WebSocket Delta Fanout:** When **${speakerName}** or **${referencedTeammate}** prompts the AI, \`${resolvedModel}\` streams \`step.delta\` chunks once and multicasts to all connected teammates—cutting redundant context tokens by **~64%**.\n` +
-        `3. **Software-Assigned Account Quota Guard:** Pre-flight token estimation reserves budget against **${hostName}**'s CoThread account allocation (\`Pro 250k\` / \`Enterprise 1M\`), with instant 1-click **Copy to My Workspace** so colleagues can branch onto their own account quota (\`Starter 25k\` / \`Pro 250k\`).\n\n` +
-        `<canvas title="CoThread Distributed Session & Quota Architecture" type="markdown"># CoThread Collaborative Engine Specification\n` +
-        `*Updated for ${speakerName} & ${referencedTeammate} • Powered by ${resolvedModel}*\n\n` +
-        `## 1. Multi-Participant Context Pipeline\n` +
-        `- **Host Sponsor:** ${hostName} (CoThread Account Quota: Pro 250k)\n` +
-        `- **Active Contributors:** ${speakerName}, ${referencedTeammate}\n` +
-        `- **Context Compression:** \`gemini-3.5-flash-lite\` condenses side-chat banter before invoking \`${resolvedModel}\`\n\n` +
-        `## 2. Software-Assigned Account Quota Middleware\n` +
-        `\`\`\`javascript\n` +
-        `export async function reserveCoThreadSessionQuota(session, sender, estimatedTokens) {\n` +
-        `  // End users never manage API keys; quotas are software-assigned per user account\n` +
-        `  const billingPool = session.mode === 'personal' ? sender.accountQuota : session.hostAccountQuota;\n` +
-        `  if (billingPool.used + estimatedTokens > billingPool.limit) {\n` +
-        `    return { allowed: false, action: 'COPY_TO_PERSONAL_WORKSPACE' };\n` +
+        `1. **Cloud Firestore Transactional Quota Ledger:** CoThread maintains an atomic token ledger in **Cloud Firestore** (\`users/{uid}\` and \`sessions/{sessionId}\`) enforced by \`firestore.rules\` and \`QuotaGuardTool\`.\n` +
+        `2. **Zero-Drop Real-Time Delta Fanout:** When **${speakerName}** or **${referencedTeammate}** prompts the AI, \`${resolvedModel}\` streams chunks once and multicasts to all connected teammates—cutting redundant context tokens by **~41%** via \`gemini-3.5-flash-lite\`.\n` +
+        `3. **Software-Assigned Account Quota Guard:** Pre-flight token estimation reserves budget against **${hostName}**'s CoThread account allocation (\`Pro 250k\` / \`Enterprise 1M\`), with instant 1-click **Copy to My Chats** so colleagues can branch onto their own personal quota (\`Starter 25k\`).\n\n` +
+        `<canvas title="cothread_quota_guard.ts" type="code">export async function reserveCoThreadSessionQuota(session, sender, estimatedTokens) {\n` +
+        `  // Enforced via Cloud Firestore & Google ADK QuotaGuardTool\n` +
+        `  const isShared = session.type === 'shared';\n` +
+        `  const poolUsed = isShared ? session.tokensUsed : sender.quotaUsed;\n` +
+        `  const poolCap = isShared ? session.tokenCap : sender.quotaTotal;\n` +
+        `  if (poolUsed + estimatedTokens > poolCap) {\n` +
+        `    return { allowed: false, action: 'COPY_TO_MY_CHATS' };\n` +
         `  }\n` +
-        `  billingPool.used += estimatedTokens;\n` +
-        `  return { allowed: true, remaining: billingPool.limit - billingPool.used };\n` +
-        `}\n` +
-        `\`\`\`\n` +
-        `</canvas>`
+        `  return { allowed: true, remaining: poolCap - (poolUsed + estimatedTokens) };\n` +
+        `}</canvas>`
       );
     }
 
@@ -901,33 +995,34 @@
       qLower.includes('schema') ||
       qLower.includes('database') ||
       qLower.includes('sql') ||
-      qLower.includes('prisma') ||
+      qLower.includes('firestore') ||
       qLower.includes('migration') ||
       qLower.includes('table')
     ) {
       return (
-        `Addressing **${speakerName}**'s schema question while preserving **${referencedTeammate}**'s data-integrity requirements from earlier in the CoThread session:${attachmentIntro}\n\n` +
-        `### Collaborative Schema Updates (${modelLabel})\n` +
-        `- **\`cothread_users\` Table:** Stores software-assigned account quota tiers (\`starter_25k\`, \`pro_250k\`, \`enterprise_1m\`) and live token consumption—zero user API keys required.\n` +
-        `- **\`shared_sessions\` Table:** Tracks \`host_user_id\`, \`last_interaction_id\` (for stateful Gemini Interactions API continuity), and \`session_token_cap\`.\n` +
-        `- **\`session_forks\` Lineage:** Allows any colleague to copy the current conversation + Shared Canvas into their own personal CoThread workspace and account quota with zero context loss.\n\n` +
-        `<canvas title="CoThread Multi-User Session & Account Quota Schema" type="code">CREATE TABLE cothread_users (\n` +
-        `  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n` +
-        `  display_name VARCHAR(120) NOT NULL,\n` +
-        `  plan_tier VARCHAR(32) NOT NULL DEFAULT 'pro_250k', -- 'starter_25k' | 'pro_250k' | 'enterprise_1m'\n` +
-        `  monthly_token_limit INT NOT NULL DEFAULT 250000,\n` +
-        `  tokens_used INT NOT NULL DEFAULT 0\n` +
+        `Addressing **${speakerName}**'s database & schema design while preserving **${referencedTeammate}**'s data-integrity requirements in this CoThread session:${attachmentIntro}\n\n` +
+        `### Cloud Firestore & SQL Schema (${modelLabel})\n` +
+        `- **\`users/{userId}\` Collection:** Stores software-assigned account quota tiers (\`starter: 25,000\`, \`pro: 250,000\`, \`enterprise: 1,000,000\`) and live token consumption—zero user API keys required.\n` +
+        `- **\`sessions/{sessionId}\` Collection:** Tracks \`hostId\`, \`shareCode\` (\`/s/cothread-...\`), \`permissionMode\` (\`can_prompt\` vs \`view_only\`), and \`tokenCap\`.\n` +
+        `- **Independent Personal Forks:** Clicking **Copy to My Chats** creates a new \`type: "personal"\` document owned by \`${speakerName}\` billed strictly to their personal quota.\n\n` +
+        `<canvas title="cothread_firestore_schema.sql" type="code">-- CoThread Enterprise Multi-Tenant Quota & Session Schema\n` +
+        `CREATE TABLE cothread_users (\n` +
+        `  id VARCHAR(64) PRIMARY KEY,\n` +
+        `  name VARCHAR(120) NOT NULL,\n` +
+        `  email VARCHAR(160) UNIQUE NOT NULL,\n` +
+        `  plan_tier VARCHAR(32) NOT NULL DEFAULT 'pro', -- 'starter' | 'pro' | 'enterprise'\n` +
+        `  quota_total INT NOT NULL DEFAULT 250000,\n` +
+        `  quota_used INT NOT NULL DEFAULT 0\n` +
         `);\n\n` +
-        `CREATE TABLE shared_sessions (\n` +
-        `  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n` +
-        `  host_user_id UUID REFERENCES cothread_users(id),\n` +
-        `  active_model VARCHAR(64) DEFAULT '${resolvedModel}',\n` +
-        `  last_interaction_id VARCHAR(128),\n` +
-        `  session_token_limit INT NOT NULL DEFAULT 50000,\n` +
-        `  session_tokens_used INT NOT NULL DEFAULT 0,\n` +
-        `  compressed_tokens_saved INT NOT NULL DEFAULT 0,\n` +
-        `  forked_from_session_id UUID REFERENCES shared_sessions(id),\n` +
-        `  created_at TIMESTAMPTZ DEFAULT NOW()\n` +
+        `CREATE TABLE cothread_sessions (\n` +
+        `  id VARCHAR(64) PRIMARY KEY,\n` +
+        `  type VARCHAR(16) NOT NULL, -- 'shared' | 'personal'\n` +
+        `  host_id VARCHAR(64) REFERENCES cothread_users(id),\n` +
+        `  share_code VARCHAR(64) UNIQUE,\n` +
+        `  permission_mode VARCHAR(24) DEFAULT 'can_prompt',\n` +
+        `  token_cap INT NOT NULL DEFAULT 25000,\n` +
+        `  tokens_used INT NOT NULL DEFAULT 0,\n` +
+        `  forked_from_session_id VARCHAR(64)\n` +
         `);</canvas>`
       );
     }
@@ -940,41 +1035,54 @@
       qLower.includes('audit')
     ) {
       return (
-        `Good catch, **${speakerName}**. Cross-checking your edge-case prompt against **${referencedTeammate}**'s earlier implementation notes:${attachmentIntro}\n\n` +
+        `Good catch, **${speakerName}**. Cross-checking your security & concurrency prompt against **${referencedTeammate}**'s earlier notes:${attachmentIntro}\n\n` +
         `### CoThread Security & Concurrency Audit (${modelLabel})\n` +
-        `1. **Speaker Spoofing Prevention:** Participant tags (\`[Host - ${hostName}]\` vs \`[Colleague - ${speakerName}]\`) are injected server-side from verified session membership—never trusted from raw client text.\n` +
-        `2. **Concurrent Follow-Up Serialization:** If two colleagues submit prompts simultaneously, CoThread chains the second turn onto the completed \`interaction.id\` so neither turn overwrites the Shared Canvas.\n` +
-        `3. **Account Quota Circuit Breaker:** If a colleague's prompt would exceed **${hostName}**'s allocated session budget, the request is intercepted pre-flight and offers a 1-click **Copy to My Workspace** (switching billing to the colleague's own CoThread account quota).\n\n` +
-        `<canvas title="CoThread Verification & Guardrail Checklist" type="markdown"># Multi-User Concurrency & Account Quota Verification\n` +
+        `1. **Firestore Rules Role Verification:** Only \`resource.data.ownerId == request.auth.uid\` can mutate \`tokenCap\`, \`permissionMode\`, or revoke the \`/s/\` sublink.\n` +
+        `2. **Live Permission Lockout:** Switching a room to \`View Only\` immediately blocks guest AI prompts server-side while keeping **Copy to My Chats** active.\n` +
+        `3. **Atomic Quota Circuit Breaker:** \`QuotaGuardTool\` verifies \`tokensUsed + tokenCost <= tokenCap\` before committing any token deduction.\n\n` +
+        `<canvas title="security_audit_checklist.md" type="markdown"># Multi-User Concurrency & Security Audit\n` +
         `*Reviewed by ${speakerName} & ${referencedTeammate} • Model: ${resolvedModel}*\n\n` +
-        `- [x] **Speaker Attribution Integrity:** Server-enforced \`[Host - ${hostName}]\` and \`[Colleague - ${speakerName}]\` framing\n` +
-        `- [x] **Context Compression:** \`gemini-3.5-flash-lite\` condenses side-chat banter automatically\n` +
-        `- [x] **Stateful Continuity:** Uses \`previous_interaction_id\` across participants in the same room\n` +
-        `- [x] **Software-Assigned Quotas:** Seamless switch from Host Quota (\`Pro 250k\`) to Personal Account Quota (\`Starter 25k\` / \`Pro 250k\`) on session copy\n` +
+        `- [x] **Speaker Attribution Integrity:** Server-enforced \`[Host - ${hostName}]\` and \`[Collaborator - ${speakerName}]\` framing\n` +
+        `- [x] **Context Compression:** \`gemini-3.5-flash-lite\` condenses multi-turn history automatically\n` +
+        `- [x] **Firestore Rules Guard:** Enforces \`tokensUsed <= tokenCap\` and \`quotaUsed <= quotaTotal\`\n` +
+        `- [x] **1-Click Personal Fork:** Seamless switch from Host Quota (\`Pro 250k\`) to Personal Quota (\`Starter 25k\`)\n` +
         `</canvas>`
       );
     }
 
     const conciseTopic =
-      rawQuestion.length > 95 ? `${rawQuestion.slice(0, 92)}...` : rawQuestion || 'collaborative workflow';
+      rawQuestion.length > 95 ? `${rawQuestion.slice(0, 92)}...` : rawQuestion || 'collaborative architecture';
+    const fnIdentifier =
+      rawQuestion
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '_')
+        .replace(/^_|_$/g, '')
+        .slice(0, 28) || 'executeWorkflow';
 
     return (
-      `Here is the updated plan for **${speakerName}** (${speakerRoleBadge}), incorporating **${referencedTeammate}**'s earlier context in this shared CoThread session:${attachmentIntro}\n\n` +
-      `### Collaborative Response to: *"${conciseTopic}"*\n` +
-      `- **Unified Context Continuity:** I have connected **${speakerName}**'s follow-up directly to **${hostName}**'s session objective without resetting or duplicating conversation history.\n` +
-      `- **Actionable Recommendation (${modelLabel}):**\n` +
-      `  1. Keep core architectural decisions pinned in the **Shared Canvas** so every teammate who joins via invite link sees the current source of truth.\n` +
-      `  2. Use **Team Side-Chat** for quick human alignment—\`gemini-3.5-flash-lite\` automatically condenses that banter so **${hostName}**'s CoThread token quota is only spent on high-value AI reasoning.\n` +
-      `  3. Anyone wanting to explore a separate tangent can click **Copy to My Workspace** to branch this exact context onto their own software-assigned CoThread account quota.\n\n` +
-      `<canvas title="CoThread Shared Collaborative Plan & Action Items" type="markdown"># CoThread Live Collaborative Deliverable\n` +
-      `*Session Host: ${hostName} • Latest Contributor: ${speakerName} • Model: ${resolvedModel}*\n\n` +
-      `## Current Objective & Latest Update\n` +
-      `> **${speakerName} asked:** "${rawQuestion || 'Synthesize our shared session progress and next steps.'}"\n\n` +
-      `## Agreed Architecture & Next Steps\n` +
-      `1. **Shared Context Engine:** Multi-participant speaker framing (\`[Host - ${hostName}]\` + \`[Colleague - ${speakerName}]\`) active on \`${resolvedModel}\`.\n` +
-      `2. **Host Quota Protection:** Automatic context compression via \`gemini-3.5-flash-lite\` saved **${promptData.compressedTokensSaved} tokens** on this turn.\n` +
-      `3. **Deliverable Status:** Ready for live review and team sign-off.\n` +
-      `</canvas>`
+      `Here is the technical synthesis and implementation for **${speakerName}** (${speakerRoleBadge} • \`${modelLabel}\`), building on **${referencedTeammate}**'s context:${attachmentIntro}\n\n` +
+      `### Solution for: *"${conciseTopic}"*\n` +
+      `• **1. Architecture & Execution Flow:** Designed a modular Cloud Run + Firestore handler for *"${conciseTopic}"* with deterministic error recovery and sub-50ms state synchronization.\n` +
+      `• **2. Context & Quota Optimization:** \`gemini-3.5-flash-lite\` compressed ${messages.length} prior messages in this thread (saving **${promptData.compressedTokensSaved || 140} tokens**), charging this turn to **${session.type === 'shared' ? hostName + "'s Host Quota" : speakerName + "'s Personal Quota"}**.\n` +
+      `• **3. Live Artifact Canvas Updated:** Generated the production TypeScript module in the **Artifact Canvas** so everyone in this room can inspect or fork it.\n\n` +
+      `<canvas title="${fnIdentifier}.ts" type="code">// Generated by ${modelLabel} for ${speakerName} (${speakerRoleBadge})\n` +
+      `// Prompt: ${rawQuestion.replace(/\n+/g, ' ')}\n\n` +
+      `export interface ExecutionResult {\n` +
+      `  ok: boolean;\n` +
+      `  executedBy: string;\n` +
+      `  model: string;\n` +
+      `  firestoreSessionId: string;\n` +
+      `  timestamp: string;\n` +
+      `}\n\n` +
+      `export async function ${fnIdentifier}(payload: Record<string, unknown>): Promise<ExecutionResult> {\n` +
+      `  return {\n` +
+      `    ok: true,\n` +
+      `    executedBy: "${speakerName}",\n` +
+      `    model: "${resolvedModel}",\n` +
+      `    firestoreSessionId: "${session.id || 'session_shared_1'}",\n` +
+      `    timestamp: new Date().toISOString()\n` +
+      `  };\n` +
+      `}</canvas>`
     );
   }
 
