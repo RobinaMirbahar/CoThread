@@ -523,7 +523,7 @@ app.post('/api/sessions/:id/messages', async (req, res) => {
 
 // Explicit Sublink Routing (like gemini.google.com / chatgpt.com)
 const spaEntrypoint = path.join(__dirname, 'public', 'index.html');
-app.get(['/', '/login', '/signup', '/app', '/s/:shareId'], (req, res) => {
+app.get(['/', '/chat', '/login', '/signup', '/app', '/s/:shareId'], (req, res) => {
   res.sendFile(spaEntrypoint);
 });
 
