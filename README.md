@@ -8,7 +8,7 @@
 [![Original Idea & Co-Builder](https://img.shields.io/badge/Original_Idea_%2C_Co--Builder_%26_Collaborator-Muhammad_Hasnain_(%40hasnain--kk)-FFC900?logo=github&logoColor=black)](https://github.com/hasnain-kk)
 
 > **Stop pasting screenshots of AI chats into Slack.**
-> **CoThread** is an enterprise SaaS collaborative AI platform (built like `gemini.google.com` and `chatgpt.com`, but natively multiplayer) powered by **Google Cloud Run**, **Cloud Firestore**, **Google ADK**, **Model Context Protocol (MCP)**, **Firebase Studio**, and the official **`@google/genai`** SDK.
+> **CoThread** is an enterprise SaaS collaborative AI platform (built like **Claude (`claude.ai`)**, **ChatGPT (`chatgpt.com`)**, and **Gemini (`gemini.google.com`)**, but natively multiplayer) powered by **Google Cloud Run**, **Cloud Firestore**, **Google ADK**, **Model Context Protocol (MCP)**, **Firebase Studio**, and the official **`@google/genai`** SDK.
 > Users sign in with **Google OAuth ("Continue with Google")** or **Work Email & Password**—never managing or entering raw API keys. CoThread automatically provisions software-assigned token quotas by subscription tier (`Starter 25k`, `Pro 250k`, `Enterprise 1M`), lets a Host share any live conversation via a secure sublink (`/s/cothread-...`) sponsored by the Host's quota, and lets any colleague click **"Continue Independently (Copy to My Chats)"** to clone the conversation into their private workspace and switch billing to their own account quota.
 
 ### 👩‍💻 Leadership & Engineering Team
@@ -19,7 +19,7 @@
 
 ## 1. Problem Statement
 
-Modern software teams, researchers, and enterprise squads rely on consumer/enterprise AI web apps (`gemini.google.com`, `chatgpt.com`) every day, yet **every major AI chat workspace remains strictly single-player**:
+Modern software teams, researchers, and enterprise squads rely on consumer/enterprise AI web apps (**Claude `claude.ai`**, **ChatGPT `chatgpt.com`**, and **Gemini `gemini.google.com`**) every day, yet **every major AI chat workspace remains strictly single-player**:
 
 1. **Context Fragmentation & Copy-Paste Chaos**: When two engineers debug an architecture issue with AI, one person prompts in isolation and pastes walls of markdown or screenshots into Slack/Teams. Teammates cannot see the live stream or follow-up directly in the same context window.
 2. **Subscription Tier & Model Barriers**: A tech lead on a **Pro (`250k tokens`)** or **Enterprise (`1M tokens`)** plan wants to brainstorm with a colleague on a **Starter (`25k tokens`)** plan using frontier models (`gemini-4-argon`), without hitting paywall friction.
@@ -29,7 +29,7 @@ Modern software teams, researchers, and enterprise squads rely on consumer/enter
 
 ## 2. Key Differentiators
 
-### A. Zero-API-Key Enterprise SaaS Experience (`gemini.google.com` / `chatgpt.com` Model)
+### A. Zero-API-Key Enterprise SaaS Experience (Claude / ChatGPT / Gemini Web Model)
 - **Frictionless Authentication**: Users sign up or sign in using **Google OAuth ("Continue with Google")** or **Work Email & Password**.
 - **Platform-Managed Master Key & Software-Assigned Quotas**: End users **never** enter or manage raw Gemini API keys. CoThread's backend securely manages the master `GEMINI_API_KEY` on Google Cloud Run and automatically assigns software-enforced token quotas to each user account based on their subscription tier:
   - **Starter Tier**: `25,000 tokens` (`gemini-3.5-flash-lite`, `gemini-3.8-flash`)
