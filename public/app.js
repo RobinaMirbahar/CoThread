@@ -412,7 +412,7 @@
             quotaType: 'host',
             tokensCharged: 0,
             tokensSaved: 0,
-            text: `**Cloud Firestore & Google ADK Session Ready (\`/s/${userShareCode}\`)**\n\nWelcome, **${cleanName}** (\`${cleanEmail}\`)! Your account is persisted in the **Firestore \`users/${newId}\`** collection with **${fmtNum(tier.quota)} tokens**.\n\n• Click **🔗 Share & Quota** above to copy your `/s/${userShareCode}` sublink and sponsor teammates.\n• Or click **🔀 Continue Independently (Copy to My Chats)** to fork any shared thread into your private `/app` workspace.`
+            text: `**Cloud Firestore & Google ADK Session Ready (\`/s/${userShareCode}\`)**\n\nWelcome, **${cleanName}** (\`${cleanEmail}\`)! Your account is persisted in the **Firestore \`users/${newId}\`** collection with **${fmtNum(tier.quota)} tokens**.\n\n• Click **🔗 Share & Quota** above to copy your \`/s/${userShareCode}\` sublink and sponsor teammates.\n• Or click **🔀 Continue Independently (Copy to My Chats)** to fork any shared thread into your private \`/app\` workspace.`
           }
         ]
       });
