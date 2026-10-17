@@ -19,7 +19,7 @@ This guide contains:
 ---
 
 ## Slide 2 — The Problem: Enterprise AI Web Apps Are Trapped in Single-Player Silos
-- **Copy-Paste Chaos**: Platforms like `gemini.google.com` and `chatgpt.com` are built for one user at a time. When two engineers debug an incident with AI, one person prompts alone and pastes screenshots into Slack.
+- **Copy-Paste Chaos**: Platforms like **Claude (`claude.ai`)**, **ChatGPT (`chatgpt.com`)**, and **Gemini (`gemini.google.com`)** are built for one user at a time. When two engineers debug an incident with AI, one person prompts alone and pastes screenshots into Slack.
 - **Subscription & Quota Mismatch**: An engineering lead on a **Pro (`250k tokens`)** or **Enterprise (`1M tokens`)** tier cannot invite a **Starter (`25k tokens`)** teammate into the same live `gemini-4-argon` thread.
 - **Dead Snapshot Links**: Existing "Share Chat" links only export a static transcript—colleagues cannot co-prompt live in the same context window, and hosts have no way to govern permissions or token spend.
 
@@ -75,7 +75,7 @@ This guide contains:
 
 ### [0:00 – 0:35] SaaS Sign-In & Starting a Host-Sponsored Thread
 - **Robina Mirbahar (Lead & Host)** *(speaking)*:
-  > "Platforms like `gemini.google.com` and `chatgpt.com` changed how individuals work, but they are still single-player. When my team and I design a system together, we're stuck pasting screenshots into Slack. Today I'm introducing **CoThread**—an enterprise collaborative AI platform built on **Google Cloud Run**, **Cloud Firestore**, **Google ADK**, and **MCP**."
+  > "Platforms like **Claude**, **ChatGPT**, and **Gemini** changed how individuals work, but they are still single-player. When my team and I design a system together, we're stuck pasting screenshots into Slack. Today I'm introducing **CoThread**—an enterprise collaborative AI platform built on **Google Cloud Run**, **Cloud Firestore**, **Google ADK**, and **MCP**."
 - **Robina Mirbahar (Lead & Host)** *(exact clicks)*:
   1. Show the CoThread landing page and click **"Start CoThreading"** (or **"Continue with Google"**) as **Robina Mirbahar (`robina@cothread.ai` • Pro Tier — `250,000 tokens`)**.
   > "Notice there are no API keys for users to manage. CoThread's Cloud Run backend manages the master Gemini connection and automatically provisions my Pro account with a 250,000-token software quota in Cloud Firestore."
