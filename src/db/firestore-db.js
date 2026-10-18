@@ -396,16 +396,64 @@ class CoThreadFirestoreDB {
     return this.tables.chat_history.find((s) => s.id === sessionId) || null;
   }
 
+  _mergeSessionRecords(existing, incoming) {
+    if (!existing) {
+      return {
+        ...incoming,
+        updatedAt: new Date().toISOString()
+      };
+    }
+    if (!incoming) return existing;
+
+    const mergedParticipants = Array.from(
+      new Set([...(existing.participants || []), ...(incoming.participants || [])])
+    );
+    const mergedInvitedEmails = Array.from(
+      new Set([...(existing.invitedEmails || []), ...(incoming.invitedEmails || [])])
+    );
+
+    const msgMap = new Map();
+    for (const m of existing.messages || []) {
+      if (m && m.id) msgMap.set(m.id, m);
+    }
+    for (const m of incoming.messages || []) {
+      if (m && m.id) msgMap.set(m.id, m);
+    }
+    const mergedMessages = Array.from(msgMap.values());
+
+    const isShared = Boolean(
+      existing.isShared ||
+      incoming.isShared ||
+      mergedParticipants.length > 1 ||
+      mergedInvitedEmails.length > 1
+    );
+
+    const resolvedTitle =
+      incoming.title && incoming.title !== 'New Chat'
+        ? incoming.title
+        : existing.title || incoming.title || 'New Chat';
+
+    return {
+      ...existing,
+      ...incoming,
+      title: resolvedTitle,
+      isShared,
+      type: isShared ? 'shared' : (incoming.type || existing.type || 'personal'),
+      participants: mergedParticipants,
+      invitedEmails: mergedInvitedEmails,
+      messages: mergedMessages,
+      updatedAt: new Date().toISOString()
+    };
+  }
+
   async upsertSession(sessionObj) {
     if (!sessionObj || !sessionObj.id) {
       throw new Error('Session object with a valid id is required.');
     }
-    const cleanSession = {
-      ...sessionObj,
-      updatedAt: new Date().toISOString()
-    };
+    const idx = this.tables.chat_history.findIndex((s) => s.id === sessionObj.id);
+    const existing = idx !== -1 ? this.tables.chat_history[idx] : null;
+    const cleanSession = this._mergeSessionRecords(existing, sessionObj);
 
-    const idx = this.tables.chat_history.findIndex((s) => s.id === cleanSession.id);
     if (idx !== -1) {
       this.tables.chat_history[idx] = cleanSession;
     } else {
@@ -428,31 +476,31 @@ class CoThreadFirestoreDB {
     if (!Array.isArray(sessionsArray)) return this.tables.chat_history;
 
     const byId = new Map();
-    // Keep existing sessions first, then overwrite/prepend with incoming sessions
-    for (const incoming of sessionsArray) {
-      if (incoming && incoming.id) {
-        byId.set(incoming.id, {
-          ...incoming,
-          updatedAt: incoming.updatedAt || new Date().toISOString()
-        });
+    for (const existing of this.tables.chat_history) {
+      if (existing && existing.id) {
+        byId.set(existing.id, existing);
       }
     }
-    for (const existing of this.tables.chat_history) {
-      if (existing && existing.id && !byId.has(existing.id)) {
-        byId.set(existing.id, existing);
+
+    const updatedSessionsToWrite = [];
+    for (const incoming of sessionsArray) {
+      if (incoming && incoming.id) {
+        const merged = this._mergeSessionRecords(byId.get(incoming.id), incoming);
+        byId.set(incoming.id, merged);
+        updatedSessionsToWrite.push(merged);
       }
     }
 
     this.tables.chat_history = Array.from(byId.values());
     this._saveLocalTables();
 
-    if (this.firestoreClient) {
+    if (this.firestoreClient && updatedSessionsToWrite.length > 0) {
       try {
         const batch = this.firestoreClient.batch();
-        for (const sess of sessionsArray) {
+        for (const sess of updatedSessionsToWrite) {
           if (sess && sess.id) {
             const ref = this.firestoreClient.collection('chat_history').doc(sess.id);
-            batch.set(ref, { ...sess, updatedAt: new Date().toISOString() }, { merge: true });
+            batch.set(ref, sess, { merge: true });
           }
         }
         await batch.commit();

@@ -626,12 +626,22 @@
     } catch (e) {}
   }
 
+  function isSharedOrMultiUserSession(s) {
+    if (!s) return false;
+    if (s.isShared) return true;
+    if (Array.isArray(s.participants) && s.participants.length > 1) return true;
+    if (Array.isArray(s.invitedEmails) && s.invitedEmails.length > 1) return true;
+    if (activeShareSessionId && s.id === activeShareSessionId) return true;
+    return false;
+  }
+
   function saveAndBroadcastState(toastMsg, toastVariant, syncRemote = true) {
     let persistedSessions = [];
     try {
       if (state && Array.isArray(state.sessions)) {
         persistedSessions = state.sessions.filter((s) => {
           if (s.id === 'chat_hasnain_personal' || s.id === 'chat_robina_personal') return true;
+          if (isSharedOrMultiUserSession(s)) return true;
           if (s.title === 'New Chat' || !s.messages || s.messages.length === 0) {
             const hasPrompt = Array.isArray(s.messages) && s.messages.some((m) => m && (m.kind === 'human' || m.kind === 'prompt'));
             if (!hasPrompt) return false;
@@ -700,11 +710,29 @@
   function getUserSessions(userId) {
     if (!state || !Array.isArray(state.sessions)) return [];
     if (!userId) return state.sessions;
+    const currentAcct = (state.accounts && state.accounts[userId]) || getMiniDbUsers()[userId] || null;
+    const userEmail = currentAcct && currentAcct.email ? String(currentAcct.email).toLowerCase() : '';
+    const userUsername = currentAcct && currentAcct.username ? String(currentAcct.username).toLowerCase() : '';
+
     let list = state.sessions.filter((s) => {
-      const isMember = s.hostId === userId || (Array.isArray(s.participants) && s.participants.includes(userId));
+      let isMember = s.hostId === userId || (Array.isArray(s.participants) && s.participants.includes(userId));
+      if (!isMember && Array.isArray(s.invitedEmails) && (userEmail || userUsername)) {
+        const invitedMatch = s.invitedEmails.some((inv) => {
+          const cleanInv = String(inv || '').trim().toLowerCase();
+          return (userEmail && cleanInv === userEmail) || (userUsername && cleanInv === userUsername);
+        });
+        if (invitedMatch) {
+          s.participants = Array.isArray(s.participants) ? s.participants : [];
+          if (!s.participants.includes(userId)) {
+            s.participants.push(userId);
+          }
+          isMember = true;
+        }
+      }
       if (!isMember) return false;
-      // Never hide permanent default workspaces
+      // Never hide permanent default workspaces or shared sessions
       if (s.id === 'chat_hasnain_personal' || s.id === 'chat_robina_personal') return true;
+      if (isSharedOrMultiUserSession(s)) return true;
       // Do not list empty unprompted chats in Recent Chats!
       if (!Array.isArray(s.messages) || s.messages.length === 0) return false;
       if (s.title === 'New Chat') {
@@ -827,7 +855,7 @@
   }
 
   // =========================================================
-  // AUTHENTICATION & LOGIN/SIGNUP (Mini DB)
+  // AUTHENTICATION & LOGIN/SIGNUP (Mini DB + Cloud Firestore)
   // =========================================================
 
   function showAuthAlert(msg, type = 'error') {
@@ -858,7 +886,28 @@
       return;
     }
 
-    const authResult = authenticateMiniDbUser(cleanId, cleanPass);
+    let authResult = authenticateMiniDbUser(cleanId, cleanPass);
+
+    // If user signed up on another browser/device, verify against Cloud Run + Cloud Firestore /api/auth/login
+    if (!authResult.ok && window.location.protocol !== 'file:' && !window.location.hostname.endsWith('github.io')) {
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier: cleanId, password: cleanPass })
+        });
+        if (res.ok) {
+          const remoteData = await res.json();
+          if (remoteData && remoteData.ok && remoteData.user) {
+            const dbUsers = getMiniDbUsers();
+            dbUsers[remoteData.user.id] = remoteData.user;
+            saveMiniDbUsers(dbUsers, false);
+            authResult = { ok: true, user: remoteData.user };
+          }
+        }
+      } catch (_) {}
+    }
+
     if (!authResult.ok) {
       showAuthAlert(authResult.error, 'error');
       return;
@@ -889,6 +938,7 @@
     // Prune any previous unprompted empty "New Chat" sessions so they don't accumulate
     state.sessions = (state.sessions || []).filter((s) => {
       if (s.id === 'chat_hasnain_personal' || s.id === 'chat_robina_personal') return true;
+      if (isSharedOrMultiUserSession(s)) return true;
       if (s.title === 'New Chat') {
         const hasPrompt = Array.isArray(s.messages) && s.messages.some((m) => m && (m.kind === 'human' || m.kind === 'prompt'));
         if (!hasPrompt) return false;
@@ -921,21 +971,23 @@
     if (pendingInviteShareCode) {
       const invitedSession = findSessionByShareCode(pendingInviteShareCode);
       if (invitedSession) {
+        invitedSession.isShared = true;
+        invitedSession.type = 'shared';
         if (!invitedSession.participants.includes(user.id)) {
           invitedSession.participants.push(user.id);
         }
         state.paneState[user.id].activeSessionId = invitedSession.id;
         showToast(`Joined chat: "${invitedSession.title}"!`, 'shared');
+        pendingInviteShareCode = null;
+        pendingInviteeEmail = null;
       }
-      pendingInviteShareCode = null;
-      pendingInviteeEmail = null;
     }
 
     saveAndBroadcastState();
     navigateTo('chat');
     showToast(`Welcome back, ${user.name}!`, 'shared');
 
-    // Notify backend if running locally
+    // Notify backend if running locally or on Cloud Run
     try {
       fetch('/api/auth/login', {
         method: 'POST',
@@ -1001,14 +1053,16 @@
     if (pendingInviteShareCode) {
       const invitedSession = findSessionByShareCode(pendingInviteShareCode);
       if (invitedSession) {
+        invitedSession.isShared = true;
+        invitedSession.type = 'shared';
         if (!invitedSession.participants.includes(user.id)) {
           invitedSession.participants.push(user.id);
         }
         state.paneState[user.id].activeSessionId = invitedSession.id;
         showToast(`Joined chat: "${invitedSession.title}"!`, 'shared');
+        pendingInviteShareCode = null;
+        pendingInviteeEmail = null;
       }
-      pendingInviteShareCode = null;
-      pendingInviteeEmail = null;
     }
 
     saveAndBroadcastState();
@@ -1471,6 +1525,9 @@
     const session = getSessionById(sessionId);
     if (!session) return;
     activeShareSessionId = sessionId;
+    session.isShared = true;
+    session.type = 'shared';
+    saveAndBroadcastState();
 
     const modal = document.getElementById('shareModalBackdrop');
     if (!modal) return;
@@ -1537,7 +1594,7 @@
     });
 
     const pendingItems = invitedEmails
-      .filter((email) => !participants.some((pid) => state.accounts[pid]?.email.toLowerCase() === email.toLowerCase()))
+      .filter((email) => !participants.some((pid) => (state.accounts[pid]?.email || '').toLowerCase() === email.toLowerCase()))
       .map((email) => `
         <div class="share-collab-item">
           <div>
@@ -1610,15 +1667,17 @@
     if (pendingInviteShareCode) {
       const invitedSession = findSessionByShareCode(pendingInviteShareCode);
       if (invitedSession) {
+        invitedSession.isShared = true;
+        invitedSession.type = 'shared';
         if (!invitedSession.participants.includes(currentUserId)) {
           invitedSession.participants.push(currentUserId);
         }
         ensurePaneStateForUser(currentUserId).activeSessionId = invitedSession.id;
         showToast(`Joined chat: "${invitedSession.title}"!`, 'shared');
+        pendingInviteShareCode = null;
+        pendingInviteeEmail = null;
+        saveAndBroadcastState();
       }
-      pendingInviteShareCode = null;
-      pendingInviteeEmail = null;
-      saveAndBroadcastState();
     }
 
     renderTopWorkspaceHeader();
@@ -2348,9 +2407,20 @@
       const session = getSessionById(activeShareSessionId);
       if (!session) return;
 
+      session.isShared = true;
+      session.type = 'shared';
       session.invitedEmails = session.invitedEmails || [];
       if (!session.invitedEmails.includes(email)) {
         session.invitedEmails.push(email);
+      }
+
+      // If invited email/username matches an existing account, add them to session.participants immediately
+      const matchedUser = findMiniDbUser(email);
+      if (matchedUser && matchedUser.id) {
+        session.participants = session.participants || [];
+        if (!session.participants.includes(matchedUser.id)) {
+          session.participants.push(matchedUser.id);
+        }
       }
 
       // Generate direct private collaborator link
@@ -2359,6 +2429,7 @@
 
       saveAndBroadcastState();
       renderShareCollaboratorsList(session);
+      renderTopWorkspaceHeader();
       if (emailInp) emailInp.value = '';
 
       showToast(`Invited ${email}! Direct collaborator link copied to clipboard.`, 'shared');
@@ -2366,6 +2437,12 @@
 
     // Public Link Copy Button
     document.getElementById('sharePublicCopyBtn')?.addEventListener('click', () => {
+      const session = getSessionById(activeShareSessionId);
+      if (session) {
+        session.isShared = true;
+        session.type = 'shared';
+        saveAndBroadcastState();
+      }
       const input = document.getElementById('sharePublicLinkInput');
       if (input && input.value) {
         navigator.clipboard?.writeText(input.value).catch(() => {});
@@ -2514,36 +2591,87 @@
   // CLOUD FIRESTORE HYDRATION & SSE STREAM (Cloud Run + Firestore)
   // =========================================================
 
+  function mergeSessionRecords(localSess, remoteSess) {
+    if (!localSess) return remoteSess;
+    if (!remoteSess) return localSess;
+
+    const mergedParticipants = Array.from(
+      new Set([...(remoteSess.participants || []), ...(localSess.participants || [])])
+    );
+    const mergedInvitedEmails = Array.from(
+      new Set([...(remoteSess.invitedEmails || []), ...(localSess.invitedEmails || [])])
+    );
+
+    // Merge messages by id preserving order
+    const msgMap = new Map();
+    for (const m of remoteSess.messages || []) {
+      if (m && m.id) msgMap.set(m.id, m);
+    }
+    for (const m of localSess.messages || []) {
+      if (m && m.id && !msgMap.has(m.id)) msgMap.set(m.id, m);
+    }
+    const mergedMessages = Array.from(msgMap.values());
+
+    const isShared = Boolean(
+      localSess.isShared ||
+      remoteSess.isShared ||
+      mergedParticipants.length > 1 ||
+      mergedInvitedEmails.length > 1
+    );
+
+    const resolvedTitle =
+      remoteSess.title && remoteSess.title !== 'New Chat'
+        ? remoteSess.title
+        : localSess.title || remoteSess.title || 'New Chat';
+
+    return {
+      ...localSess,
+      ...remoteSess,
+      title: resolvedTitle,
+      isShared,
+      type: isShared ? 'shared' : (remoteSess.type || localSess.type || 'personal'),
+      participants: mergedParticipants,
+      invitedEmails: mergedInvitedEmails,
+      messages: mergedMessages
+    };
+  }
+
   function applyFirestoreBootstrapPayload(data) {
     if (!data || typeof data !== 'object') return;
     let didChange = false;
+
+    const prevSignature = JSON.stringify({
+      accounts: Object.keys(state.accounts || {}).length,
+      sessions: (state.sessions || []).map((s) => ({
+        id: s.id,
+        title: s.title,
+        p: (s.participants || []).length,
+        m: (s.messages || []).length
+      }))
+    });
 
     // 1. Hydrate `users` table
     if (data.users && typeof data.users === 'object') {
       const mergedUsers = { ...getMiniDbUsers(), ...data.users };
       saveMiniDbUsers(mergedUsers, false);
       state.accounts = { ...getMiniDbPublicAccounts(), ...(data.accounts || {}) };
-      didChange = true;
     }
 
-    // 2. Hydrate `chat_history` (sessions) table
+    // 2. Hydrate `chat_history` (sessions) table with conflict-free message & participant merging
     if (Array.isArray(data.sessions) && data.sessions.length > 0) {
       const byId = new Map();
-      for (const remoteSess of data.sessions) {
-        if (remoteSess && remoteSess.id) {
-          byId.set(remoteSess.id, remoteSess);
-        }
-      }
       for (const localSess of state.sessions || []) {
         if (localSess && localSess.id) {
-          const remote = byId.get(localSess.id);
-          if (!remote || (Array.isArray(localSess.messages) && localSess.messages.length > (remote.messages || []).length)) {
-            byId.set(localSess.id, localSess);
-          }
+          byId.set(localSess.id, localSess);
+        }
+      }
+      for (const remoteSess of data.sessions) {
+        if (remoteSess && remoteSess.id) {
+          const existingLocal = byId.get(remoteSess.id);
+          byId.set(remoteSess.id, mergeSessionRecords(existingLocal, remoteSess));
         }
       }
       state.sessions = Array.from(byId.values());
-      didChange = true;
     }
 
     // 3. Hydrate `user_settings` table
@@ -2553,15 +2681,32 @@
       try {
         localStorage.setItem(USER_SETTINGS_KEY, JSON.stringify(mergedSettings));
       } catch (_) {}
-      if (currentUserId && mergedSettings[currentUserId]) {
-        applySettingsForUser(currentUserId);
-      }
+    }
+
+    const nextSignature = JSON.stringify({
+      accounts: Object.keys(state.accounts || {}).length,
+      sessions: (state.sessions || []).map((s) => ({
+        id: s.id,
+        title: s.title,
+        p: (s.participants || []).length,
+        m: (s.messages || []).length
+      }))
+    });
+
+    if (prevSignature !== nextSignature || pendingInviteShareCode) {
       didChange = true;
     }
 
     if (didChange) {
       saveAndBroadcastState(null, null, false);
-      renderApp();
+      // Do not clobber user's active typing in composer input unless necessary
+      const activeInput = document.activeElement;
+      const isTypingInComposer = activeInput && activeInput.id && activeInput.id.startsWith('composerInput_');
+      if (!isTypingInComposer) {
+        renderApp();
+      } else {
+        renderTopWorkspaceHeader();
+      }
     }
   }
 
@@ -2570,15 +2715,22 @@
       return;
     }
 
+    const pullRemoteBootstrap = () => {
+      fetch('/api/db/bootstrap')
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (data && data.ok) {
+            applyFirestoreBootstrapPayload(data);
+          }
+        })
+        .catch(() => {});
+    };
+
     // Initial bootstrap fetch from Cloud Run + Cloud Firestore
-    fetch('/api/db/bootstrap')
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data && data.ok) {
-          applyFirestoreBootstrapPayload(data);
-        }
-      })
-      .catch(() => {});
+    pullRemoteBootstrap();
+
+    // Poll every 2.5s so two users in different browsers/devices always see live messages & shared rooms even across proxies
+    setInterval(pullRemoteBootstrap, 2500);
 
     // Real-time Server-Sent Events (SSE) stream from Cloud Run
     if (typeof EventSource !== 'undefined') {
