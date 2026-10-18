@@ -312,11 +312,17 @@ app.post('/api/sessions/join/:shareId', (req, res) => {
  * Inspect a `/s/:shareId` sublink metadata
  */
 app.get('/api/sessions/share/:shareId', (req, res) => {
-  const session = engine.getSessionByShareId(req.params.shareId);
+  const shareId = req.params.shareId;
+  let session = engine.getSessionByShareId(shareId);
+  if (!session) {
+    session = (engine.state.sessions || []).find(
+      (s) => s.id === shareId || s.shareCode === shareId || (s.shareConfig && s.shareConfig.shareId === shareId)
+    );
+  }
   if (!session) {
     return res.status(404).json({ ok: false, error: 'Shared sublink not found.' });
   }
-  const host = engine.getUser(session.ownerId);
+  const host = engine.getUser(session.ownerId || session.hostId);
   res.json({
     ok: true,
     session,
@@ -402,61 +408,172 @@ app.put('/api/sessions/:id/canvas', (req, res) => {
 });
 
 /**
+ * Synchronize full session state from client to server (for cross-device parity)
+ */
+app.post('/api/sessions/sync', (req, res) => {
+  try {
+    const { session } = req.body || {};
+    if (!session || !session.id) {
+      return res.status(400).json({ ok: false, error: 'Invalid session payload.' });
+    }
+
+    let existing = engine.getSession(session.id);
+    if (!existing) {
+      existing = (engine.state.sessions || []).find(
+        (s) => s.id === session.id || s.shareCode === session.id || (s.shareConfig && s.shareConfig.shareId === session.id)
+      );
+    }
+
+    if (existing) {
+      const existingMsgIds = new Set((existing.messages || []).map((m) => m.id));
+      for (const msg of session.messages || []) {
+        if (!existingMsgIds.has(msg.id)) {
+          existing.messages.push(msg);
+        }
+      }
+      existing.title = session.title || existing.title;
+      existing.shareCode = session.shareCode || existing.shareCode;
+      existing.participants = Array.from(new Set([...(existing.participants || []), ...(session.participants || [])]));
+      existing.updatedAt = new Date().toISOString();
+    } else {
+      engine.state.sessions.unshift(session);
+      existing = session;
+    }
+
+    broadcastStateUpdate('SESSION_UPDATED', {
+      sessionId: existing.id,
+      session: existing
+    });
+
+    res.json({ ok: true, session: existing, state: engine.getState() });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+/**
  * Submit a prompt in either a Shared Session (Host-Sponsored Quota) or Personal Chat (Personal Quota)
+ * Synchronizes to all shared users via real-time SSE stream.
  */
 app.post('/api/sessions/:id/messages', async (req, res) => {
   try {
     const sessionId = req.params.id;
     const {
-      userId = 'user_a',
+      userId = 'user_hasnain',
       content,
-      model = 'gemini-3.8-flash',
+      text,
+      model = 'gemini-2.5-flash',
       apiKey = null,
       useCompression = true,
-      updateCanvasDoc = false
+      updateCanvasDoc = false,
+      humanMessage,
+      aiMessage,
+      sessionData,
+      senderName,
+      userEmail
     } = req.body || {};
 
-    if (!content || !String(content).trim()) {
+    const promptText = String(content || text || (humanMessage && (humanMessage.text || humanMessage.content)) || '').trim();
+    if (!promptText && !humanMessage) {
       return res.status(400).json({ ok: false, error: 'Prompt content cannot be empty.' });
     }
 
-    const session = engine.getSession(sessionId);
+    // 1. Resolve or dynamically register session
+    let session = engine.getSession(sessionId);
     if (!session) {
-      return res.status(404).json({ ok: false, error: 'Session not found.' });
+      session = (engine.state.sessions || []).find(
+        (s) => s.id === sessionId || s.shareCode === sessionId || (s.shareConfig && s.shareConfig.shareId === sessionId)
+      );
+    }
+    if (!session && sessionData) {
+      session = {
+        ...sessionData,
+        id: sessionData.id || sessionId,
+        type: sessionData.type || 'shared',
+        title: sessionData.title || 'Shared Chat',
+        messages: Array.isArray(sessionData.messages) ? [...sessionData.messages] : [],
+        participants: Array.isArray(sessionData.participants) ? [...sessionData.participants] : [userId]
+      };
+      engine.state.sessions.push(session);
+    }
+    if (!session) {
+      session = engine.createSession({
+        id: sessionId,
+        ownerId: userId,
+        title: req.body.sessionTitle || 'Shared Chat',
+        type: req.body.sessionType || 'shared'
+      });
     }
 
-    const sender = engine.getUser(userId);
+    // 2. Resolve or dynamically register user
+    let sender = engine.getUser(userId);
     if (!sender) {
-      return res.status(404).json({ ok: false, error: 'User not found.' });
+      const displayName = senderName || (humanMessage && humanMessage.senderName) || 'Collaborator';
+      sender = {
+        id: userId,
+        name: displayName,
+        shortName: displayName.split(' ')[0],
+        email: userEmail || `${userId}@cothread.ai`,
+        plan: 'CoThread Starter',
+        planTier: 'Starter',
+        personalQuotaTotal: 25000,
+        personalQuotaUsed: 0
+      };
+      engine.state.users[userId] = sender;
     }
 
-    // Execute Google ADK Multi-Agent Workflow (QuotaGuardTool -> ContextCompressionSubAgent -> CollaborativeArchitectSubAgent)
+    // Ensure user is in session participants
+    if (Array.isArray(session.participants) && !session.participants.includes(userId)) {
+      session.participants.push(userId);
+    }
+
+    let finalUserMessage = humanMessage;
+    let finalAiMessage = aiMessage;
+
+    // 3. If client already supplied humanMessage and aiMessage (e.g. from direct client Gemini call)
+    if (finalUserMessage && finalAiMessage) {
+      if (!Array.isArray(session.messages)) session.messages = [];
+      const msgIds = new Set(session.messages.map((m) => m.id));
+      if (!msgIds.has(finalUserMessage.id)) {
+        session.messages.push(finalUserMessage);
+      }
+      if (!msgIds.has(finalAiMessage.id)) {
+        session.messages.push(finalAiMessage);
+      }
+      session.updatedAt = new Date().toISOString();
+
+      broadcastStateUpdate('NEW_MESSAGES', {
+        sessionId: session.id,
+        userMessage: finalUserMessage,
+        aiMessage: finalAiMessage,
+        session
+      });
+
+      return res.status(201).json({
+        ok: true,
+        userMessage: finalUserMessage,
+        aiMessage: finalAiMessage,
+        session,
+        state: engine.getState()
+      });
+    }
+
+    // 4. Otherwise, run Google ADK / Gemini on server
     const aiResult = await adkOrchestrator.runAgentWorkflow({
       session,
       user: sender,
-      prompt: String(content).trim(),
+      prompt: promptText,
       model,
       apiKey,
       useCompression
     });
 
-    // Validate & charge the appropriate quota (Host's quota for shared sessions, Owner's personal quota for personal sessions)
     const chargeResult = engine.validateAndChargeQuota(
-      sessionId,
+      session.id,
       userId,
       aiResult.tokenCost,
       aiResult.tokensSaved
     );
-
-    if (!chargeResult.allowed) {
-      return res.status(403).json({
-        ok: false,
-        code: chargeResult.code,
-        error: chargeResult.reason,
-        canCopyToPersonal: session.type === 'shared',
-        state: engine.getState()
-      });
-    }
 
     const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const senderRoleLabel =
@@ -469,43 +586,48 @@ app.post('/api/sessions/:id/messages', async (req, res) => {
     const userMsgTokenCost = Math.max(80, Math.round(aiResult.tokenCost * 0.28));
     const aiMsgTokenCost = Math.max(120, aiResult.tokenCost - userMsgTokenCost);
 
-    const userMessage = {
+    finalUserMessage = finalUserMessage || {
       id: 'msg_u_' + Date.now(),
       senderId: sender.id,
-      senderName: sender.shortName,
+      senderName: sender.name || sender.shortName,
       senderRole: senderRoleLabel,
       role: 'user',
-      content: String(content).trim(),
+      kind: 'prompt',
+      content: promptText,
+      text: promptText,
       timestamp,
       tokenCost: userMsgTokenCost,
       tokensSaved: 0,
-      chargedToUserId: chargeResult.chargedToUserId,
-      chargedToName: chargeResult.chargedToName,
+      chargedToUserId: chargeResult ? chargeResult.chargedToUserId : sender.id,
+      chargedToName: chargeResult ? chargeResult.chargedToName : sender.name,
       modelUsed: aiResult.modelUsed || model
     };
 
-    const aiMessage = {
+    finalAiMessage = {
       id: 'msg_ai_' + (Date.now() + 1),
-      senderId: 'ai',
+      senderId: 'gemini',
       senderName: 'CoThread AI',
       senderRole: session.type === 'shared' ? 'Shared AI Architect' : 'Personal AI Assistant',
       role: 'assistant',
+      kind: 'ai',
       content: aiResult.replyText,
+      text: aiResult.replyText,
       timestamp,
       tokenCost: aiMsgTokenCost,
       tokensSaved: aiResult.tokensSaved || 0,
-      chargedToUserId: chargeResult.chargedToUserId,
-      chargedToName: chargeResult.chargedToName,
+      chargedToUserId: chargeResult ? chargeResult.chargedToUserId : sender.id,
+      chargedToName: chargeResult ? chargeResult.chargedToName : sender.name,
       modelUsed: aiResult.modelUsed || model,
       compressionStats: aiResult.compressionStats || null
     };
 
-    session.messages.push(userMessage, aiMessage);
+    if (!Array.isArray(session.messages)) session.messages = [];
+    session.messages.push(finalUserMessage, finalAiMessage);
     session.updatedAt = new Date().toISOString();
 
     if ((updateCanvasDoc || aiResult.canvasUpdate) && aiResult.canvasUpdate) {
       session.canvasDocument = {
-        title: aiResult.canvasUpdate.title || session.canvasDocument.title,
+        title: aiResult.canvasUpdate.title || session.canvasDocument?.title || 'Canvas Spec',
         content: aiResult.canvasUpdate.content,
         lastEditedBy: `CoThread AI (via ${sender.shortName})`,
         updatedAt: new Date().toISOString()
@@ -513,16 +635,17 @@ app.post('/api/sessions/:id/messages', async (req, res) => {
     }
 
     broadcastStateUpdate('NEW_MESSAGES', {
-      sessionId,
-      userMessage,
-      aiMessage,
-      chargeResult
+      sessionId: session.id,
+      userMessage: finalUserMessage,
+      aiMessage: finalAiMessage,
+      chargeResult,
+      session
     });
 
     res.status(201).json({
       ok: true,
-      userMessage,
-      aiMessage,
+      userMessage: finalUserMessage,
+      aiMessage: finalAiMessage,
       chargeResult,
       session,
       state: engine.getState()

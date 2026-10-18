@@ -452,6 +452,183 @@
     }
   });
 
+  // =========================================================
+  // REAL-TIME SERVER-SENT EVENTS (SSE) & CROSS-DEVICE SYNC
+  // =========================================================
+  let sseEventSource = null;
+  let sseReconnectTimer = null;
+
+  function initRealtimeSSE() {
+    if (typeof window === 'undefined' || typeof window.EventSource === 'undefined') return;
+    const isStaticGitHubPages = window.location.hostname.endsWith('github.io');
+    if (isStaticGitHubPages) return;
+
+    try {
+      if (sseEventSource) {
+        sseEventSource.close();
+      }
+
+      sseEventSource = new EventSource('/api/events');
+
+      sseEventSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          handleServerEvent(data);
+        } catch (_) {}
+      };
+
+      sseEventSource.onerror = () => {
+        if (sseEventSource) {
+          sseEventSource.close();
+          sseEventSource = null;
+        }
+        clearTimeout(sseReconnectTimer);
+        sseReconnectTimer = setTimeout(() => initRealtimeSSE(), 4000);
+      };
+    } catch (_) {}
+  }
+
+  function handleServerEvent(data) {
+    if (!data || !data.eventType) return;
+    const { eventType, payload, state: serverState } = data;
+
+    if (eventType === 'NEW_MESSAGES' && payload && payload.sessionId) {
+      const { sessionId, userMessage, aiMessage } = payload;
+      let session = getSessionById(sessionId);
+
+      if (!session && payload.session) {
+        session = payload.session;
+        state.sessions.unshift(session);
+      } else if (!session && serverState && Array.isArray(serverState.sessions)) {
+        const found = serverState.sessions.find((s) => s.id === sessionId || s.shareCode === sessionId);
+        if (found) {
+          session = found;
+          state.sessions.unshift(session);
+        }
+      }
+
+      if (session) {
+        if (!Array.isArray(session.messages)) session.messages = [];
+        const existingIds = new Set(session.messages.map((m) => m.id));
+
+        let addedAny = false;
+        if (userMessage && !existingIds.has(userMessage.id)) {
+          userMessage.text = userMessage.text || userMessage.content || '';
+          userMessage.kind = userMessage.kind || (userMessage.role === 'assistant' ? 'ai' : 'prompt');
+          session.messages.push(userMessage);
+          addedAny = true;
+        }
+        if (aiMessage && !existingIds.has(aiMessage.id)) {
+          aiMessage.text = aiMessage.text || aiMessage.content || '';
+          aiMessage.kind = aiMessage.kind || 'ai';
+          session.messages.push(aiMessage);
+          addedAny = true;
+        }
+
+        if (addedAny) {
+          saveAndBroadcastState();
+          const pane = ensurePaneStateForUser(currentUserId);
+          if (pane.activeSessionId === sessionId) {
+            renderApp();
+            scrollChatToBottom(sessionId);
+          }
+
+          // If message is from another collaborator, notify current user with a toast!
+          if (userMessage && userMessage.senderId !== currentUserId) {
+            const author = userMessage.senderName || 'Teammate';
+            const snippet = (userMessage.text || '').slice(0, 32);
+            showToast(`💬 ${author}: "${snippet}${userMessage.text.length > 32 ? '...' : ''}"`, 'shared');
+          }
+        }
+      }
+    } else if (eventType === 'SESSION_UPDATED' && payload && payload.session) {
+      const sess = payload.session;
+      const idx = state.sessions.findIndex((s) => s.id === sess.id);
+      if (idx !== -1) {
+        state.sessions[idx] = { ...state.sessions[idx], ...sess };
+      } else {
+        state.sessions.unshift(sess);
+      }
+      saveAndBroadcastState();
+      renderApp();
+    }
+  }
+
+  async function syncMessageToServer(session, account, humanMsg, aiMsg, chosenModel, userApiKey) {
+    const isStaticGitHubPages = window.location.hostname.endsWith('github.io');
+    if (isStaticGitHubPages || !session) return;
+
+    try {
+      await fetch(`/api/sessions/${encodeURIComponent(session.id)}/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: account.id,
+          senderName: account.name,
+          userEmail: account.email,
+          content: humanMsg.text,
+          text: humanMsg.text,
+          model: chosenModel,
+          apiKey: userApiKey || undefined,
+          humanMessage: humanMsg,
+          aiMessage: aiMsg,
+          sessionTitle: session.title,
+          sessionData: session
+        })
+      });
+    } catch (_) {}
+  }
+
+  async function syncSessionToServer(session) {
+    const isStaticGitHubPages = window.location.hostname.endsWith('github.io');
+    if (isStaticGitHubPages || !session) return;
+    try {
+      await fetch('/api/sessions/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session })
+      });
+    } catch (_) {}
+  }
+
+  async function resolveSharedSessionFromServer(shareCode, userId) {
+    if (!shareCode) return null;
+    const isStaticGitHubPages = window.location.hostname.endsWith('github.io');
+    if (isStaticGitHubPages) return null;
+
+    try {
+      const res = await fetch(`/api/sessions/share/${encodeURIComponent(shareCode)}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.ok && data.session) {
+          const s = data.session;
+          s.shareCode = s.shareCode || (s.shareConfig && s.shareConfig.shareId) || shareCode;
+          if (!Array.isArray(s.participants)) s.participants = [];
+          if (userId && !s.participants.includes(userId)) {
+            s.participants.push(userId);
+          }
+          if (Array.isArray(s.messages)) {
+            s.messages = s.messages.map((m) => ({
+              ...m,
+              text: m.text || m.content || '',
+              kind: m.kind || (m.role === 'assistant' || m.senderId === 'gemini' || m.senderId === 'ai' ? 'ai' : 'prompt')
+            }));
+          }
+
+          const existingIdx = state.sessions.findIndex((existing) => existing.id === s.id || existing.shareCode === s.shareCode);
+          if (existingIdx !== -1) {
+            state.sessions[existingIdx] = { ...state.sessions[existingIdx], ...s };
+          } else {
+            state.sessions.unshift(s);
+          }
+          saveAndBroadcastState();
+          return s;
+        }
+      }
+    } catch (_) {}
+    return null;
+  }
+
   window.addEventListener('popstate', () => {
     renderApp();
   });
@@ -812,7 +989,10 @@
 
     // If invited to a specific chat, auto-join it
     if (pendingInviteShareCode) {
-      const invitedSession = findSessionByShareCode(pendingInviteShareCode);
+      let invitedSession = findSessionByShareCode(pendingInviteShareCode);
+      if (!invitedSession) {
+        invitedSession = await resolveSharedSessionFromServer(pendingInviteShareCode, user.id);
+      }
       if (invitedSession) {
         if (!invitedSession.participants.includes(user.id)) {
           invitedSession.participants.push(user.id);
@@ -892,7 +1072,10 @@
 
     // If invited to a specific chat, auto-join it
     if (pendingInviteShareCode) {
-      const invitedSession = findSessionByShareCode(pendingInviteShareCode);
+      let invitedSession = findSessionByShareCode(pendingInviteShareCode);
+      if (!invitedSession) {
+        invitedSession = await resolveSharedSessionFromServer(pendingInviteShareCode, user.id);
+      }
       if (invitedSession) {
         if (!invitedSession.participants.includes(user.id)) {
           invitedSession.participants.push(user.id);
@@ -1156,6 +1339,9 @@
     saveAndBroadcastState();
     renderApp();
     scrollChatToBottom(sessionId);
+
+    // Sync to server so all collaborators across all devices see the prompt & response in real time!
+    syncMessageToServer(session, account, humanMsg, aiMsg, state.primaryModel || 'gemini-2.5-flash', getSavedGeminiApiKey());
   }
 
   function getSavedGeminiApiKey() {
@@ -1359,6 +1545,7 @@
     const session = getSessionById(sessionId);
     if (!session) return;
     activeShareSessionId = sessionId;
+    syncSessionToServer(session);
 
     const modal = document.getElementById('shareModalBackdrop');
     if (!modal) return;
@@ -2426,6 +2613,7 @@
     initTheme();
     initGlobalEvents();
     initHeroTypewriterAnimation();
+    initRealtimeSSE();
     recoverUnansweredMessagesOnBoot();
 
     const savedKey = getSavedGeminiApiKey();
@@ -2438,6 +2626,16 @@
       const joinCode = params.get('join') || params.get('s');
       if (joinCode) {
         pendingInviteShareCode = joinCode.trim();
+        if (currentUserId) {
+          resolveSharedSessionFromServer(pendingInviteShareCode, currentUserId).then((sess) => {
+            if (sess) {
+              const pane = ensurePaneStateForUser(currentUserId);
+              pane.activeSessionId = sess.id;
+              renderApp();
+              showToast(`Joined shared thread: "${sess.title}"`, 'shared');
+            }
+          });
+        }
       }
       const email = params.get('invitee');
       if (email) {
