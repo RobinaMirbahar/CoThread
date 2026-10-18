@@ -802,8 +802,9 @@
   function buildSimulatedCollaborativeReply({
     session = {},
     userMessage = {},
+    senderUser = {},
     resolvedModel = DEFAULT_MODEL,
-    promptData,
+    promptData = {},
   }) {
     const rawQuestion = String(
       typeof userMessage === 'string'
@@ -812,9 +813,21 @@
     ).trim();
     const qLower = rawQuestion.toLowerCase();
 
-    const speakerName = promptData.activeUser.name || 'Hasnain';
-    const isSpeakerHost = promptData.activeUser.isHost;
-    const hostName = promptData.hostUser.name || 'Robina Mirbahar';
+    const speakerName =
+      promptData?.activeUser?.name ||
+      senderUser?.name ||
+      senderUser?.shortName ||
+      userMessage?.senderName ||
+      'Robina Mirbahar';
+    const isSpeakerHost =
+      promptData?.activeUser?.isHost !== undefined
+        ? Boolean(promptData.activeUser.isHost)
+        : Boolean(
+            senderUser?.isHost ||
+              String(senderUser?.id || '') === String(session?.hostId || 'user_robina') ||
+              speakerName.toLowerCase().includes('robina')
+          );
+    const hostName = promptData?.hostUser?.name || session?.hostUser?.name || 'Robina Mirbahar';
     const speakerRoleBadge = isSpeakerHost ? `Host (${speakerName})` : `Collaborator (${speakerName})`;
 
     const messages = Array.isArray(session.messages) ? session.messages : [];
@@ -1075,6 +1088,53 @@
       );
     }
 
+    if (qLower.includes('github') || qLower.includes('githu') || qLower.includes('git push') || (qLower.includes('push') && qLower.includes('git'))) {
+      return (
+        `Here is the step-by-step guide to **push your code to GitHub** (**${speakerName}**):\n\n` +
+        `1. **Stage & Commit Your Changes:**\n` +
+        `   \`\`\`bash\n` +
+        `   git status\n` +
+        `   git add .\n` +
+        `   git commit -m "Update CoThread Cloud Run & Firestore integration"\n` +
+        `   \`\`\`\n` +
+        `2. **Connect Remote Repository (if not already linked):**\n` +
+        `   \`\`\`bash\n` +
+        `   git branch -M main\n` +
+        `   git remote add origin https://github.com/RobinaMirbahar/CoThread.git\n` +
+        `   \`\`\`\n` +
+        `3. **Push to GitHub (\`main\` branch):**\n` +
+        `   \`\`\`bash\n` +
+        `   git push -u origin main\n` +
+        `   \`\`\`\n` +
+        `4. **Pull Latest Changes in Google Cloud Shell (to redeploy):**\n` +
+        `   \`\`\`bash\n` +
+        `   cd ~/CoThread && git pull origin main\n` +
+        `   \`\`\``
+      );
+    }
+
+    if (
+      qLower.includes('ai studio') ||
+      qLower.includes('ai stduio') ||
+      qLower.includes('aistudio') ||
+      (qLower.includes('upload') && qLower.includes('studio'))
+    ) {
+      return (
+        `Here is how to **upload or connect your project in Google AI Studio & deploy to Cloud Run** (**${speakerName}**):\n\n` +
+        `1. **Open Google AI Studio Build Mode:** Go to [aistudio.google.com](https://aistudio.google.com/) and open **Build / Apps**.\n` +
+        `2. **Import from GitHub or Upload Files:**\n` +
+        `   - Click **Import from GitHub** and select \`RobinaMirbahar/CoThread\`, **or**\n` +
+        `   - Click **Upload Folder / Files** to upload \`server.js\`, \`package.json\`, \`Dockerfile\`, \`public/\`, and \`src/\`.\n` +
+        `3. **Note on Preserving Your Custom UI & Backend:**\n` +
+        `   - AI Studio's "Save to GitHub" button can overwrite custom frontend files with its own template. To keep your custom CoThread UI (` +
+        `\`4d86440\`) and Cloud Firestore tables (\`users\`, \`chat_history\`, \`user_settings\`) intact, deploy directly from **Google Cloud Shell** to **Cloud Run**:\n` +
+        `   \`\`\`bash\n` +
+        `   cd ~/CoThread && git pull origin main\n` +
+        `   gcloud run deploy cothread --source . --region us-central1 --allow-unauthenticated\n` +
+        `   \`\`\``
+      );
+    }
+
     if (qLower.includes('chat agent') || qLower.includes('agent') || qLower.includes('code')) {
       return (
         `Here is a clean, production-ready **Gemini Chat Agent** implementation for **${speakerName}** using the official \`@google/genai\` SDK and the **Interactions API** (\`gemini-3.8-flash\`):\n\n` +
@@ -1104,9 +1164,12 @@
     }
 
     return (
-      `Here is a breakdown for **${speakerName}** regarding **"${rawQuestion}"**:\n\n` +
-      `1. **Key Approach:** Break the problem into modular components so everyone in this shared CoThread chat can iterate on it together.\n` +
-      `2. **Next Step:** Tell me if you would like code examples, architecture diagrams, or step-by-step instructions for **${rawQuestion}**.`
+      `Here is a clear, direct response for **${speakerName}** regarding **"${rawQuestion}"**:\n\n` +
+      `- **Summary & Direct Answer:** In your shared **CoThread** workspace on **Google Cloud Run + Cloud Firestore**, **"${rawQuestion}"** is processed with shared multi-user context across **${hostName}** and **${referencedTeammate}**.\n` +
+      `- **Recommended Action Steps:**\n` +
+      `  1. Break the task into modular steps and verify the output in this live shared session.\n` +
+      `  2. Any collaborator in this room can follow up directly or click **Branch to My Chats** to continue independently.\n` +
+      `- **Need Code or Commands?** Reply with *"show code"* or *"give exact commands"* for **"${rawQuestion}"** and I will generate the full snippet.`
     );
   }
 
@@ -1595,6 +1658,7 @@
     compressSharedContext,
     buildMultiParticipantPrompt,
     extractCanvasArtifact,
+    buildSimulatedCollaborativeReply,
     generateCollaborativeResponse,
     generateWorkspaceResponse,
   };
