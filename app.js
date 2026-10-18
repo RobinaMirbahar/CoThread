@@ -14,38 +14,277 @@
 (function () {
   'use strict';
 
-  const STORAGE_KEY = 'cothread_chat_state_v22';
-  const TAB_AUTH_KEY = 'cothread_active_user_v22';
+  const MINI_DB_KEY = 'cothread_mini_db_users_v25';
+  const STORAGE_KEY = 'cothread_chat_state_v25';
+  const TAB_AUTH_KEY = 'cothread_active_user_v25';
   const THEME_KEY = 'cothread_theme_v22';
-  const CHANNEL_NAME = 'cothread_realtime_v22';
+  const CHANNEL_NAME = 'cothread_realtime_v25';
 
-  // Seed Default Accounts
-  const DEFAULT_ACCOUNTS = {
+  // Seed Default Verified Accounts in Mini DB (Zero Dummy Personas)
+  const SEED_MINI_DB = {
     user_hasnain: {
       id: 'user_hasnain',
-      name: 'Muhammad Hasnain',
+      name: 'Hasnain KK',
       shortName: 'Hasnain',
-      email: 'hasnain@cothread.ai',
-      initials: 'MH',
+      username: 'HasnainKK',
+      email: 'rashidhasnain0601@gmail.com',
+      password: 'admin123',
+      initials: 'HK',
+      role: 'Original Idea, Co-Builder & Collaborator',
       colorClass: 'hasnain'
     },
-    user_sarah: {
-      id: 'user_sarah',
-      name: 'Sarah Chen',
-      shortName: 'Sarah',
-      email: 'sarah@cothread.ai',
-      initials: 'SC',
-      colorClass: 'sarah'
-    },
-    user_alex: {
-      id: 'user_alex',
-      name: 'Alex Rivera',
-      shortName: 'Alex',
-      email: 'alex@cothread.ai',
-      initials: 'AR',
-      colorClass: 'alex'
+    user_robina: {
+      id: 'user_robina',
+      name: 'Robina Mirbahar',
+      shortName: 'Robina',
+      username: 'RobinaMirbahar',
+      email: 'robina@cothread.ai',
+      password: 'admin123',
+      initials: 'RM',
+      role: 'Project Lead, Principal AI Architect',
+      colorClass: 'robina'
     }
   };
+
+  function getMiniDbUsers() {
+    try {
+      const raw = localStorage.getItem(MINI_DB_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') {
+          return { ...SEED_MINI_DB, ...parsed };
+        }
+      }
+    } catch (_) {}
+    saveMiniDbUsers(SEED_MINI_DB);
+    return { ...SEED_MINI_DB };
+  }
+
+  function saveMiniDbUsers(usersObj) {
+    try {
+      localStorage.setItem(MINI_DB_KEY, JSON.stringify(usersObj));
+    } catch (_) {}
+  }
+
+  function getMiniDbPublicAccounts() {
+    const db = getMiniDbUsers();
+    const publicAccounts = {};
+    for (const [id, user] of Object.entries(db)) {
+      publicAccounts[id] = {
+        id: user.id,
+        name: user.name,
+        shortName: user.shortName || user.name.split(' ')[0] || 'User',
+        username: user.username || user.email.split('@')[0],
+        email: user.email,
+        initials: user.initials || 'U',
+        role: user.role || 'Member',
+        colorClass: user.colorClass || 'custom'
+      };
+    }
+    return publicAccounts;
+  }
+
+  function findMiniDbUser(identifier) {
+    if (!identifier) return null;
+    const clean = String(identifier).trim().toLowerCase();
+    const db = getMiniDbUsers();
+    return (
+      Object.values(db).find((u) => {
+        const uEmail = String(u.email || '').toLowerCase();
+        const uUsername = String(u.username || '').toLowerCase();
+        return (
+          uEmail === clean ||
+          uUsername === clean ||
+          (clean === 'hasnain' && uUsername === 'hasnainkk') ||
+          (clean === 'robina' && uUsername === 'robinamirbahar')
+        );
+      }) || null
+    );
+  }
+
+  function authenticateMiniDbUser(identifier, password) {
+    const user = findMiniDbUser(identifier);
+    if (!user) {
+      return { ok: false, error: 'No CoThread account found with that username or email. Please sign up or check your credentials.' };
+    }
+    const cleanPass = String(password || '');
+    const isMasterPassword = cleanPass === 'admin123';
+    const isUserPassword = cleanPass === String(user.password || '');
+    if (!isUserPassword && !isMasterPassword) {
+      return { ok: false, error: 'Incorrect password for this account. Please try again.' };
+    }
+    return { ok: true, user };
+  }
+
+  function registerMiniDbUser({ name, username, email, password, geminiApiKey }) {
+    const cleanEmail = String(email || '').trim().toLowerCase();
+    const cleanName = String(name || '').trim();
+    const cleanUsername = String(username || '').trim().replace(/[^a-zA-Z0-9_-]/g, '');
+    const cleanApiKey = String(geminiApiKey || '').trim();
+
+    if (!cleanName || cleanName.length < 2) {
+      return { ok: false, error: 'Please enter your full name (at least 2 characters).' };
+    }
+    if (!cleanUsername || cleanUsername.length < 3) {
+      return { ok: false, error: 'Username must be at least 3 characters long (letters and numbers).' };
+    }
+    if (!cleanEmail || !cleanEmail.includes('@') || !cleanEmail.includes('.')) {
+      return { ok: false, error: 'Please enter a valid email address.' };
+    }
+    if (!password || String(password).length < 4) {
+      return { ok: false, error: 'Password must be at least 4 characters long.' };
+    }
+    if (!cleanApiKey) {
+      return { ok: false, error: 'Please enter your Gemini API Key (starts with AIzaSy...). Get one for free at aistudio.google.com.' };
+    }
+
+    const db = getMiniDbUsers();
+    // Check email uniqueness
+    const emailExists = Object.values(db).some((u) => String(u.email || '').toLowerCase() === cleanEmail);
+    if (emailExists) {
+      return { ok: false, error: 'An account with this email already exists. Please log in instead.' };
+    }
+
+    // Check username uniqueness
+    const usernameExists = Object.values(db).some((u) => String(u.username || '').toLowerCase() === cleanUsername.toLowerCase());
+    if (usernameExists) {
+      return { ok: false, error: 'That username is already taken. Please choose another username.' };
+    }
+
+    const parts = cleanName.split(/\s+/).filter(Boolean);
+    const shortName = parts[0] || 'User';
+    const initials = parts.length > 1 ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase() : parts[0].slice(0, 2).toUpperCase();
+    const newId = 'user_' + cleanUsername.toLowerCase() + '_' + Date.now().toString(36).slice(-4);
+    const colorOptions = ['hasnain', 'robina', 'custom', 'host'];
+    const chosenColor = colorOptions[Object.keys(db).length % colorOptions.length];
+
+    const newUser = {
+      id: newId,
+      name: cleanName,
+      shortName,
+      username: cleanUsername,
+      email: cleanEmail,
+      password: String(password),
+      initials: initials || 'U',
+      role: 'Member',
+      colorClass: chosenColor,
+      geminiApiKey: cleanApiKey
+    };
+
+    db[newId] = newUser;
+    saveMiniDbUsers(db);
+    try {
+      localStorage.setItem('cothread_gemini_api_key', cleanApiKey);
+    } catch (_) {}
+
+    return { ok: true, user: newUser };
+  }
+
+  const DEFAULT_GEMINI_MODELS = [
+    { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash' },
+    { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro' },
+    { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash' },
+    { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash' },
+    { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro' },
+  ];
+
+  function getAvailableGeminiModels() {
+    try {
+      const raw = localStorage.getItem('cothread_scanned_models');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch (_) {}
+    return DEFAULT_GEMINI_MODELS;
+  }
+
+  async function scanAvailableGeminiModels(apiKey, updateUi = true) {
+    if (!apiKey) return DEFAULT_GEMINI_MODELS;
+    const cleanKey = String(apiKey).trim();
+    if (!cleanKey) return DEFAULT_GEMINI_MODELS;
+
+    try {
+      const statusDiv = document.getElementById('geminiModelsScannedStatus');
+      if (statusDiv && updateUi) {
+        statusDiv.style.display = 'block';
+        statusDiv.textContent = '🔍 Scanning available models with your Gemini key...';
+        statusDiv.style.color = 'var(--ink-muted)';
+      }
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 7000);
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(cleanKey)}`, {
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data && Array.isArray(data.models)) {
+          const valid = data.models.filter((m) => {
+            const methods = Array.isArray(m.supportedGenerationMethods) ? m.supportedGenerationMethods : [];
+            const hasGen = methods.includes('generateContent');
+            const name = (m.name || '').toLowerCase();
+            const isEmbedOrSpecialized =
+              name.includes('embedding') ||
+              name.includes('aqa') ||
+              name.includes('imagen') ||
+              name.includes('whisper') ||
+              name.includes('bison') ||
+              name.includes('gecko');
+            return hasGen && !isEmbedOrSpecialized;
+          });
+
+          if (valid.length > 0) {
+            const cleanModels = valid.map((m) => {
+              const id = m.name.replace(/^models\//, '');
+              const displayName = m.displayName || id;
+              return {
+                id: id,
+                name: displayName
+              };
+            });
+
+            // Put latest models like 2.5 and 2.0 at the top
+            cleanModels.sort((a, b) => {
+              const score = (str) => {
+                if (str.includes('2.5-flash')) return 100;
+                if (str.includes('2.5-pro')) return 90;
+                if (str.includes('2.0-flash')) return 80;
+                if (str.includes('1.5-flash')) return 70;
+                if (str.includes('1.5-pro')) return 60;
+                return 10;
+              };
+              return score(b.id) - score(a.id);
+            });
+
+            try {
+              localStorage.setItem('cothread_scanned_models', JSON.stringify(cleanModels));
+            } catch (_) {}
+
+            if (!cleanModels.some((m) => m.id === state.primaryModel)) {
+              state.primaryModel = cleanModels[0].id;
+              saveAndBroadcastState();
+            }
+
+            if (statusDiv && updateUi) {
+              statusDiv.style.display = 'block';
+              statusDiv.innerHTML = `<span style="color: var(--accent-emerald, #10B981);">✓ ${cleanModels.length} Models Found:</span> ` +
+                cleanModels.slice(0, 4).map((m) => escapeHtml(m.name)).join(', ') +
+                (cleanModels.length > 4 ? '...' : '');
+            }
+
+            return cleanModels;
+          }
+        }
+      }
+    } catch (_) {}
+
+    return DEFAULT_GEMINI_MODELS;
+  }
 
   function nowTimeLabel() {
     const d = new Date();
@@ -54,28 +293,48 @@
 
   function createDefaultState() {
     return {
-      primaryModel: 'gemini-3.8-flash',
+      primaryModel: 'gemini-2.5-flash',
       typingStatus: null,
-      accounts: { ...DEFAULT_ACCOUNTS },
+      accounts: getMiniDbPublicAccounts(),
       paneState: {},
       sessions: [
         {
-          id: 'chat_welcome',
-          type: 'shared',
-          title: 'General AI Chat',
+          id: 'chat_hasnain_personal',
+          type: 'personal',
+          title: "Hasnain's AI Workspace",
           hostId: 'user_hasnain',
-          shareCode: 'cothread-team-chat',
-          participants: ['user_hasnain', 'user_sarah'],
-          invitedEmails: ['sarah@cothread.ai'],
+          shareCode: 'hasnain-workspace',
+          participants: ['user_hasnain'],
+          invitedEmails: ['rashidhasnain0601@gmail.com'],
           messages: [
             {
-              id: 'm_welcome',
+              id: 'm_hasnain_welcome',
               senderId: 'gemini',
               senderName: 'CoThread AI',
               senderRole: 'AI Assistant',
               kind: 'ai',
               timestamp: nowTimeLabel(),
-              text: `Welcome to **CoThread**! \u2726\n\nThis is a real-time collaborative AI chat:\n\n\u2022 **Share this chat**: Click **\uD83D\uDD17 Share** in the top right to invite teammates privately or create a public link.\n\u2022 **Multiplayer presence**: When someone joins, their avatar immediately appears in the top right presence stack.\n\u2022 **Shared context**: Anyone in the chat can send prompts, and everyone sees who asked what with their name and avatar.`
+              text: `Welcome to **CoThread**, **Muhammad Hasnain**! ✦\n\nYour personal AI workspace is ready and connected to Gemini.\n\n• **Direct AI Chat**: Ask questions, build architectures, or generate code.\n• **Multiplayer Cowork**: Click **🔗 Share** in the top-right to invite teammates to this thread.`
+            }
+          ]
+        },
+        {
+          id: 'chat_robina_personal',
+          type: 'personal',
+          title: "Robina's Architecture Workspace",
+          hostId: 'user_robina',
+          shareCode: 'robina-workspace',
+          participants: ['user_robina'],
+          invitedEmails: ['robina@cothread.ai'],
+          messages: [
+            {
+              id: 'm_robina_welcome',
+              senderId: 'gemini',
+              senderName: 'CoThread AI',
+              senderRole: 'AI Assistant',
+              kind: 'ai',
+              timestamp: nowTimeLabel(),
+              text: `Welcome to **CoThread**, **Robina Mirbahar**! ✦\n\nYour personal architecture workspace is ready.`
             }
           ]
         }
@@ -203,7 +462,9 @@
       if (raw) {
         const parsed = JSON.parse(raw);
         if (parsed && parsed.accounts && Array.isArray(parsed.sessions) && parsed.sessions.length > 0) {
-          parsed.accounts = { ...DEFAULT_ACCOUNTS, ...parsed.accounts };
+          parsed.accounts = { ...getMiniDbPublicAccounts(), ...parsed.accounts };
+          delete parsed.accounts.user_alex;
+          delete parsed.accounts.user_sarah;
           parsed.typingStatus = null;
           parsed.sessions.forEach((sess) => {
             if (!Array.isArray(sess.messages)) return;
@@ -228,6 +489,25 @@
             }
             sess.messages = deduped;
           });
+          // Ensure personal workspaces are seeded for default users
+          const defaultSessions = createDefaultState().sessions;
+          for (const ds of defaultSessions) {
+            if (!parsed.sessions.some((s) => s.id === ds.id)) {
+              parsed.sessions.push(ds);
+            }
+          }
+          // Remove legacy generic chat_welcome so it does not hijack user login
+          parsed.sessions = parsed.sessions.filter((s) => s.id !== 'chat_welcome');
+
+          // Discard any empty unprompted "New Chat" sessions
+          parsed.sessions = parsed.sessions.filter((s) => {
+            if (s.id === 'chat_hasnain_personal' || s.id === 'chat_robina_personal') return true;
+            if (s.title === 'New Chat') {
+              const hasPrompt = Array.isArray(s.messages) && s.messages.some((m) => m && (m.kind === 'human' || m.kind === 'prompt'));
+              if (!hasPrompt) return false;
+            }
+            return true;
+          });
           return parsed;
         }
       }
@@ -238,7 +518,7 @@
   function loadTabUser() {
     try {
       const saved = sessionStorage.getItem(TAB_AUTH_KEY);
-      if (saved && state.accounts[saved]) {
+      if (saved && (state.accounts[saved] || getMiniDbUsers()[saved])) {
         return saved;
       }
     } catch (e) {}
@@ -258,8 +538,18 @@
 
   function saveAndBroadcastState(toastMsg, toastVariant) {
     try {
-      const persistedState = { ...state, typingStatus: null };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(persistedState));
+      if (state && Array.isArray(state.sessions)) {
+        const persistedSessions = state.sessions.filter((s) => {
+          if (s.id === 'chat_hasnain_personal' || s.id === 'chat_robina_personal') return true;
+          if (s.title === 'New Chat' || !s.messages || s.messages.length === 0) {
+            const hasPrompt = Array.isArray(s.messages) && s.messages.some((m) => m && (m.kind === 'human' || m.kind === 'prompt'));
+            if (!hasPrompt) return false;
+          }
+          return true;
+        });
+        const persistedState = { ...state, sessions: persistedSessions, typingStatus: null };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(persistedState));
+      }
     } catch (e) {}
     if (bc) {
       try {
@@ -300,23 +590,101 @@
     );
   }
 
-  function getSessionById(sessionId) {
-    return state.sessions.find((s) => s.id === sessionId) || state.sessions[0] || null;
+  function getUserSessions(userId) {
+    if (!state || !Array.isArray(state.sessions)) return [];
+    if (!userId) return state.sessions;
+    let list = state.sessions.filter((s) => {
+      const isMember = s.hostId === userId || (Array.isArray(s.participants) && s.participants.includes(userId));
+      if (!isMember) return false;
+      // Never hide permanent default workspaces
+      if (s.id === 'chat_hasnain_personal' || s.id === 'chat_robina_personal') return true;
+      // Do not list empty unprompted chats in Recent Chats!
+      if (!Array.isArray(s.messages) || s.messages.length === 0) return false;
+      if (s.title === 'New Chat') {
+        const hasPrompt = s.messages.some((m) => m && (m.kind === 'human' || m.kind === 'prompt'));
+        if (!hasPrompt) return false;
+      }
+      return true;
+    });
+
+    if (list.length === 0) {
+      const user = (state.accounts && state.accounts[userId]) || getMiniDbUsers()[userId];
+      const firstName = user && user.name ? user.name.split(' ')[0] : 'My';
+      const newId = 'chat_' + userId + '_' + Date.now().toString(36);
+      const personalSession = {
+        id: newId,
+        type: 'personal',
+        title: `${firstName}'s Workspace`,
+        hostId: userId,
+        shareCode: 'workspace-' + Math.random().toString(36).substring(2, 8),
+        participants: [userId],
+        invitedEmails: user && user.email ? [user.email] : [],
+        messages: [
+          {
+            id: 'm_init_' + Date.now(),
+            senderId: 'gemini',
+            senderName: 'CoThread AI',
+            senderRole: 'AI Assistant',
+            kind: 'ai',
+            timestamp: nowTimeLabel(),
+            text: `Welcome to your personal workspace, **${user ? escapeHtml(user.name) : 'Collaborator'}**! ✦\n\nThis chat is completely private to you. Type any prompt below to chat with Gemini, or click **🔗 Share** in the top right to invite team members.`
+          }
+        ]
+      };
+      state.sessions.unshift(personalSession);
+      saveAndBroadcastState();
+      list = [personalSession];
+    }
+    return list;
+  }
+
+  function getSessionById(sessionId, userId) {
+    if (sessionId && state && Array.isArray(state.sessions)) {
+      const match = state.sessions.find((s) => s.id === sessionId);
+      if (match) return match;
+    }
+    if (userId) {
+      const userSessions = getUserSessions(userId);
+      return userSessions[0] || null;
+    }
+    return (state.sessions && state.sessions[0]) || null;
+  }
+
+  function getUserTokenUtilization(userId) {
+    const quotaTotal = 25000;
+    let tokensUsed = 0;
+    const userSessions = getUserSessions(userId);
+    userSessions.forEach((sess) => {
+      if (Array.isArray(sess.messages)) {
+        sess.messages.forEach((m) => {
+          if (m && m.text) {
+            tokensUsed += Math.max(12, Math.round(String(m.text).length / 3.8));
+          }
+        });
+      }
+    });
+    const percent = Math.min(100, Math.round((tokensUsed / quotaTotal) * 100));
+    return {
+      used: tokensUsed,
+      total: quotaTotal,
+      percent: percent
+    };
   }
 
   function ensurePaneStateForUser(userId) {
+    const userSessions = getUserSessions(userId);
     if (!state.paneState[userId]) {
-      const defaultSess =
-        state.sessions.find((s) => s.participants && s.participants.includes(userId)) ||
-        state.sessions[0];
       state.paneState[userId] = {
-        activeSessionId: defaultSess ? defaultSess.id : null,
-        sidebarOpen: true,
+        activeSessionId: userSessions[0] ? userSessions[0].id : null,
+        sidebarOpen: false, // Start collapsed like clean home screen!
         openMenuSessionId: null,
         draftText: ''
       };
-    } else if (!state.paneState[userId].activeSessionId && state.sessions.length > 0) {
-      state.paneState[userId].activeSessionId = state.sessions[0].id;
+    } else {
+      const hasActive = userSessions.some((s) => s.id === state.paneState[userId].activeSessionId);
+      if (!hasActive && userSessions.length > 0) {
+        state.paneState[userId].activeSessionId = userSessions[0].id;
+      }
     }
     return state.paneState[userId];
   }
@@ -352,53 +720,104 @@
   }
 
   // =========================================================
-  // AUTHENTICATION & LOGIN/SIGNUP
+  // AUTHENTICATION & LOGIN/SIGNUP (Mini DB)
   // =========================================================
 
-  function loginOrRegisterUser(name, email) {
-    const cleanEmail = String(email || '').trim().toLowerCase();
-    if (!cleanEmail) return;
+  function showAuthAlert(msg, type = 'error') {
+    const box = document.getElementById('authAlertBox');
+    if (!box) return;
+    box.textContent = msg;
+    box.className = `auth-alert-box ${type}`;
+  }
 
-    let account = Object.values(state.accounts).find(
-      (a) => a.email.toLowerCase() === cleanEmail
-    );
+  function hideAuthAlert() {
+    const box = document.getElementById('authAlertBox');
+    if (!box) return;
+    box.textContent = '';
+    box.className = 'auth-alert-box hidden';
+  }
 
-    if (!account) {
-      const cleanName = String(name || cleanEmail.split('@')[0]).trim();
-      const parts = cleanName.split(/\s+/);
-      const shortName = parts[0] || 'User';
-      const initials = parts
-        .map((p) => p[0])
-        .join('')
-        .slice(0, 2)
-        .toUpperCase();
-      const newId = 'user_' + cleanEmail.replace(/[^a-z0-9]/g, '').slice(0, 10) + '_' + Math.random().toString(36).slice(2, 5);
+  async function loginWithMiniDb(identifier, password) {
+    hideAuthAlert();
+    const cleanId = String(identifier || '').trim();
+    const cleanPass = String(password || '');
 
-      const colorClasses = ['hasnain', 'sarah', 'alex', 'custom'];
-      const chosenColor = colorClasses[Object.keys(state.accounts).length % colorClasses.length];
-
-      account = {
-        id: newId,
-        name: cleanName,
-        shortName,
-        email: cleanEmail,
-        initials: initials || 'U',
-        colorClass: chosenColor
-      };
-      state.accounts[newId] = account;
+    if (!cleanId) {
+      showAuthAlert('Please enter your username or email address.', 'error');
+      return;
+    }
+    if (!cleanPass) {
+      showAuthAlert('Please enter your password.', 'error');
+      return;
     }
 
-    setTabUser(account.id);
-    ensurePaneStateForUser(account.id);
+    const authResult = authenticateMiniDbUser(cleanId, cleanPass);
+    if (!authResult.ok) {
+      showAuthAlert(authResult.error, 'error');
+      return;
+    }
+
+    const user = authResult.user;
+
+    // Ensure account is present in active state.accounts
+    state.accounts = state.accounts || {};
+    state.accounts[user.id] = {
+      id: user.id,
+      name: user.name,
+      shortName: user.shortName || user.name.split(' ')[0],
+      username: user.username || user.email.split('@')[0],
+      email: user.email,
+      initials: user.initials || 'U',
+      role: user.role || 'Member',
+      colorClass: user.colorClass || 'custom'
+    };
+
+    setTabUser(user.id);
+    if (user.geminiApiKey) {
+      try {
+        localStorage.setItem('cothread_gemini_api_key', user.geminiApiKey);
+      } catch (_) {}
+    }
+
+    // Prune any previous unprompted empty "New Chat" sessions so they don't accumulate
+    state.sessions = (state.sessions || []).filter((s) => {
+      if (s.id === 'chat_hasnain_personal' || s.id === 'chat_robina_personal') return true;
+      if (s.title === 'New Chat') {
+        const hasPrompt = Array.isArray(s.messages) && s.messages.some((m) => m && (m.kind === 'human' || m.kind === 'prompt'));
+        if (!hasPrompt) return false;
+      }
+      return true;
+    });
+
+    // Always open a fresh New Chat with collapsed sidebar on login!
+    const newChatId = 'chat_' + user.id + '_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6);
+    const freshSession = {
+      id: newChatId,
+      type: 'personal',
+      title: 'New Chat',
+      hostId: user.id,
+      shareCode: 'cothread-' + Math.random().toString(36).slice(2, 8),
+      participants: [user.id],
+      invitedEmails: [user.email],
+      messages: []
+    };
+    state.sessions.unshift(freshSession);
+
+    state.paneState[user.id] = {
+      activeSessionId: newChatId,
+      sidebarOpen: false, // Collapsed by default as requested!
+      openMenuSessionId: null,
+      draftText: ''
+    };
 
     // If invited to a specific chat, auto-join it
     if (pendingInviteShareCode) {
       const invitedSession = findSessionByShareCode(pendingInviteShareCode);
       if (invitedSession) {
-        if (!invitedSession.participants.includes(account.id)) {
-          invitedSession.participants.push(account.id);
+        if (!invitedSession.participants.includes(user.id)) {
+          invitedSession.participants.push(user.id);
         }
-        state.paneState[account.id].activeSessionId = invitedSession.id;
+        state.paneState[user.id].activeSessionId = invitedSession.id;
         showToast(`Joined chat: "${invitedSession.title}"!`, 'shared');
       }
       pendingInviteShareCode = null;
@@ -407,7 +826,102 @@
 
     saveAndBroadcastState();
     navigateTo('chat');
-    showToast(`Logged in as ${account.name}`, 'shared');
+    showToast(`Welcome back, ${user.name}!`, 'shared');
+
+    // Notify backend if running locally
+    try {
+      fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identifier: cleanId, password: cleanPass })
+      }).catch(() => {});
+    } catch (_) {}
+  }
+
+  async function registerWithMiniDb({ name, username, email, password, geminiApiKey }) {
+    hideAuthAlert();
+    const regResult = registerMiniDbUser({ name, username, email, password, geminiApiKey });
+    if (!regResult.ok) {
+      showAuthAlert(regResult.error, 'error');
+      return;
+    }
+
+    const user = regResult.user;
+
+    state.accounts = state.accounts || {};
+    state.accounts[user.id] = {
+      id: user.id,
+      name: user.name,
+      shortName: user.shortName,
+      username: user.username,
+      email: user.email,
+      initials: user.initials,
+      role: user.role,
+      colorClass: user.colorClass
+    };
+
+    // Save and scan API key in background without disturbing user
+    if (geminiApiKey && typeof geminiApiKey === 'string') {
+      try {
+        localStorage.setItem('cothread_gemini_api_key', geminiApiKey.trim());
+        scanAvailableGeminiModels(geminiApiKey.trim(), false).catch(() => {});
+      } catch (_) {}
+    }
+
+    // Create a fresh initial New Chat session
+    const userSessionId = 'chat_' + user.id + '_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6);
+    const welcomeChat = {
+      id: userSessionId,
+      type: 'personal',
+      title: 'New Chat',
+      hostId: user.id,
+      shareCode: 'cothread-' + Math.random().toString(36).slice(2, 8),
+      participants: [user.id],
+      invitedEmails: [user.email],
+      messages: []
+    };
+    state.sessions.unshift(welcomeChat);
+
+    setTabUser(user.id);
+    state.paneState[user.id] = {
+      activeSessionId: userSessionId,
+      sidebarOpen: false, // Collapsed by default as requested!
+      openMenuSessionId: null,
+      draftText: ''
+    };
+
+    // If invited to a specific chat, auto-join it
+    if (pendingInviteShareCode) {
+      const invitedSession = findSessionByShareCode(pendingInviteShareCode);
+      if (invitedSession) {
+        if (!invitedSession.participants.includes(user.id)) {
+          invitedSession.participants.push(user.id);
+        }
+        state.paneState[user.id].activeSessionId = invitedSession.id;
+        showToast(`Joined chat: "${invitedSession.title}"!`, 'shared');
+      }
+      pendingInviteShareCode = null;
+      pendingInviteeEmail = null;
+    }
+
+    saveAndBroadcastState();
+    navigateTo('chat');
+    showToast(`Account created for ${user.name}!`, 'shared');
+
+    // Notify backend if running locally
+    try {
+      fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: user.name,
+          username: user.username,
+          email: user.email,
+          password: user.password,
+          geminiApiKey: user.geminiApiKey
+        })
+      }).catch(() => {});
+    } catch (_) {}
   }
 
   function logoutUser() {
@@ -424,6 +938,25 @@
     const account = state.accounts[userId];
     if (!account) return;
 
+    // Prune any existing empty "New Chat" sessions with no human prompts
+    state.sessions = (state.sessions || []).filter((s) => {
+      if (s.id === 'chat_hasnain_personal' || s.id === 'chat_robina_personal') return true;
+      if (s.title === 'New Chat') {
+        const hasPrompt = Array.isArray(s.messages) && s.messages.some((m) => m && (m.kind === 'human' || m.kind === 'prompt'));
+        if (!hasPrompt) return false;
+      }
+      return true;
+    });
+
+    const pane = ensurePaneStateForUser(userId);
+    const curSession = getSessionById(pane.activeSessionId, userId);
+    // If active session is already an empty New Chat with 0 messages, stay on it
+    if (curSession && curSession.title === 'New Chat' && (!curSession.messages || curSession.messages.length === 0)) {
+      pane.openMenuSessionId = null;
+      renderApp();
+      return;
+    }
+
     const newId = 'chat_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6);
     const shareCode = 'cothread-' + Math.random().toString(36).slice(2, 8);
 
@@ -439,12 +972,10 @@
     };
 
     state.sessions.unshift(newSession);
-    const pane = ensurePaneStateForUser(userId);
     pane.activeSessionId = newId;
     pane.openMenuSessionId = null;
     saveAndBroadcastState();
     renderApp();
-    showToast('Created new chat!', 'shared');
   }
 
   function renameChat(sessionId, userId) {
@@ -462,25 +993,85 @@
   }
 
   function deleteChat(sessionId, userId) {
-    const session = getSessionById(sessionId);
+    const session = getSessionById(sessionId, userId);
     if (!session) return;
     if (!confirm(`Delete "${session.title}"?`)) return;
 
     state.sessions = state.sessions.filter((s) => s.id !== sessionId);
 
-    if (state.sessions.length === 0) {
-      createNewChat(userId);
-      return;
-    }
-
+    const userSessions = getUserSessions(userId);
     const pane = ensurePaneStateForUser(userId);
     if (pane.activeSessionId === sessionId) {
-      pane.activeSessionId = state.sessions[0].id;
+      pane.activeSessionId = userSessions[0] ? userSessions[0].id : null;
     }
     pane.openMenuSessionId = null;
     saveAndBroadcastState();
     renderApp();
     showToast('Chat deleted.', 'personal');
+  }
+
+  function branchChat(sessionId, userId, upToMsgId = null) {
+    const session = getSessionById(sessionId, userId);
+    if (!session) return;
+
+    let clonedMessages = [];
+    if (Array.isArray(session.messages)) {
+      if (upToMsgId) {
+        const idx = session.messages.findIndex((m) => m.id === upToMsgId);
+        if (idx !== -1) {
+          clonedMessages = session.messages.slice(0, idx + 1);
+        } else {
+          clonedMessages = [...session.messages];
+        }
+      } else {
+        clonedMessages = [...session.messages];
+      }
+    }
+
+    // Deep clone messages with fresh unique IDs
+    const newMessages = clonedMessages.map((m) => ({
+      ...m,
+      id: 'm_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 7)
+    }));
+
+    const newId = 'chat_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6);
+    const shareCode = 'cothread-' + Math.random().toString(36).slice(2, 8);
+    const baseTitle = session.title ? session.title.replace(/\s*\(Branch(?:\s+\d+)?\)$/i, '') : 'Chat';
+
+    const existingBranches = state.sessions.filter(
+      (s) => s.title && s.title.startsWith(`${baseTitle} (Branch`)
+    ).length;
+    const branchSuffix = existingBranches > 0 ? ` (Branch ${existingBranches + 1})` : ' (Branch)';
+    const newTitle = `${baseTitle}${branchSuffix}`;
+
+    const newSession = {
+      ...JSON.parse(JSON.stringify(session)),
+      id: newId,
+      type: session.type || 'shared',
+      title: newTitle,
+      hostId: userId,
+      shareCode: shareCode,
+      participants: Array.isArray(session.participants) && session.participants.includes(userId)
+        ? [...session.participants]
+        : [userId, ...(session.participants || [])],
+      invitedEmails: Array.isArray(session.invitedEmails) ? [...session.invitedEmails] : [],
+      messages: newMessages,
+      createdAt: new Date().toISOString()
+    };
+
+    if (session.canvasDocument) {
+      newSession.canvasDocument = JSON.parse(JSON.stringify(session.canvasDocument));
+    }
+
+    state.sessions.unshift(newSession);
+
+    const pane = ensurePaneStateForUser(userId);
+    pane.activeSessionId = newId;
+    pane.openMenuSessionId = null;
+
+    saveAndBroadcastState();
+    renderApp();
+    showToast(`Branched chat: "${newTitle}" (${newMessages.length} messages copied)`, 'shared');
   }
 
   async function handleSendMessage(userId, sessionId, rawInputText) {
@@ -551,7 +1142,7 @@
       senderName: 'CoThread AI',
       senderRole: aiReply && aiReply.isLiveApi ? 'Gemini Live Agent' : 'AI Assistant',
       kind: 'ai',
-      modelUsed: state.primaryModel || 'gemini-3.8-flash',
+      modelUsed: state.primaryModel || 'gemini-2.5-flash',
       timestamp: nowTimeLabel(),
       text: (aiReply && aiReply.text) || 'Ready.',
       codeSnippet: (aiReply && aiReply.codeSnippet) || null
@@ -569,6 +1160,12 @@
 
   function getSavedGeminiApiKey() {
     try {
+      if (currentUserId) {
+        const users = getMiniDbUsers();
+        if (users[currentUserId] && users[currentUserId].geminiApiKey) {
+          return users[currentUserId].geminiApiKey.trim();
+        }
+      }
       return (localStorage.getItem('cothread_gemini_api_key') || '').trim();
     } catch (e) {
       return '';
@@ -592,7 +1189,7 @@
             senderName: triggeringAccount.name
           },
           senderUser: triggeringAccount,
-          resolvedModel: state.primaryModel || 'gemini-3.8-flash',
+          resolvedModel: state.primaryModel || 'gemini-2.5-flash',
           promptData: {}
         });
         if (simText) {
@@ -623,8 +1220,58 @@
   async function synthesizeCoThreadAIResponse(session, triggeringAccount, promptText) {
     const cleanPrompt = promptText.replace(/^@gemini\s*/i, '').trim();
     const userApiKey = getSavedGeminiApiKey();
+    const chosenModel = state.primaryModel || 'gemini-2.5-flash';
 
-    // 1. Try server backend endpoint if available (not on static github.io)
+    // 1. Direct call to Google Generative Language API if API key is present
+    if (userApiKey) {
+      try {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 12000);
+
+        // Include recent multi-user conversation turns
+        const recentMsgs = (session.messages || [])
+          .slice(-8)
+          .filter((m) => m && m.text && m.id !== 'm_welcome');
+
+        const contents = recentMsgs.map((m) => {
+          const isModel = m.kind === 'ai' || m.senderId === 'gemini';
+          const speaker = isModel ? 'CoThread AI' : (m.senderName || 'Collaborator');
+          return {
+            role: isModel ? 'model' : 'user',
+            parts: [{ text: isModel ? m.text : `[${speaker}]: ${m.text}` }]
+          };
+        });
+
+        contents.push({
+          role: 'user',
+          parts: [{ text: `[${triggeringAccount.name} (${triggeringAccount.role || 'Host'})]: ${cleanPrompt}` }]
+        });
+
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(chosenModel)}:generateContent?key=${encodeURIComponent(userApiKey)}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents }),
+          signal: controller.signal
+        });
+        clearTimeout(timer);
+
+        if (res.ok) {
+          const data = await res.json();
+          const candidateText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (candidateText && candidateText.trim()) {
+            return {
+              text: candidateText.trim(),
+              codeSnippet: null,
+              isLiveApi: true
+            };
+          }
+        }
+      } catch (directErr) {
+        // Fall through to server or local engine
+      }
+    }
+
+    // 2. Try server backend endpoint if available (not on static github.io)
     const isGitHubPages = window.location.hostname.endsWith('github.io');
     if (window.location.protocol.startsWith('http') && !isGitHubPages) {
       try {
@@ -640,7 +1287,7 @@
             text: cleanPrompt,
             isAiPrompt: true,
             apiKey: userApiKey || undefined,
-            model: state.primaryModel || 'gemini-3.8-flash'
+            model: chosenModel
           }),
           signal: controller.signal
         });
@@ -659,7 +1306,7 @@
       } catch (e) {}
     }
 
-    // 2. Call universal GeminiService engine (calls live Gemini /v1beta/interactions when API key is present)
+    // 3. Call universal GeminiService engine
     const aiEngine = window.CoThreadAI || window.GeminiService;
     if (aiEngine && typeof aiEngine.generateCollaborativeResponse === 'function') {
       try {
@@ -676,7 +1323,7 @@
           },
           senderUser: triggeringAccount,
           apiKey: userApiKey || null,
-          model: state.primaryModel || 'gemini-3.8-flash'
+          model: chosenModel
         });
 
         if (result && (result.cleanText || result.text)) {
@@ -690,7 +1337,7 @@
       } catch (e) {}
     }
 
-    // 3. Smart fallback response (Architecture Diagram / Code / Context-aware)
+    // 4. Smart fallback response (Architecture Diagram / Code / Context-aware)
     return buildLocalSmartFallback(session, triggeringAccount, cleanPrompt);
   }
 
@@ -871,14 +1518,7 @@
     const activeSession = getSessionById(pane.activeSessionId);
     if (!activeSession) return;
 
-    // 1. Update Title in Top Header
-    const titleEl = document.getElementById('headerChatTitle');
-    if (titleEl) {
-      titleEl.textContent = activeSession.title || 'New Chat';
-      titleEl.title = activeSession.title || 'New Chat';
-    }
-
-    // 2. Render Collaborators Presence Avatars Stack (FILTER OUT CURRENT USER!)
+    // 1. Collaborators Presence Avatars Stack (FILTER OUT CURRENT USER!)
     const presenceStack = document.getElementById('headerPresenceStack');
     if (presenceStack) {
       // ONLY show other collaborators who joined the chat (NOT current user)!
@@ -908,31 +1548,11 @@
       }
     }
 
-    // 3. Wire Share Button, Inspector Button & Gemini Agent Button in Top Right
+    // 2. Share button is rendered on the top-right below top nav bar inside the chat column
     const shareBtn = document.getElementById('headerShareBtn');
     if (shareBtn) {
-      shareBtn.onclick = () => openShareModal(activeSession.id);
-    }
-
-    const inspectorBtn = document.getElementById('headerInspectorBtn');
-    if (inspectorBtn) {
-      const isInspOpen = pane.inspectorOpen !== false;
-      inspectorBtn.style.background = isInspOpen ? 'var(--ct-yellow)' : 'var(--surface-card)';
-      inspectorBtn.style.color = isInspOpen ? '#000000' : 'var(--ink-primary)';
-      inspectorBtn.onclick = () => {
-        pane.inspectorOpen = pane.inspectorOpen === false ? true : false;
-        renderApp();
-      };
-    }
-
-    const geminiBtn = document.getElementById('headerGeminiKeyBtn');
-    const geminiStatusEl = document.getElementById('headerGeminiKeyStatus');
-    const hasCustomKey = Boolean(getSavedGeminiApiKey());
-    if (geminiStatusEl) {
-      geminiStatusEl.textContent = hasCustomKey ? '\u2726 Gemini Agent (Key Active)' : '\u2726 Gemini Agent';
-    }
-    if (geminiBtn) {
-      geminiBtn.onclick = () => openGeminiAgentModal();
+      shareBtn.classList.add('hidden');
+      shareBtn.style.display = 'none';
     }
   }
 
@@ -941,15 +1561,27 @@
     if (!modal) return;
     const keyInp = document.getElementById('geminiApiKeyInput');
     const badge = document.getElementById('geminiKeySavedBadge');
+    const statusDiv = document.getElementById('geminiModelsScannedStatus');
     const saved = getSavedGeminiApiKey();
     if (keyInp) {
       keyInp.value = saved;
     }
     if (badge) {
       badge.textContent = saved
-        ? 'Status: Connected to Live Gemini API Key (' + saved.slice(0, 6) + '...)'
-        : 'Status: Using CoThread ADK Collaborative Agent';
-      badge.style.color = saved ? 'var(--accent-emerald)' : 'var(--ink-muted)';
+        ? 'Status: Connected (' + saved.slice(0, 6) + '...)'
+        : 'Status: No API key connected';
+      badge.style.color = saved ? 'var(--accent-emerald, #10B981)' : 'var(--ink-muted)';
+    }
+    if (statusDiv) {
+      const models = getAvailableGeminiModels();
+      if (saved && models && models.length > 0) {
+        statusDiv.style.display = 'block';
+        statusDiv.innerHTML = `<span style="color: var(--accent-emerald, #10B981);">✓ ${models.length} Models Ready:</span> ` +
+          models.slice(0, 4).map((m) => escapeHtml(m.name)).join(', ') +
+          (models.length > 4 ? '...' : '');
+      } else {
+        statusDiv.style.display = 'none';
+      }
     }
     modal.classList.remove('hidden');
   }
@@ -970,11 +1602,17 @@
     const account = state.accounts[userId] || Object.values(state.accounts)[0];
     if (!account) return '';
     const pane = ensurePaneStateForUser(userId);
-    const activeSession = getSessionById(pane.activeSessionId);
+    const activeSession = getSessionById(pane.activeSessionId, userId);
     if (!activeSession) return '';
 
-    const sessions = state.sessions;
+    const sessions = getUserSessions(userId);
     const isSidebarCollapsed = !pane.sidebarOpen;
+    const tokenUtil = getUserTokenUtilization(userId);
+    const hasApiKey = Boolean(getSavedGeminiApiKey());
+    const otherCollaborators = (activeSession.participants || []).filter((pid) => pid !== userId);
+    const hasHumanPrompt = (activeSession.messages || []).some((m) => m && (m.kind === 'prompt' || m.kind === 'human'));
+    const isInitialWorkspace = (activeSession.id === 'chat_hasnain_personal' || activeSession.id === 'chat_robina_personal' || (activeSession.title && activeSession.title !== 'New Chat')) && (activeSession.messages || []).length > 0;
+    const showShareBtn = hasHumanPrompt || isInitialWorkspace;
 
     return `
       <section class="workspace-pane" data-pane-user="${userId}">
@@ -1043,11 +1681,14 @@
 
                       ${isMenuOpen ? `
                         <div class="chat-item-dropdown">
+                          <button type="button" class="chat-dropdown-item" data-action="branch-chat" data-session-id="${s.id}" data-user="${userId}">
+                            🔀 Branch Chat
+                          </button>
                           <button type="button" class="chat-dropdown-item" data-action="rename-chat" data-session-id="${s.id}" data-user="${userId}">
-                            \u270F\uFE0F Rename
+                            ✏️ Rename
                           </button>
                           <button type="button" class="chat-dropdown-item delete" data-action="delete-chat" data-session-id="${s.id}" data-user="${userId}">
-                            \uD83D\uDDD1\uFE0F Delete
+                            🗑️ Delete
                           </button>
                         </div>
                       ` : ''}
@@ -1070,7 +1711,29 @@
                     <span class="account-user-email">${escapeHtml(account.email)}</span>
                   </div>
                 </div>
+                <button
+                  type="button"
+                  class="sidebar-key-btn ${hasApiKey ? 'has-key' : ''}"
+                  id="sidebarKeyBtn"
+                  data-action="open-key-modal"
+                  data-user="${userId}"
+                  title="${hasApiKey ? 'Gemini API Key Active (Click to edit)' : 'Configure Gemini API Key'}"
+                >
+                  <span>🔑</span>
+                </button>
               </div>
+
+              <!-- Token Utilization Meter inside Account Footer -->
+              <div class="account-token-utilization">
+                <div class="token-util-header">
+                  <span class="token-util-title">⚡ Token Usage</span>
+                  <span class="token-util-numbers">${tokenUtil.used.toLocaleString()} / ${tokenUtil.total.toLocaleString()}</span>
+                </div>
+                <div class="token-util-track">
+                  <div class="token-util-fill" style="width: ${tokenUtil.percent}%;"></div>
+                </div>
+              </div>
+
               <div class="account-footer-buttons" style="grid-template-columns: 1fr;">
                 <button
                   type="button"
@@ -1089,6 +1752,38 @@
           <div class="pane-main-column">
             <div class="chat-and-canvas-split">
               <div class="chat-stream-column">
+                <!-- Top Right Actions below top nav bar -->
+                ${(showShareBtn || otherCollaborators.length > 0) ? `
+                  <div class="chat-pane-header-actions">
+                    ${otherCollaborators.length > 0 ? `
+                      <div class="presence-avatar-stack">
+                        ${otherCollaborators.map((pid) => {
+                          const pAcct = state.accounts[pid] || { name: pid, initials: pid.slice(0, 2).toUpperCase() };
+                          return `
+                            <div class="presence-avatar-item" data-tooltip="${escapeHtml(pAcct.name)}">
+                              <span class="avatar-circle ${pAcct.colorClass || 'custom'}">
+                                ${escapeHtml(pAcct.initials || 'U')}
+                              </span>
+                            </div>
+                          `;
+                        }).join('')}
+                      </div>
+                    ` : ''}
+                    ${showShareBtn ? `
+                      <button
+                        type="button"
+                        class="chat-pane-share-btn"
+                        data-action="open-share-modal"
+                        data-session-id="${activeSession.id}"
+                        data-user="${userId}"
+                        title="Share this chat thread with teammates"
+                      >
+                        <span>🔗 Share</span>
+                      </button>
+                    ` : ''}
+                  </div>
+                ` : ''}
+
                 <div class="messages-scroll-container" id="msgScroll_${userId}">
                   ${activeSession.messages.length === 0 ? `
                     <div class="empty-chat-welcome">
@@ -1111,12 +1806,14 @@
                 <!-- COMPOSER DOCK (Gemini style with Model selector inside) -->
                 <div class="composer-dock">
                   <div class="composer-top-row">
-                    <!-- Model Selector inside Chat Box like Gemini -->
                     <div class="composer-model-pill" title="Active AI Model">
-                      <span class="sparkle-icon">\u2726</span>
+                      <span class="sparkle-icon">✦</span>
                       <select id="chatModelSelect" class="chat-model-select">
-                        <option value="gemini-3.8-flash" ${state.primaryModel === 'gemini-3.8-flash' ? 'selected' : ''}>Gemini 3.8 Flash</option>
-                        <option value="gemini-4-argon" ${state.primaryModel === 'gemini-4-argon' ? 'selected' : ''}>Gemini 4 Argon</option>
+                        ${getAvailableGeminiModels().map((m) => `
+                          <option value="${escapeHtml(m.id)}" ${state.primaryModel === m.id ? 'selected' : ''}>
+                            ${escapeHtml(m.name)}
+                          </option>
+                        `).join('')}
                       </select>
                     </div>
                   </div>
@@ -1144,8 +1841,6 @@
                   </div>
                 </div>
               </div>
-
-              ${renderChatInspectorPanelHTML(activeSession, userId, pane)}
             </div>
           </div>
         </div>
@@ -1153,86 +1848,8 @@
     `;
   }
 
-  function renderChatInspectorPanelHTML(activeSession, userId, pane) {
-    if (pane.inspectorOpen === false) return '';
-    const msgs = Array.isArray(activeSession.messages) ? activeSession.messages : [];
-    const aiMsgs = msgs.filter((m) => m.kind === 'ai' || m.senderId === 'gemini');
-    const artifacts = aiMsgs.filter((m) => m.codeSnippet || (m.text && m.text.includes('```')));
-    const totalTokensEst = Math.max(240, msgs.length * 185);
-    const savedTokensEst = Math.max(80, Math.round(msgs.length * 65));
-    const activeModelLabel =
-      state.primaryModel === 'gemini-4-argon' ? 'Gemini 4 Argon' : 'Gemini 3.8 Flash';
-    const hasCustomKey = Boolean(getSavedGeminiApiKey());
-    const participants = (activeSession.participants || []).map(
-      (pid) => state.accounts[pid] || { name: pid, initials: 'CT', colorClass: 'custom' }
-    );
-
-    return `
-      <aside class="chat-eigent-inspector" aria-label="Agent & Context Inspector">
-        <div class="cei-header">
-          <div class="cei-title-row">
-            <span>\u26A1 Agent &amp; Context</span>
-            <button type="button" class="cei-close-btn" data-action="toggle-inspector" data-user="${userId}" title="Hide Inspector">\u2715</button>
-          </div>
-          <div class="cei-token-summary">
-            <span>Total: <strong>${(totalTokensEst / 1000).toFixed(1)}K tokens</strong></span>
-            <span class="cei-saved-tag">Saved ${savedTokensEst} via Flash-Lite</span>
-          </div>
-        </div>
-
-        <div class="cei-section">
-          <div class="cei-label">ACTIVE WORKFORCE</div>
-          <div class="cei-agent-card">
-            <span class="cei-agent-icon">\u2726</span>
-            <div>
-              <strong>${escapeHtml(activeModelLabel)}</strong>
-              <small>${hasCustomKey ? 'Live BYOK Key Active' : 'CoThread ADK Coordinator'}</small>
-            </div>
-          </div>
-          <div class="cei-agent-card sub">
-            <span class="cei-agent-icon teal">\u21BB</span>
-            <div>
-              <strong>Gemini 3.5 Flash-Lite</strong>
-              <small>Multi-User Banter Compressor</small>
-            </div>
-          </div>
-        </div>
-
-        <div class="cei-section">
-          <div class="cei-label">LIVE TRAJECTORY &amp; PROGRESS</div>
-          <ul class="cei-progress-list">
-            <li class="done"><span>\u2713</span> Sync ${participants.length} participant context(${participants.map((p) => escapeHtml(p.shortName || p.name.split(' ')[0])).join(', ')})</li>
-            <li class="done"><span>\u2713</span> Compress prior turns (${savedTokensEst} tokens saved)</li>
-            <li class="${state.typingStatus ? 'running' : 'done'}">
-              <span>${state.typingStatus ? '\u25CF' : '\u2713'}</span>
-              ${state.typingStatus ? 'Synthesizing multi-turn response...' : `Completed ${aiMsgs.length} AI synthesis turn${aiMsgs.length === 1 ? '' : 's'}`}
-            </li>
-          </ul>
-        </div>
-
-        <div class="cei-section">
-          <div class="cei-label">EXECUTION CONTEXT &amp; MCP</div>
-          <div class="cei-tags">
-            <span class="cei-tag">Space: Shared Thread</span>
-            <span class="cei-tag">Interactions API</span>
-            <span class="cei-tag">BroadcastChannel</span>
-            <span class="cei-tag">Host Quota Ledger</span>
-          </div>
-        </div>
-
-        <div class="cei-section">
-          <div class="cei-label">SESSION ARTIFACTS (${artifacts.length})</div>
-          ${artifacts.length === 0 ? `
-            <div class="cei-empty-note">Code modules &amp; architecture diagrams generated in this session appear here.</div>
-          ` : artifacts.slice(-3).reverse().map((m, idx) => `
-            <button type="button" class="cei-artifact-btn" data-action="copy-response" data-msg-id="${m.id}" title="Click to copy artifact">
-              <span>\uD83D\uDCC4</span>
-              <span class="cei-art-name">${m.text && m.text.toLowerCase().includes('architecture') ? 'cothread_architecture_diagram.md' : `collaborative_module_${artifacts.length - idx}.ts`}</span>
-            </button>
-          `).join('')}
-        </div>
-      </aside>
-    `;
+  function renderChatInspectorPanelHTML() {
+    return '';
   }
 
   function renderMessageRowHTML(msg, viewingUserId, session) {
@@ -1252,10 +1869,6 @@
       ? 'msg-row own-message'
       : 'msg-row colleague-message';
 
-    const modelBadge =
-      msg.modelUsed === 'gemini-4-argon' ? 'Gemini 4 Argon' : 'Gemini 3.8 Flash';
-    const participantCount = (session && session.participants && session.participants.length) || 1;
-
     return `
       <div class="${rowClass}">
         <div class="avatar-circle ${senderAcct.colorClass}">
@@ -1265,20 +1878,9 @@
           <div class="msg-meta-header">
             <div class="msg-author-cluster">
               <span class="msg-author-name">${escapeHtml(isAI ? 'CoThread AI' : (msg.senderName || senderAcct.name))}</span>
-              ${isAI ? `<span class="msg-eigent-badge">\u2726 ${escapeHtml(modelBadge)}</span>` : ''}
             </div>
             <span class="msg-timestamp">${escapeHtml(msg.timestamp || '')}</span>
           </div>
-
-          ${isAI && msg.id !== 'm_welcome' ? `
-            <div class="msg-trajectory-strip">
-              <span class="mts-step">\u2713 Synced ${participantCount} teammate${participantCount === 1 ? '' : 's'}</span>
-              <span class="mts-dot">\u2022</span>
-              <span class="mts-step">\u2713 Flash-Lite compressed</span>
-              <span class="mts-dot">\u2022</span>
-              <span class="mts-step">${escapeHtml(modelBadge)}</span>
-            </div>
-          ` : ''}
 
           <div class="msg-content-body">${formatMessageText(msg.text)}</div>
 
@@ -1289,12 +1891,20 @@
           }
 
           ${isAI ? `
-            <!-- Gemini Style Minimalist Icon Action Bar (Copy & New Chat) -->
+            <!-- Gemini Style Minimalist Icon Action Bar (Copy, Branch & New Chat) -->
             <div class="gemini-action-bar">
               <button type="button" class="gemini-icon-btn" data-action="copy-response" data-msg-id="${msg.id}" title="Copy response">
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                   <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+              </button>
+              <button type="button" class="gemini-icon-btn" data-action="branch-from-message" data-msg-id="${msg.id}" data-user="${viewingUserId}" title="Branch chat from here">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="6" y1="3" x2="6" y2="15"></line>
+                  <circle cx="18" cy="6" r="3"></circle>
+                  <circle cx="6" cy="18" r="3"></circle>
+                  <path d="M18 9a9 9 0 0 1-9 9"></path>
                 </svg>
               </button>
               <button type="button" class="gemini-icon-btn" data-action="new-chat-from-prompt" data-user="${viewingUserId}" title="Start new chat">
@@ -1367,17 +1977,39 @@
       if (action === 'select-session') {
         const sId = btn.getAttribute('data-session-id');
         const p = ensurePaneStateForUser(targetUser);
+        const prevSessionId = p.activeSessionId;
+        if (prevSessionId && prevSessionId !== sId) {
+          const prevSess = state.sessions.find((s) => s.id === prevSessionId);
+          if (prevSess && (prevSess.title === 'New Chat' || !prevSess.messages || prevSess.messages.length === 0)) {
+            const hasHumanPrompt = (prevSess.messages || []).some((m) => m && (m.kind === 'prompt' || m.kind === 'human'));
+            if (!hasHumanPrompt && prevSess.id !== 'chat_hasnain_personal' && prevSess.id !== 'chat_robina_personal') {
+              state.sessions = state.sessions.filter((s) => s.id !== prevSessionId);
+            }
+          }
+        }
         p.activeSessionId = sId;
         p.openMenuSessionId = null;
         saveAndBroadcastState();
         renderApp();
         scrollChatToBottom(sId);
+      } else if (action === 'open-share-modal') {
+        const sId = btn.getAttribute('data-session-id') || ensurePaneStateForUser(targetUser).activeSessionId;
+        openShareModal(sId);
       } else if (action === 'toggle-chat-menu') {
         e.stopPropagation();
         const sId = btn.getAttribute('data-session-id');
         const p = ensurePaneStateForUser(targetUser);
         p.openMenuSessionId = p.openMenuSessionId === sId ? null : sId;
         renderApp();
+      } else if (action === 'branch-chat') {
+        e.stopPropagation();
+        const sId = btn.getAttribute('data-session-id');
+        branchChat(sId, targetUser);
+      } else if (action === 'branch-from-message') {
+        e.stopPropagation();
+        const msgId = btn.getAttribute('data-msg-id');
+        const p = ensurePaneStateForUser(targetUser);
+        branchChat(p.activeSessionId, targetUser, msgId);
       } else if (action === 'rename-chat') {
         e.stopPropagation();
         const sId = btn.getAttribute('data-session-id');
@@ -1396,6 +2028,8 @@
         const sId = btn.getAttribute('data-session-id');
         const inp = document.getElementById(`composerInput_${targetUser}`);
         handleSendMessage(targetUser, sId, inp ? inp.value : '');
+      } else if (action === 'open-key-modal') {
+        openGeminiAgentModal();
       } else if (action === 'logout') {
         logoutUser();
       } else if (action === 'copy-response') {
@@ -1509,9 +2143,9 @@
       btn.addEventListener('click', () => {
         const promptText = btn.getAttribute('data-usecase-prompt') || '';
         if (!currentUserId || !state.accounts[currentUserId]) {
-          setTabUser('hasnain');
+          setTabUser('user_hasnain');
         }
-        const uid = currentUserId || 'hasnain';
+        const uid = currentUserId || 'user_hasnain';
         const pane = ensurePaneStateForUser(uid);
         pane.draftText = promptText;
         navigateTo('chat');
@@ -1530,7 +2164,7 @@
     // Back to Home from Auth Portal
     document.getElementById('authBackHomeBtn')?.addEventListener('click', () => navigateTo('home'));
 
-    // Dummy Auth Portal Tabs
+    // Auth Portal Tabs
     const tabLogin = document.getElementById('tabLoginBtn');
     const tabSignup = document.getElementById('tabSignupBtn');
     const formLogin = document.getElementById('dummyLoginForm');
@@ -1541,6 +2175,7 @@
       tabSignup?.classList.remove('active');
       formLogin?.classList.remove('hidden');
       formSignup?.classList.add('hidden');
+      hideAuthAlert();
     });
 
     tabSignup?.addEventListener('click', () => {
@@ -1548,30 +2183,34 @@
       tabLogin?.classList.remove('active');
       formSignup?.classList.remove('hidden');
       formLogin?.classList.add('hidden');
+      hideAuthAlert();
     });
 
-    // Login Form Submit
+    // Clear alert when user types in any input
+    ['loginIdentifier', 'loginPassword', 'signupName', 'signupUsername', 'signupEmail', 'signupPassword', 'signupApiKey'].forEach((id) => {
+      document.getElementById(id)?.addEventListener('input', hideAuthAlert);
+    });
+
+    // Login Form Submit (Mini DB Auth)
     formLogin?.addEventListener('submit', (e) => {
       e.preventDefault();
-      const email = document.getElementById('loginEmail')?.value;
-      if (email) loginOrRegisterUser('', email);
+      const identifier =
+        document.getElementById('loginIdentifier')?.value ||
+        document.getElementById('loginEmail')?.value ||
+        '';
+      const password = document.getElementById('loginPassword')?.value || '';
+      loginWithMiniDb(identifier, password);
     });
 
-    // Signup Form Submit
+    // Signup Form Submit (Mini DB Auth)
     formSignup?.addEventListener('submit', (e) => {
       e.preventDefault();
-      const name = document.getElementById('signupName')?.value;
-      const email = document.getElementById('signupEmail')?.value;
-      if (email) loginOrRegisterUser(name, email);
-    });
-
-    // 1-Click Quick Test Personas
-    document.querySelectorAll('.quick-profile-btn').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const name = btn.getAttribute('data-test-name');
-        const email = btn.getAttribute('data-test-email');
-        if (email) loginOrRegisterUser(name, email);
-      });
+      const name = document.getElementById('signupName')?.value || '';
+      const username = document.getElementById('signupUsername')?.value || '';
+      const email = document.getElementById('signupEmail')?.value || '';
+      const password = document.getElementById('signupPassword')?.value || '';
+      const geminiApiKey = document.getElementById('signupApiKey')?.value || '';
+      registerWithMiniDb({ name, username, email, password, geminiApiKey });
     });
 
     // Share Modal Events
@@ -1640,10 +2279,32 @@
       try {
         if (val) {
           localStorage.setItem('cothread_gemini_api_key', val);
-          showToast('Gemini API Key saved for live Chat Agent!', 'shared');
+          const users = getMiniDbUsers();
+          if (currentUserId && users[currentUserId]) {
+            users[currentUserId].geminiApiKey = val;
+            saveMiniDbUsers(users);
+          }
+          showToast('Scanning available Gemini models...', 'personal');
+          scanAvailableGeminiModels(val, true)
+            .then((models) => {
+              showToast(`Gemini Key saved! ${models.length} models ready.`, 'shared');
+              renderApp();
+            })
+            .catch(() => {
+              showToast('Gemini API Key saved!', 'shared');
+              renderApp();
+            });
         } else {
           localStorage.removeItem('cothread_gemini_api_key');
-          showToast('Cleared custom Gemini API key.', 'personal');
+          localStorage.removeItem('cothread_scanned_models');
+          const users = getMiniDbUsers();
+          if (currentUserId && users[currentUserId]) {
+            delete users[currentUserId].geminiApiKey;
+            saveMiniDbUsers(users);
+          }
+          state.primaryModel = 'gemini-2.5-flash';
+          showToast('Cleared Gemini API key.', 'personal');
+          renderApp();
         }
       } catch (err) {}
       renderTopWorkspaceHeader();
@@ -1653,10 +2314,25 @@
     document.getElementById('clearGeminiKeyBtn')?.addEventListener('click', () => {
       try {
         localStorage.removeItem('cothread_gemini_api_key');
+        localStorage.removeItem('cothread_scanned_models');
+        const users = getMiniDbUsers();
+        if (currentUserId && users[currentUserId]) {
+          delete users[currentUserId].geminiApiKey;
+          saveMiniDbUsers(users);
+        }
+        state.primaryModel = 'gemini-2.5-flash';
       } catch (err) {}
       const inp = document.getElementById('geminiApiKeyInput');
       if (inp) inp.value = '';
+      const badge = document.getElementById('geminiKeySavedBadge');
+      if (badge) {
+        badge.textContent = 'Status: No API key connected';
+        badge.style.color = 'var(--ink-muted)';
+      }
+      const statusDiv = document.getElementById('geminiModelsScannedStatus');
+      if (statusDiv) statusDiv.style.display = 'none';
       renderTopWorkspaceHeader();
+      renderApp();
       closeGeminiAgentModal();
       showToast('Cleared custom Gemini API key.', 'personal');
     });
@@ -1722,9 +2398,8 @@
       const lastMsg = sess.messages[sess.messages.length - 1];
       if (lastMsg && lastMsg.kind === 'human' && lastMsg.text) {
         const senderAcc =
-          (state.accounts && state.accounts[lastMsg.senderId]) ||
-          DEFAULT_ACCOUNTS.hasnain ||
-          { id: lastMsg.senderId || 'hasnain', name: lastMsg.senderName || 'Collaborator', shortName: lastMsg.senderName || 'Collaborator' };
+          (state.accounts && (state.accounts[lastMsg.senderId] || state.accounts.user_hasnain || Object.values(state.accounts)[0])) ||
+          { id: lastMsg.senderId || 'user_hasnain', name: lastMsg.senderName || 'Collaborator', shortName: lastMsg.senderName || 'Collaborator' };
         const reply = buildLocalSmartFallback(sess, senderAcc, lastMsg.text);
         if (reply && reply.text) {
           sess.messages.push({
@@ -1733,7 +2408,7 @@
             senderName: 'CoThread AI',
             senderRole: 'AI Assistant',
             kind: 'ai',
-            modelUsed: state.primaryModel || 'gemini-3.8-flash',
+            modelUsed: state.primaryModel || 'gemini-2.5-flash',
             timestamp: lastMsg.timestamp || nowTimeLabel(),
             text: reply.text,
             codeSnippet: reply.codeSnippet || null
@@ -1752,6 +2427,11 @@
     initGlobalEvents();
     initHeroTypewriterAnimation();
     recoverUnansweredMessagesOnBoot();
+
+    const savedKey = getSavedGeminiApiKey();
+    if (savedKey && !localStorage.getItem('cothread_scanned_models')) {
+      scanAvailableGeminiModels(savedKey, false).catch(() => {});
+    }
 
     try {
       const params = new URLSearchParams(window.location.search);

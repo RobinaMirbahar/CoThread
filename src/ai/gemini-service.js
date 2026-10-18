@@ -276,7 +276,7 @@
         allowed: false,
         billingTarget,
         planTier: accountTier.label,
-        billingOwnerName: session.hostName || session.host?.name || 'Host (Alex Rivera)',
+        billingOwnerName: session.hostName || session.host?.name || 'Host (Robina Mirbahar)',
         quotaLimit,
         usedTokens,
         remainingTokens,
@@ -292,7 +292,7 @@
         allowed: false,
         billingTarget,
         planTier: accountTier.label,
-        billingOwnerName: session.hostName || session.host?.name || 'Host (Alex Rivera)',
+        billingOwnerName: session.hostName || session.host?.name || 'Host (Robina Mirbahar)',
         quotaLimit,
         usedTokens,
         remainingTokens,
@@ -309,7 +309,7 @@
         planTier: accountTier.label,
         billingOwnerName: isPersonalCopy
           ? senderUser?.name || 'Personal Account'
-          : session.hostName || session.host?.name || 'Host (Alex Rivera)',
+          : session.hostName || session.host?.name || 'Host (Robina Mirbahar)',
         quotaLimit,
         usedTokens,
         remainingTokens,
@@ -327,7 +327,7 @@
       planTier: accountTier.label,
       billingOwnerName: isPersonalCopy
         ? senderUser?.name || 'Personal Account'
-        : session.hostName || session.host?.name || 'Host (Alex Rivera)',
+        : session.hostName || session.host?.name || 'Host (Robina Mirbahar)',
       quotaLimit,
       usedTokens,
       remainingTokens,
@@ -344,7 +344,7 @@
 
   /**
    * Normalizes a participant label so Gemini clearly distinguishes
-   * `[Host - Alex Rivera]` vs `[Colleague - Hasnain]` vs `[Colleague - Sarah Chen]`.
+   * `[Host - Robina Mirbahar]` vs `[Co-Builder - Hasnain KK]` vs `[Collaborator - Teammate]`.
    */
   function formatParticipantTag(msgOrUser, sessionHostId, sessionHostName) {
     if (!msgOrUser) return '[Colleague - Team Member]';
@@ -377,7 +377,7 @@
       roleRaw === 'owner' ||
       (sessionHostId && userId && String(userId) === String(sessionHostId)) ||
       (sessionHostName && name.toLowerCase() === String(sessionHostName).toLowerCase()) ||
-      name.toLowerCase().includes('alex rivera');
+      name.toLowerCase().includes('robina');
 
     const titleSuffix = msgOrUser.title || msgOrUser.department || msgOrUser.user?.title || '';
     const roleLabel = isHost ? 'Host' : 'Colleague';
@@ -411,7 +411,7 @@
 
     const recentWindowCount = Number(options.recentWindowCount || 6);
     const sessionHostId = options.hostId || null;
-    const sessionHostName = options.hostName || 'Alex Rivera';
+    const sessionHostName = options.hostName || 'Robina Mirbahar';
 
     let originalTokens = 0;
     const banterNotes = [];
@@ -536,7 +536,7 @@
 
   /**
    * Formats the conversation history so Gemini clearly sees:
-   * - `[Host - Alex Rivera]` vs `[Colleague - Hasnain]` vs `[Colleague - Sarah Chen]`
+   * - `[Host - Robina Mirbahar]` vs `[Co-Builder - Hasnain KK]` vs `[Collaborator - Teammate]`
    * - Shared session context & current Shared Canvas state without starting a new session
    * - Exactly who asked the latest follow-up question and what multimodal attachments were included
    */
@@ -545,11 +545,11 @@
     const messages = Array.isArray(normalizedSession.messages) ? normalizedSession.messages : [];
 
     const hostUser = normalizedSession.host || {
-      id: normalizedSession.hostId || 'user-host-alex',
-      name: normalizedSession.hostName || 'Alex Rivera',
+      id: normalizedSession.hostId || 'user_robina',
+      name: normalizedSession.hostName || 'Robina Mirbahar',
       role: 'host',
-      planTier: normalizedSession.hostPlanTier || 'Pro 250k',
-      title: 'Staff Lead / Session Host',
+      planTier: normalizedSession.hostPlanTier || 'Enterprise 1M',
+      title: 'Project Lead, Principal AI Architect / Session Host',
     };
 
     const messageObj =

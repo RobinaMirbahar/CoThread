@@ -26,7 +26,9 @@ app.use(cors());
 app.use(express.json({ limit: '2mb' }));
 
 // Serve static frontend assets and shared core modules
+app.use('/public', express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(__dirname));
 app.use('/src', express.static(path.join(__dirname, 'src')));
 
 // Initialize Persistent Cloud Firestore Database + Quota Engine + Google ADK Orchestrator
@@ -159,15 +161,17 @@ app.get('/api/state', (req, res) => {
 });
 
 /**
- * AUTHENTICATION: Email/Password Sign-Up with automatic software-assigned token quota
+ * AUTHENTICATION: Sign-Up with automatic software-assigned token quota
  */
 app.post('/api/auth/signup', (req, res) => {
   try {
-    const { name, email, password, plan = 'Starter', role } = req.body || {};
+    const { name, username, email, password, geminiApiKey, plan = 'Starter', role } = req.body || {};
     const result = engine.registerUser({
       name,
+      username,
       email,
       password,
+      geminiApiKey,
       plan,
       authProvider: 'email',
       role
@@ -184,12 +188,17 @@ app.post('/api/auth/signup', (req, res) => {
 });
 
 /**
- * AUTHENTICATION: Email/Password Sign-In
+ * AUTHENTICATION: Username or Email & Password Sign-In
  */
 app.post('/api/auth/login', (req, res) => {
   try {
-    const { email, password } = req.body || {};
-    const result = engine.loginUser({ email, password });
+    const { identifier, email, username, password } = req.body || {};
+    const result = engine.loginUser({
+      identifier: identifier || email || username,
+      email,
+      username,
+      password
+    });
     res.json({
       ok: true,
       ...result,

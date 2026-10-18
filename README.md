@@ -1,6 +1,7 @@
 # CoThread — Enterprise Collaborative AI Platform on Google Cloud Run
 
 [![Live Web App](https://img.shields.io/badge/Live_Web_App-robinamirbahar.github.io%2FCoThread-00C896?style=for-the-badge&logo=googlechrome&logoColor=white)](https://robinamirbahar.github.io/CoThread/)
+[![Documentation](https://img.shields.io/badge/Documentation-Architecture_%26_Implementation-FFC900?style=for-the-badge&logo=googledocs&logoColor=black)](./DOCUMENTATION.md)
 
 [![Google Cloud Run](https://img.shields.io/badge/Google_Cloud_Run-Deployed-4285F4?logo=googlecloud&logoColor=white)](https://cloud.google.com/run)
 [![Google GenAI SDK](https://img.shields.io/badge/%40google%2Fgenai-v1.x-34A853?logo=google&logoColor=white)](https://www.npmjs.com/package/@google/genai)

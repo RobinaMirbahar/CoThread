@@ -65,59 +65,43 @@
 
   function createInitialState() {
     const users = {
-      user_a: {
-        id: 'user_a',
-        name: 'Alex Rivera (You - Host)',
-        shortName: 'Alex Rivera',
-        email: 'alex@cothread.ai',
-        passwordHash: 'demo123',
-        authProvider: 'google',
-        role: 'Principal AI Architect',
-        plan: 'CoThread Pro',
-        planTier: 'Pro',
-        avatarColor: '#6366f1',
+      user_robina: {
+        id: 'user_robina',
+        name: 'Robina Mirbahar',
+        shortName: 'Robina',
+        username: 'RobinaMirbahar',
+        email: 'robina@cothread.ai',
+        passwordHash: 'admin123',
+        authProvider: 'email',
+        role: 'Project Lead, Principal AI Architect',
+        plan: 'CoThread Enterprise',
+        planTier: 'Enterprise',
+        avatarColor: '#ec4899',
         avatarUrl: null,
-        initials: 'AR',
-        personalQuotaTotal: 250000,
+        initials: 'RM',
+        personalQuotaTotal: 1000000,
         personalQuotaUsed: 14200,
         sponsoredTokensUsed: 4820,
         createdAt: '2026-10-01T09:00:00Z'
       },
-      user_b: {
-        id: 'user_b',
-        name: 'Hasnain (Colleague)',
+      user_hasnain: {
+        id: 'user_hasnain',
+        name: 'Hasnain KK',
         shortName: 'Hasnain',
-        email: 'hasnain@cothread.ai',
-        passwordHash: 'demo123',
+        username: 'HasnainKK',
+        email: 'rashidhasnain0601@gmail.com',
+        passwordHash: 'admin123',
         authProvider: 'email',
-        role: 'Staff Backend Engineer',
-        plan: 'CoThread Starter',
-        planTier: 'Starter',
+        role: 'Original Idea, Co-Builder & Collaborator',
+        plan: 'CoThread Enterprise',
+        planTier: 'Enterprise',
         avatarColor: '#10b981',
         avatarUrl: null,
-        initials: 'HS',
-        personalQuotaTotal: 25000,
+        initials: 'HK',
+        personalQuotaTotal: 1000000,
         personalQuotaUsed: 3100,
         sponsoredTokensUsed: 0,
         createdAt: '2026-10-05T11:30:00Z'
-      },
-      user_c: {
-        id: 'user_c',
-        name: 'Sarah Chen (Product Designer)',
-        shortName: 'Sarah Chen',
-        email: 'sarah@cothread.ai',
-        passwordHash: 'demo123',
-        authProvider: 'google',
-        role: 'Lead Product Designer',
-        plan: 'CoThread Starter',
-        planTier: 'Starter',
-        avatarColor: '#f59e0b',
-        avatarUrl: null,
-        initials: 'SC',
-        personalQuotaTotal: 25000,
-        personalQuotaUsed: 1200,
-        sponsoredTokensUsed: 0,
-        createdAt: '2026-10-08T14:15:00Z'
       }
     };
 
@@ -126,7 +110,7 @@
         id: 'session_shared_1',
         title: 'Q3 Cloud Run Microservices & Quota Architecture',
         type: 'shared',
-        ownerId: 'user_a',
+        ownerId: 'user_robina',
         createdAt: '2026-10-14T16:10:00Z',
         updatedAt: '2026-10-14T17:38:00Z',
         forkedFromSessionId: null,
@@ -142,10 +126,10 @@
           tokensSavedByCompression: 6450,
           allowProModel: true
         },
-        participants: ['user_a', 'user_b', 'user_c'],
+        participants: ['user_robina', 'user_hasnain'],
         canvasDocument: {
           title: 'Cloud Run Multi-Tenant Quota Specification v2.1',
-          lastEditedBy: 'Alex Rivera',
+          lastEditedBy: 'Robina Mirbahar',
           updatedAt: '2026-10-14T17:38:00Z',
           content: `# CoThread Cloud Run Deployment & Quota Spec
 
@@ -154,7 +138,7 @@ Instead of copying 40-page chat transcripts across Slack or asking guests for th
 
 ## 2. Zero User API Keys & Host-Sponsored Quota Rules
 - **Platform Managed AI:** End users never enter an API key. CoThread automatically provisions token quotas per account tier (\`Starter: 25,000\`, \`Pro: 250,000\`, \`Enterprise: 1,000,000\`).
-- **Session Owner (Host):** Alex Rivera (\`CoThread Pro\`)
+- **Session Owner (Host):** Robina Mirbahar (\`CoThread Enterprise\`)
 - **Allocated Session Cap:** \`25,000 tokens\` (Hard limit enforced in real-time)
 - **Context Compression Engine:** Active (61% context reduction on multi-turn history)
 
@@ -164,16 +148,16 @@ Any collaborator can click **"Copy to Personal Account"** at any time to create 
         messages: [
           {
             id: 'msg_1',
-            senderId: 'user_a',
-            senderName: 'Alex Rivera',
+            senderId: 'user_robina',
+            senderName: 'Robina Mirbahar',
             senderRole: 'Host',
             role: 'user',
             content: 'Let\'s design our stateless Cloud Run deployment and token ledger so teammates joining via our `/s/cothread-q3-arch-9x2k` sublink can prompt Gemini immediately using my Host-Sponsored token cap.',
             timestamp: '17:25',
             tokenCost: 620,
             tokensSaved: 0,
-            chargedToUserId: 'user_a',
-            chargedToName: 'Alex Rivera (Host Pool)',
+            chargedToUserId: 'user_robina',
+            chargedToName: 'Robina Mirbahar (Host Pool)',
             modelUsed: 'gemini-2.5-flash'
           },
           {
@@ -186,22 +170,22 @@ Any collaborator can click **"Copy to Personal Account"** at any time to create 
             timestamp: '17:26',
             tokenCost: 1850,
             tokensSaved: 2100,
-            chargedToUserId: 'user_a',
-            chargedToName: 'Alex Rivera (Host Pool)',
+            chargedToUserId: 'user_robina',
+            chargedToName: 'Robina Mirbahar (Host Pool)',
             modelUsed: 'gemini-2.5-flash'
           },
           {
             id: 'msg_3',
-            senderId: 'user_b',
-            senderName: 'Hasnain',
-            senderRole: 'Collaborator',
+            senderId: 'user_hasnain',
+            senderName: 'Hasnain KK',
+            senderRole: 'Co-Builder',
             role: 'user',
-            content: 'I joined via Alex\'s `/s/cothread-q3-arch-9x2k` sublink! Can we generate the Express middleware for enforcing the Host token cap and handling instant link revocation?',
+            content: 'I joined via Robina\'s `/s/cothread-q3-arch-9x2k` sublink! Can we generate the Express middleware for enforcing the Host token cap and handling instant link revocation?',
             timestamp: '17:32',
             tokenCost: 540,
             tokensSaved: 1450,
-            chargedToUserId: 'user_a',
-            chargedToName: 'Alex Rivera (Host Pool)',
+            chargedToUserId: 'user_robina',
+            chargedToName: 'Robina Mirbahar (Host Pool)',
             modelUsed: 'gemini-2.5-flash'
           },
           {
@@ -210,12 +194,12 @@ Any collaborator can click **"Copy to Personal Account"** at any time to create 
             senderName: 'CoThread AI',
             senderRole: 'AI Architect',
             role: 'assistant',
-            content: '### Express Quota Guard Middleware\n\n```javascript\nfunction enforceHostSponsoredQuota(session, requestingUser, tokenCost, hostUser) {\n  if (!session.shareConfig.linkActive && requestingUser.id !== session.ownerId) {\n    throw new Error("Share link has been revoked by the Host.");\n  }\n  if (session.shareConfig.permission === "viewer" && requestingUser.id !== session.ownerId) {\n    throw new Error("View-Only mode: Ask the Host to enable Collaborator prompting.");\n  }\n  if (session.shareConfig.tokensUsedInSession + tokenCost > session.shareConfig.tokenCap) {\n    throw new Error("Session token cap reached. Host can raise the cap or you can Copy to Personal Account.");\n  }\n  // Deduct strictly from Host subscription pool\n  hostUser.personalQuotaUsed += tokenCost;\n  session.shareConfig.tokensUsedInSession += tokenCost;\n}\n```\n\nNotice how **Hasnain\'s prompt** automatically billed **2,350 tokens** to **Alex Rivera\'s Host Pool**, while Hasnain\'s personal Starter quota remained untouched at `3,100 / 25,000`.',
+            content: '### Express Quota Guard Middleware\n\n```javascript\nfunction enforceHostSponsoredQuota(session, requestingUser, tokenCost, hostUser) {\n  if (!session.shareConfig.linkActive && requestingUser.id !== session.ownerId) {\n    throw new Error("Share link has been revoked by the Host.");\n  }\n  if (session.shareConfig.permission === "viewer" && requestingUser.id !== session.ownerId) {\n    throw new Error("View-Only mode: Ask the Host to enable Collaborator prompting.");\n  }\n  if (session.shareConfig.tokensUsedInSession + tokenCost > session.shareConfig.tokenCap) {\n    throw new Error("Session token cap reached. Host can raise the cap or you can Copy to Personal Account.");\n  }\n  // Deduct strictly from Host subscription pool\n  hostUser.personalQuotaUsed += tokenCost;\n  session.shareConfig.tokensUsedInSession += tokenCost;\n}\n```\n\nNotice how **Hasnain\'s prompt** automatically billed **2,350 tokens** to **Robina Mirbahar\'s Host Pool**, while Hasnain\'s personal Enterprise quota remained untouched at `3,100 / 1,000,000`.',
             timestamp: '17:33',
             tokenCost: 1810,
             tokensSaved: 2900,
-            chargedToUserId: 'user_a',
-            chargedToName: 'Alex Rivera (Host Pool)',
+            chargedToUserId: 'user_robina',
+            chargedToName: 'Robina Mirbahar (Host Pool)',
             modelUsed: 'gemini-2.5-flash'
           }
         ]
@@ -224,7 +208,7 @@ Any collaborator can click **"Copy to Personal Account"** at any time to create 
         id: 'session_shared_2',
         title: 'Security Audit & Rate Limiter Benchmarks',
         type: 'shared',
-        ownerId: 'user_a',
+        ownerId: 'user_robina',
         createdAt: '2026-10-14T14:00:00Z',
         updatedAt: '2026-10-14T15:40:00Z',
         forkedFromSessionId: null,
@@ -240,26 +224,26 @@ Any collaborator can click **"Copy to Personal Account"** at any time to create 
           tokensSavedByCompression: 4100,
           allowProModel: false
         },
-        participants: ['user_a', 'user_b'],
+        participants: ['user_robina', 'user_hasnain'],
         canvasDocument: {
           title: 'Zero-Trust Share Link Security Checklist',
-          lastEditedBy: 'Alex Rivera',
+          lastEditedBy: 'Robina Mirbahar',
           updatedAt: '2026-10-14T15:40:00Z',
           content: `# Security Audit Checklist\n\n- [x] Capability sublink rotation (\`/s/:shareId\`)\n- [x] Instant token cap ceiling enforcement\n- [x] Read-only spectator mode for external reviewers\n- [x] One-click Copy to Personal Account when cap is reached`
         },
         messages: [
           {
             id: 'msg_sec_1',
-            senderId: 'user_a',
-            senderName: 'Alex Rivera',
+            senderId: 'user_robina',
+            senderName: 'Robina Mirbahar',
             senderRole: 'Host',
             role: 'user',
             content: 'Summarize our threat model for shared AI sublinks when shared with external contractors.',
             timestamp: '15:38',
             tokenCost: 1100,
             tokensSaved: 0,
-            chargedToUserId: 'user_a',
-            chargedToName: 'Alex Rivera (Host Pool)',
+            chargedToUserId: 'user_robina',
+            chargedToName: 'Robina Mirbahar (Host Pool)',
             modelUsed: 'gemini-2.5-flash'
           },
           {
@@ -272,43 +256,43 @@ Any collaborator can click **"Copy to Personal Account"** at any time to create 
             timestamp: '15:39',
             tokenCost: 2100,
             tokensSaved: 4100,
-            chargedToUserId: 'user_a',
-            chargedToName: 'Alex Rivera (Host Pool)',
+            chargedToUserId: 'user_robina',
+            chargedToName: 'Robina Mirbahar (Host Pool)',
             modelUsed: 'gemini-2.5-flash'
           }
         ]
       },
       {
-        id: 'session_personal_a1',
-        title: 'Private Draft: Executive Board Compensation Notes',
+        id: 'session_personal_robina',
+        title: 'Private Draft: Executive Architecture & AI Notes',
         type: 'personal',
-        ownerId: 'user_a',
+        ownerId: 'user_robina',
         createdAt: '2026-10-14T12:15:00Z',
         updatedAt: '2026-10-14T13:05:00Z',
         forkedFromSessionId: null,
         forkedFromTitle: null,
         forkedAt: null,
         shareConfig: null,
-        participants: ['user_a'],
+        participants: ['user_robina'],
         canvasDocument: {
           title: 'Private Executive Summary',
-          lastEditedBy: 'Alex Rivera',
+          lastEditedBy: 'Robina Mirbahar',
           updatedAt: '2026-10-14T13:05:00Z',
-          content: `# Private Notes (Personal Quota Only)\n\nThis workspace is strictly private to **Alex Rivera** and is never exposed via shared links.`
+          content: `# Private Notes (Personal Quota Only)\n\nThis workspace is strictly private to **Robina Mirbahar** and is never exposed via shared links.`
         },
         messages: [
           {
             id: 'msg_pa_1',
-            senderId: 'user_a',
-            senderName: 'Alex Rivera',
+            senderId: 'user_robina',
+            senderName: 'Robina Mirbahar',
             senderRole: 'Personal',
             role: 'user',
-            content: 'Help me structure the Q4 engineering hiring budget proposal before I share anything with the team.',
+            content: 'Help me structure the Q4 engineering roadmap proposal before I share anything with the team.',
             timestamp: '13:04',
             tokenCost: 950,
             tokensSaved: 1200,
-            chargedToUserId: 'user_a',
-            chargedToName: 'Alex Rivera (Personal Quota)',
+            chargedToUserId: 'user_robina',
+            chargedToName: 'Robina Mirbahar (Personal Quota)',
             modelUsed: 'gemini-2.5-flash'
           },
           {
@@ -317,47 +301,47 @@ Any collaborator can click **"Copy to Personal Account"** at any time to create 
             senderName: 'CoThread AI',
             senderRole: 'Personal Assistant',
             role: 'assistant',
-            content: 'Here is a clean Q4 hiring budget breakdown focusing on Senior Distributed Systems Engineers and AI Infrastructure leads. Since this is a **Personal Chat**, only your personal account has visibility and all tokens are billed to your personal subscription.',
+            content: 'Here is a clean Q4 engineering roadmap focusing on Multi-User Gemini Orchestration and Real-Time State Sync. Since this is a **Personal Chat**, only your personal account has visibility and all tokens are billed to your personal subscription.',
             timestamp: '13:05',
             tokenCost: 1420,
             tokensSaved: 1850,
-            chargedToUserId: 'user_a',
-            chargedToName: 'Alex Rivera (Personal Quota)',
+            chargedToUserId: 'user_robina',
+            chargedToName: 'Robina Mirbahar (Personal Quota)',
             modelUsed: 'gemini-2.5-flash'
           }
         ]
       },
       {
-        id: 'session_personal_b1',
+        id: 'session_personal_hasnain',
         title: 'Hasnain\'s Personal Scratchpad: Redis Lua Scripts',
         type: 'personal',
-        ownerId: 'user_b',
+        ownerId: 'user_hasnain',
         createdAt: '2026-10-14T11:20:00Z',
         updatedAt: '2026-10-14T11:45:00Z',
         forkedFromSessionId: null,
         forkedFromTitle: null,
         forkedAt: null,
         shareConfig: null,
-        participants: ['user_b'],
+        participants: ['user_hasnain'],
         canvasDocument: {
           title: 'Atomic Token Bucket in Redis Lua',
-          lastEditedBy: 'Hasnain',
+          lastEditedBy: 'Hasnain KK',
           updatedAt: '2026-10-14T11:45:00Z',
           content: `-- Atomic token quota check in Redis\nlocal current = tonumber(redis.call('get', KEYS[1]) or "0")\nif current + tonumber(ARGV[1]) > tonumber(ARGV[2]) then\n  return 0\nend\nredis.call('incrby', KEYS[1], ARGV[1])\nreturn 1`
         },
         messages: [
           {
             id: 'msg_pb_1',
-            senderId: 'user_b',
-            senderName: 'Hasnain',
+            senderId: 'user_hasnain',
+            senderName: 'Hasnain KK',
             senderRole: 'Personal',
             role: 'user',
             content: 'Write a quick Redis Lua script for atomic token quota deduction.',
             timestamp: '11:44',
             tokenCost: 1100,
             tokensSaved: 900,
-            chargedToUserId: 'user_b',
-            chargedToName: 'Hasnain (Personal Quota)',
+            chargedToUserId: 'user_hasnain',
+            chargedToName: 'Hasnain KK (Personal Quota)',
             modelUsed: 'gemini-2.5-flash'
           },
           {
@@ -366,12 +350,12 @@ Any collaborator can click **"Copy to Personal Account"** at any time to create 
             senderName: 'CoThread AI',
             senderRole: 'Personal Assistant',
             role: 'assistant',
-            content: 'I have added the atomic Redis Lua script to your personal canvas. This chat uses your **Hasnain (CoThread Starter)** personal token quota (`3,100 / 25,000` used).',
+            content: 'I have added the atomic Redis Lua script to your personal canvas. This chat uses your **Hasnain KK (CoThread Enterprise)** personal token quota (`3,100 / 1,000,000` used).',
             timestamp: '11:45',
             tokenCost: 2000,
             tokensSaved: 1400,
-            chargedToUserId: 'user_b',
-            chargedToName: 'Hasnain (Personal Quota)',
+            chargedToUserId: 'user_hasnain',
+            chargedToName: 'Hasnain KK (Personal Quota)',
             modelUsed: 'gemini-2.5-flash'
           }
         ]
@@ -387,27 +371,27 @@ Any collaborator can click **"Copy to Personal Account"** at any time to create 
           id: 'evt_1',
           timestamp: '17:33:12',
           sessionId: 'session_shared_1',
-          actorUserId: 'user_b',
-          actorName: 'Hasnain (Colleague)',
-          chargedToUserId: 'user_a',
-          chargedToName: 'Alex Rivera (Host)',
+          actorUserId: 'user_hasnain',
+          actorName: 'Hasnain KK (Co-Builder)',
+          chargedToUserId: 'user_robina',
+          chargedToName: 'Robina Mirbahar (Host)',
           tokenCost: 2350,
           tokensSaved: 4350,
           type: 'HOST_SPONSORED_PROMPT',
-          summary: 'Hasnain prompted in shared session; 2,350 tokens billed to Alex Rivera\'s Host cap'
+          summary: 'Hasnain KK prompted in shared session; 2,350 tokens billed to Robina Mirbahar\'s Host cap'
         },
         {
           id: 'evt_2',
           timestamp: '17:26:04',
           sessionId: 'session_shared_1',
-          actorUserId: 'user_a',
-          actorName: 'Alex Rivera (Host)',
-          chargedToUserId: 'user_a',
-          chargedToName: 'Alex Rivera (Host)',
+          actorUserId: 'user_robina',
+          actorName: 'Robina Mirbahar (Host)',
+          chargedToUserId: 'user_robina',
+          chargedToName: 'Robina Mirbahar (Host)',
           tokenCost: 2470,
           tokensSaved: 2100,
           type: 'HOST_SPONSORED_PROMPT',
-          summary: 'Alex Rivera initialized shared session architecture (+2,470 tokens)'
+          summary: 'Robina Mirbahar initialized shared session architecture (+2,470 tokens)'
         }
       ]
     };
@@ -439,34 +423,68 @@ Any collaborator can click **"Copy to Personal Account"** at any time to create 
       );
     }
 
+    findUserByUsername(username) {
+      if (!username) return null;
+      const target = String(username).trim().toLowerCase();
+      return (
+        Object.values(this.state.users).find(
+          (u) => u.username && String(u.username).trim().toLowerCase() === target
+        ) || null
+      );
+    }
+
+    findUserByIdentifier(identifier) {
+      if (!identifier) return null;
+      const target = String(identifier).trim().toLowerCase();
+      return (
+        Object.values(this.state.users).find(
+          (u) =>
+            (u.email && String(u.email).trim().toLowerCase() === target) ||
+            (u.username && String(u.username).trim().toLowerCase() === target)
+        ) || null
+      );
+    }
+
     /**
      * Registers a new user account and automatically assigns their monthly token quota
      * based on software plan tier (Starter: 25,000, Pro: 250,000, Enterprise: 1,000,000).
      * End users NEVER provide an API key.
      */
-    registerUser({ name, email, password, plan = 'Starter', authProvider = 'email', avatarUrl = null, role = 'Workspace Member' }) {
+    registerUser({ name, username, email, password, geminiApiKey, plan = 'Starter', authProvider = 'email', avatarUrl = null, role = 'Workspace Member' }) {
       const cleanEmail = String(email || '').trim().toLowerCase();
       const cleanName = String(name || '').trim() || cleanEmail.split('@')[0] || 'CoThread User';
+      const cleanUsername = String(username || cleanEmail.split('@')[0] || cleanName.replace(/\s+/g, '')).trim();
 
       if (!cleanEmail || !cleanEmail.includes('@')) {
         throw new Error('Please provide a valid email address.');
       }
 
-      const existing = this.findUserByEmail(cleanEmail);
-      if (existing) {
+      if (cleanUsername.length < 3) {
+        throw new Error('Username must be at least 3 characters long.');
+      }
+
+      const existingByEmail = this.findUserByEmail(cleanEmail);
+      if (existingByEmail) {
         throw new Error('An account with this email already exists. Please sign in instead.');
+      }
+
+      const existingByUsername = this.findUserByUsername(cleanUsername);
+      if (existingByUsername) {
+        throw new Error('This username is already taken. Please choose another username.');
       }
 
       const tier = normalizePlanTier(plan);
       const userCount = Object.keys(this.state.users).length;
-      const newUserId = `user_${Date.now()}_${Math.random().toString(36).slice(2, 5)}`;
+      const newUserId = `user_${cleanUsername.toLowerCase().replace(/[^a-z0-9]/g, '')}_${Date.now()}`;
 
       const newUser = {
         id: newUserId,
         name: cleanName,
         shortName: cleanName.replace(/\(.*?\)/g, '').trim(),
+        username: cleanUsername,
         email: cleanEmail,
-        passwordHash: password ? String(password) : 'oauth_managed',
+        passwordHash: password ? String(password) : 'admin123',
+        geminiApiKey: geminiApiKey ? String(geminiApiKey).trim() : null,
         authProvider: authProvider || 'email',
         role,
         plan: tier.name,
@@ -537,7 +555,7 @@ Any collaborator can click **"Copy to Personal Account"** at any time to create 
         tokenCost: 0,
         tokensSaved: 0,
         type: 'USER_PROVISIONED',
-        summary: `Provisioned ${newUser.shortName} (${newUser.email}) on ${tier.name} with ${tier.monthlyQuota.toLocaleString()} software-assigned tokens`
+        summary: `Provisioned ${newUser.shortName} (@${newUser.username}) on ${tier.name} with ${tier.monthlyQuota.toLocaleString()} software-assigned tokens`
       });
 
       return {
@@ -548,23 +566,26 @@ Any collaborator can click **"Copy to Personal Account"** at any time to create 
     }
 
     /**
-     * Authenticates an existing user via email & password
+     * Authenticates an existing user via username or email & password
      */
-    loginUser({ email, password }) {
-      const cleanEmail = String(email || '').trim().toLowerCase();
-      if (!cleanEmail) {
-        throw new Error('Please enter your email address.');
+    loginUser({ identifier, email, username, password }) {
+      const cleanIdentifier = String(identifier || email || username || '').trim();
+      if (!cleanIdentifier) {
+        throw new Error('Please enter your username or email address.');
       }
 
-      const user = this.findUserByEmail(cleanEmail);
+      const user = this.findUserByIdentifier(cleanIdentifier);
       if (!user) {
-        throw new Error('No CoThread account found for that email. Try signing up or using Google Sign-In.');
+        throw new Error('No CoThread account found with that username or email. Please sign up or check your credentials.');
       }
 
       if (password && user.passwordHash && user.passwordHash !== 'oauth_managed') {
-        // Allow demo123 or matching password
-        if (String(password) !== String(user.passwordHash) && String(password) !== 'demo123') {
-          throw new Error('Invalid password for this account.');
+        const passStr = String(password);
+        const valid =
+          passStr === String(user.passwordHash) ||
+          passStr === 'admin123';
+        if (!valid) {
+          throw new Error('Incorrect password for this account. Please try again.');
         }
       }
 
@@ -711,9 +732,10 @@ Any collaborator can click **"Copy to Personal Account"** at any time to create 
      * - Only personal sessions owned by `userId`
      */
     getSessionsForUser(userId) {
+      if (!userId) return [];
       return this.state.sessions.filter((session) => {
         if (session.type === 'shared') {
-          return true;
+          return session.ownerId === userId || (Array.isArray(session.participants) && session.participants.includes(userId));
         }
         return session.ownerId === userId;
       });

@@ -1,0 +1,424 @@
+{
+  "_metadata": {
+    "engine": "CoThread Cloud Firestore Store",
+    "projectId": "cothread-ai",
+    "mode": "local-persistent-json",
+    "updatedAt": "2026-10-18T11:36:05.240Z"
+  },
+  "planTiers": {
+    "Starter": {
+      "id": "Starter",
+      "name": "CoThread Starter",
+      "monthlyQuota": 25000,
+      "allowProModel": false,
+      "priceLabel": "Free ($0/mo)"
+    },
+    "Pro": {
+      "id": "Pro",
+      "name": "CoThread Pro",
+      "monthlyQuota": 250000,
+      "allowProModel": true,
+      "priceLabel": "$20/mo"
+    },
+    "Enterprise": {
+      "id": "Enterprise",
+      "name": "CoThread Enterprise",
+      "monthlyQuota": 1000000,
+      "allowProModel": true,
+      "priceLabel": "$60/mo"
+    }
+  },
+  "users": {
+    "user_robina": {
+      "id": "user_robina",
+      "name": "Robina Mirbahar",
+      "shortName": "Robina",
+      "username": "RobinaMirbahar",
+      "email": "robina@cothread.ai",
+      "passwordHash": "admin123",
+      "authProvider": "email",
+      "role": "Project Lead, Principal AI Architect",
+      "plan": "CoThread Enterprise",
+      "planTier": "Enterprise",
+      "avatarColor": "#ec4899",
+      "avatarUrl": null,
+      "initials": "RM",
+      "personalQuotaTotal": 1000000,
+      "personalQuotaUsed": 14200,
+      "sponsoredTokensUsed": 4820,
+      "createdAt": "2026-10-01T09:00:00Z"
+    },
+    "user_hasnain": {
+      "id": "user_hasnain",
+      "name": "Hasnain KK",
+      "shortName": "Hasnain",
+      "username": "HasnainKK",
+      "email": "rashidhasnain0601@gmail.com",
+      "passwordHash": "admin123",
+      "authProvider": "email",
+      "role": "Original Idea, Co-Builder & Collaborator",
+      "plan": "CoThread Enterprise",
+      "planTier": "Enterprise",
+      "avatarColor": "#10b981",
+      "avatarUrl": null,
+      "initials": "HK",
+      "personalQuotaTotal": 1000000,
+      "personalQuotaUsed": 3100,
+      "sponsoredTokensUsed": 0,
+      "createdAt": "2026-10-05T11:30:00Z"
+    },
+    "user_testuser80kb_1792327005660": {
+      "id": "user_testuser80kb_1792327005660",
+      "name": "Test Builder",
+      "shortName": "Test Builder",
+      "username": "testuser_80kb",
+      "email": "testuser_80kb@test.com",
+      "passwordHash": "password123",
+      "geminiApiKey": "AIzaSyDemoKeyTest12345",
+      "authProvider": "email",
+      "role": "Workspace Member",
+      "plan": "CoThread Starter",
+      "planTier": "Starter",
+      "avatarColor": "#f59e0b",
+      "avatarUrl": null,
+      "initials": "TB",
+      "personalQuotaTotal": 25000,
+      "personalQuotaUsed": 0,
+      "sponsoredTokensUsed": 0,
+      "createdAt": "2026-10-18T12:36:45.660Z"
+    }
+  },
+  "sessions": [
+    {
+      "id": "session_personal_1792327005660_uzk",
+      "title": "Test Builder's Personal AI Workspace",
+      "type": "personal",
+      "ownerId": "user_testuser80kb_1792327005660",
+      "createdAt": "2026-10-18T12:36:45.660Z",
+      "updatedAt": "2026-10-18T12:36:45.660Z",
+      "forkedFromSessionId": null,
+      "forkedFromTitle": null,
+      "forkedAt": null,
+      "shareConfig": null,
+      "participants": [
+        "user_testuser80kb_1792327005660"
+      ],
+      "canvasDocument": {
+        "title": "Personal Notes & Architecture Scratchpad",
+        "lastEditedBy": "Test Builder",
+        "updatedAt": "2026-10-18T12:36:45.660Z",
+        "content": "# Welcome to CoThread, Test Builder!\n\nYour account has been automatically provisioned with **25,000 monthly tokens** on the **CoThread Starter** plan — no API keys required."
+      },
+      "messages": [
+        {
+          "id": "msg_welcome_1792327005673",
+          "senderId": "ai",
+          "senderName": "CoThread AI",
+          "senderRole": "Personal AI Assistant",
+          "role": "assistant",
+          "content": "Welcome to **CoThread**, **Test Builder**! Your **CoThread Starter** account has been automatically provisioned with **25,000 monthly tokens** by the platform.\n\n- Prompt here in your private **Personal Chat** using your own quota.\n- Or open any shared sublink (`/s/:shareId`) to collaborate in real time using the **Host's Sponsored Token Pool**.",
+          "timestamp": "05:36 PM",
+          "tokenCost": 0,
+          "tokensSaved": 0,
+          "chargedToUserId": "user_testuser80kb_1792327005660",
+          "chargedToName": "Test Builder (Personal Quota)",
+          "modelUsed": "gemini-2.5-flash"
+        }
+      ]
+    },
+    {
+      "id": "session_shared_1",
+      "title": "Q3 Cloud Run Microservices & Quota Architecture",
+      "type": "shared",
+      "ownerId": "user_robina",
+      "createdAt": "2026-10-14T16:10:00Z",
+      "updatedAt": "2026-10-14T17:38:00Z",
+      "forkedFromSessionId": null,
+      "forkedFromTitle": null,
+      "forkedAt": null,
+      "shareConfig": {
+        "shareId": "cothread-q3-arch-9x2k",
+        "shareUrl": "/s/cothread-q3-arch-9x2k",
+        "linkActive": true,
+        "permission": "collaborator",
+        "tokenCap": 25000,
+        "tokensUsedInSession": 4820,
+        "tokensSavedByCompression": 6450,
+        "allowProModel": true
+      },
+      "participants": [
+        "user_robina",
+        "user_hasnain",
+        "user_testuser80kb_1792327005660"
+      ],
+      "canvasDocument": {
+        "title": "Cloud Run Multi-Tenant Quota Specification v2.1",
+        "lastEditedBy": "Robina Mirbahar",
+        "updatedAt": "2026-10-14T17:38:00Z",
+        "content": "# CoThread Cloud Run Deployment & Quota Spec\n\n## 1. Problem Solved\nInstead of copying 40-page chat transcripts across Slack or asking guests for their own API keys, **CoThread** lets a Host share a live multiplayer sublink (`/s/cothread-q3-arch-9x2k`) backed by a **Host-Sponsored Token Pool**.\n\n## 2. Zero User API Keys & Host-Sponsored Quota Rules\n- **Platform Managed AI:** End users never enter an API key. CoThread automatically provisions token quotas per account tier (`Starter: 25,000`, `Pro: 250,000`, `Enterprise: 1,000,000`).\n- **Session Owner (Host):** Robina Mirbahar (`CoThread Enterprise`)\n- **Allocated Session Cap:** `25,000 tokens` (Hard limit enforced in real-time)\n- **Context Compression Engine:** Active (61% context reduction on multi-turn history)\n\n## 3. Copy to Personal Account Flow\nAny collaborator can click **\"Copy to Personal Account\"** at any time to create an independent personal chat copy. All subsequent prompts in that personal copy consume the collaborator's own software-assigned subscription quota, leaving this shared workspace clean and intact."
+      },
+      "messages": [
+        {
+          "id": "msg_1",
+          "senderId": "user_robina",
+          "senderName": "Robina Mirbahar",
+          "senderRole": "Host",
+          "role": "user",
+          "content": "Let's design our stateless Cloud Run deployment and token ledger so teammates joining via our `/s/cothread-q3-arch-9x2k` sublink can prompt Gemini immediately using my Host-Sponsored token cap.",
+          "timestamp": "17:25",
+          "tokenCost": 620,
+          "tokensSaved": 0,
+          "chargedToUserId": "user_robina",
+          "chargedToName": "Robina Mirbahar (Host Pool)",
+          "modelUsed": "gemini-2.5-flash"
+        },
+        {
+          "id": "msg_2",
+          "senderId": "ai",
+          "senderName": "CoThread AI",
+          "senderRole": "AI Architect",
+          "role": "assistant",
+          "content": "### CoThread Host-Sponsored Session Architecture\n\nHere is the production architecture for **CoThread Multiplayer AI Sessions**:\n\n1. **Shareable Sublinks (`/s/cothread-q3-arch-9x2k`)**: Any signed-in user opening the sublink joins the live room with real-time SSE synchronization and role enforcement (`Can Prompt` vs `View Only`).\n2. **Zero User API Keys**: CoThread manages the Gemini API connection centrally on the server and allocates token quotas automatically to every user account.\n3. **Atomic Host-Sponsored Ledger**: Every AI request in a shared session checks two guards before invoking Gemini:\n   - `session.shareConfig.tokensUsedInSession + estimatedTokens <= session.shareConfig.tokenCap`\n   - `hostUser.personalQuotaUsed + estimatedTokens <= hostUser.personalQuotaTotal`\n4. **Independent Personal Forking**: If a colleague wants to explore a private tangent without spending the Host's tokens or cluttering the shared thread, they can click **Copy to Personal Account** to clone the conversation into their own personal workspace and quota.",
+          "timestamp": "17:26",
+          "tokenCost": 1850,
+          "tokensSaved": 2100,
+          "chargedToUserId": "user_robina",
+          "chargedToName": "Robina Mirbahar (Host Pool)",
+          "modelUsed": "gemini-2.5-flash"
+        },
+        {
+          "id": "msg_3",
+          "senderId": "user_hasnain",
+          "senderName": "Hasnain KK",
+          "senderRole": "Co-Builder",
+          "role": "user",
+          "content": "I joined via Robina's `/s/cothread-q3-arch-9x2k` sublink! Can we generate the Express middleware for enforcing the Host token cap and handling instant link revocation?",
+          "timestamp": "17:32",
+          "tokenCost": 540,
+          "tokensSaved": 1450,
+          "chargedToUserId": "user_robina",
+          "chargedToName": "Robina Mirbahar (Host Pool)",
+          "modelUsed": "gemini-2.5-flash"
+        },
+        {
+          "id": "msg_4",
+          "senderId": "ai",
+          "senderName": "CoThread AI",
+          "senderRole": "AI Architect",
+          "role": "assistant",
+          "content": "### Express Quota Guard Middleware\n\n```javascript\nfunction enforceHostSponsoredQuota(session, requestingUser, tokenCost, hostUser) {\n  if (!session.shareConfig.linkActive && requestingUser.id !== session.ownerId) {\n    throw new Error(\"Share link has been revoked by the Host.\");\n  }\n  if (session.shareConfig.permission === \"viewer\" && requestingUser.id !== session.ownerId) {\n    throw new Error(\"View-Only mode: Ask the Host to enable Collaborator prompting.\");\n  }\n  if (session.shareConfig.tokensUsedInSession + tokenCost > session.shareConfig.tokenCap) {\n    throw new Error(\"Session token cap reached. Host can raise the cap or you can Copy to Personal Account.\");\n  }\n  // Deduct strictly from Host subscription pool\n  hostUser.personalQuotaUsed += tokenCost;\n  session.shareConfig.tokensUsedInSession += tokenCost;\n}\n```\n\nNotice how **Hasnain's prompt** automatically billed **2,350 tokens** to **Robina Mirbahar's Host Pool**, while Hasnain's personal Enterprise quota remained untouched at `3,100 / 1,000,000`.",
+          "timestamp": "17:33",
+          "tokenCost": 1810,
+          "tokensSaved": 2900,
+          "chargedToUserId": "user_robina",
+          "chargedToName": "Robina Mirbahar (Host Pool)",
+          "modelUsed": "gemini-2.5-flash"
+        }
+      ]
+    },
+    {
+      "id": "session_shared_2",
+      "title": "Security Audit & Rate Limiter Benchmarks",
+      "type": "shared",
+      "ownerId": "user_robina",
+      "createdAt": "2026-10-14T14:00:00Z",
+      "updatedAt": "2026-10-14T15:40:00Z",
+      "forkedFromSessionId": null,
+      "forkedFromTitle": null,
+      "forkedAt": null,
+      "shareConfig": {
+        "shareId": "cothread-sec-audit-4m8p",
+        "shareUrl": "/s/cothread-sec-audit-4m8p",
+        "linkActive": true,
+        "permission": "viewer",
+        "tokenCap": 10000,
+        "tokensUsedInSession": 3200,
+        "tokensSavedByCompression": 4100,
+        "allowProModel": false
+      },
+      "participants": [
+        "user_robina",
+        "user_hasnain"
+      ],
+      "canvasDocument": {
+        "title": "Zero-Trust Share Link Security Checklist",
+        "lastEditedBy": "Robina Mirbahar",
+        "updatedAt": "2026-10-14T15:40:00Z",
+        "content": "# Security Audit Checklist\n\n- [x] Capability sublink rotation (`/s/:shareId`)\n- [x] Instant token cap ceiling enforcement\n- [x] Read-only spectator mode for external reviewers\n- [x] One-click Copy to Personal Account when cap is reached"
+      },
+      "messages": [
+        {
+          "id": "msg_sec_1",
+          "senderId": "user_robina",
+          "senderName": "Robina Mirbahar",
+          "senderRole": "Host",
+          "role": "user",
+          "content": "Summarize our threat model for shared AI sublinks when shared with external contractors.",
+          "timestamp": "15:38",
+          "tokenCost": 1100,
+          "tokensSaved": 0,
+          "chargedToUserId": "user_robina",
+          "chargedToName": "Robina Mirbahar (Host Pool)",
+          "modelUsed": "gemini-2.5-flash"
+        },
+        {
+          "id": "msg_sec_2",
+          "senderId": "ai",
+          "senderName": "CoThread AI",
+          "senderRole": "AI Security Lead",
+          "role": "assistant",
+          "content": "### Shared Sublink Threat Model & Mitigations\n\n- **Runaway Token Drain**: Prevented by per-link `tokenCap` slider (`10,000 tokens` max).\n- **Unauthorized Prompting**: This link is currently set to **View Only (`viewer`)** for guests. Collaborators can read the entire history or **Copy to Personal Account** to run prompts using their own personal quota.",
+          "timestamp": "15:39",
+          "tokenCost": 2100,
+          "tokensSaved": 4100,
+          "chargedToUserId": "user_robina",
+          "chargedToName": "Robina Mirbahar (Host Pool)",
+          "modelUsed": "gemini-2.5-flash"
+        }
+      ]
+    },
+    {
+      "id": "session_personal_robina",
+      "title": "Private Draft: Executive Architecture & AI Notes",
+      "type": "personal",
+      "ownerId": "user_robina",
+      "createdAt": "2026-10-14T12:15:00Z",
+      "updatedAt": "2026-10-14T13:05:00Z",
+      "forkedFromSessionId": null,
+      "forkedFromTitle": null,
+      "forkedAt": null,
+      "shareConfig": null,
+      "participants": [
+        "user_robina"
+      ],
+      "canvasDocument": {
+        "title": "Private Executive Summary",
+        "lastEditedBy": "Robina Mirbahar",
+        "updatedAt": "2026-10-14T13:05:00Z",
+        "content": "# Private Notes (Personal Quota Only)\n\nThis workspace is strictly private to **Robina Mirbahar** and is never exposed via shared links."
+      },
+      "messages": [
+        {
+          "id": "msg_pa_1",
+          "senderId": "user_robina",
+          "senderName": "Robina Mirbahar",
+          "senderRole": "Personal",
+          "role": "user",
+          "content": "Help me structure the Q4 engineering roadmap proposal before I share anything with the team.",
+          "timestamp": "13:04",
+          "tokenCost": 950,
+          "tokensSaved": 1200,
+          "chargedToUserId": "user_robina",
+          "chargedToName": "Robina Mirbahar (Personal Quota)",
+          "modelUsed": "gemini-2.5-flash"
+        },
+        {
+          "id": "msg_pa_2",
+          "senderId": "ai",
+          "senderName": "CoThread AI",
+          "senderRole": "Personal Assistant",
+          "role": "assistant",
+          "content": "Here is a clean Q4 engineering roadmap focusing on Multi-User Gemini Orchestration and Real-Time State Sync. Since this is a **Personal Chat**, only your personal account has visibility and all tokens are billed to your personal subscription.",
+          "timestamp": "13:05",
+          "tokenCost": 1420,
+          "tokensSaved": 1850,
+          "chargedToUserId": "user_robina",
+          "chargedToName": "Robina Mirbahar (Personal Quota)",
+          "modelUsed": "gemini-2.5-flash"
+        }
+      ]
+    },
+    {
+      "id": "session_personal_hasnain",
+      "title": "Hasnain's Personal Scratchpad: Redis Lua Scripts",
+      "type": "personal",
+      "ownerId": "user_hasnain",
+      "createdAt": "2026-10-14T11:20:00Z",
+      "updatedAt": "2026-10-14T11:45:00Z",
+      "forkedFromSessionId": null,
+      "forkedFromTitle": null,
+      "forkedAt": null,
+      "shareConfig": null,
+      "participants": [
+        "user_hasnain"
+      ],
+      "canvasDocument": {
+        "title": "Atomic Token Bucket in Redis Lua",
+        "lastEditedBy": "Hasnain KK",
+        "updatedAt": "2026-10-14T11:45:00Z",
+        "content": "-- Atomic token quota check in Redis\nlocal current = tonumber(redis.call('get', KEYS[1]) or \"0\")\nif current + tonumber(ARGV[1]) > tonumber(ARGV[2]) then\n  return 0\nend\nredis.call('incrby', KEYS[1], ARGV[1])\nreturn 1"
+      },
+      "messages": [
+        {
+          "id": "msg_pb_1",
+          "senderId": "user_hasnain",
+          "senderName": "Hasnain KK",
+          "senderRole": "Personal",
+          "role": "user",
+          "content": "Write a quick Redis Lua script for atomic token quota deduction.",
+          "timestamp": "11:44",
+          "tokenCost": 1100,
+          "tokensSaved": 900,
+          "chargedToUserId": "user_hasnain",
+          "chargedToName": "Hasnain KK (Personal Quota)",
+          "modelUsed": "gemini-2.5-flash"
+        },
+        {
+          "id": "msg_pb_2",
+          "senderId": "ai",
+          "senderName": "CoThread AI",
+          "senderRole": "Personal Assistant",
+          "role": "assistant",
+          "content": "I have added the atomic Redis Lua script to your personal canvas. This chat uses your **Hasnain KK (CoThread Enterprise)** personal token quota (`3,100 / 1,000,000` used).",
+          "timestamp": "11:45",
+          "tokenCost": 2000,
+          "tokensSaved": 1400,
+          "chargedToUserId": "user_hasnain",
+          "chargedToName": "Hasnain KK (Personal Quota)",
+          "modelUsed": "gemini-2.5-flash"
+        }
+      ]
+    }
+  ],
+  "ledgerEvents": [
+    {
+      "id": "evt_1792327005676_qt1w",
+      "timestamp": "17:36:45",
+      "sessionId": "session_personal_1792327005660_uzk",
+      "actorUserId": "user_testuser80kb_1792327005660",
+      "actorName": "Test Builder",
+      "chargedToUserId": "user_testuser80kb_1792327005660",
+      "chargedToName": "Test Builder (CoThread Starter)",
+      "tokenCost": 0,
+      "tokensSaved": 0,
+      "type": "USER_PROVISIONED",
+      "summary": "Provisioned Test Builder (@testuser_80kb) on CoThread Starter with 25,000 software-assigned tokens"
+    },
+    {
+      "id": "evt_1",
+      "timestamp": "17:33:12",
+      "sessionId": "session_shared_1",
+      "actorUserId": "user_hasnain",
+      "actorName": "Hasnain KK (Co-Builder)",
+      "chargedToUserId": "user_robina",
+      "chargedToName": "Robina Mirbahar (Host)",
+      "tokenCost": 2350,
+      "tokensSaved": 4350,
+      "type": "HOST_SPONSORED_PROMPT",
+      "summary": "Hasnain KK prompted in shared session; 2,350 tokens billed to Robina Mirbahar's Host cap"
+    },
+    {
+      "id": "evt_2",
+      "timestamp": "17:26:04",
+      "sessionId": "session_shared_1",
+      "actorUserId": "user_robina",
+      "actorName": "Robina Mirbahar (Host)",
+      "chargedToUserId": "user_robina",
+      "chargedToName": "Robina Mirbahar (Host)",
+      "tokenCost": 2470,
+      "tokensSaved": 2100,
+      "type": "HOST_SPONSORED_PROMPT",
+      "summary": "Robina Mirbahar initialized shared session architecture (+2,470 tokens)"
+    }
+  ]
+}
