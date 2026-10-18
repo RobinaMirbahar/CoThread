@@ -33,6 +33,7 @@ app.use('/src', express.static(path.join(__dirname, 'src')));
 
 // Initialize Persistent Cloud Firestore Database + Quota Engine + Google ADK Orchestrator
 const db = new CoThreadFirestoreDB();
+const firestoreDb = db;
 const engine = new QuotaEngine();
 engine.state = db.loadSnapshot(() => engine.getState());
 const adkOrchestrator = new CoThreadADKOrchestrator({ quotaEngine: engine, db });

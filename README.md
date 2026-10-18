@@ -1,16 +1,16 @@
 # CoThread — Enterprise Collaborative AI Platform on Google Cloud Run
 
-[![Live Web App](https://img.shields.io/badge/Live_Web_App-robinamirbahar.github.io%2FCoThread-00C896?style=for-the-badge&logo=googlechrome&logoColor=white)](https://robinamirbahar.github.io/CoThread/)
+[![Live Cloud Run Web App](https://img.shields.io/badge/Live_Cloud_Run_App-cothread--139462646886.us--central1.run.app-00C896?style=for-the-badge&logo=googlecloud&logoColor=white)](https://cothread-139462646886.us-central1.run.app/)
 [![Documentation](https://img.shields.io/badge/Documentation-Architecture_%26_Implementation-FFC900?style=for-the-badge&logo=googledocs&logoColor=black)](./DOCUMENTATION.md)
 
-[![Google Cloud Run](https://img.shields.io/badge/Google_Cloud_Run-Deployed-4285F4?logo=googlecloud&logoColor=white)](https://cloud.google.com/run)
+[![Google Cloud Run](https://img.shields.io/badge/Google_Cloud_Run-Deployed-4285F4?logo=googlecloud&logoColor=white)](https://cothread-139462646886.us-central1.run.app/)
 [![Google GenAI SDK](https://img.shields.io/badge/%40google%2Fgenai-v1.x-34A853?logo=google&logoColor=white)](https://www.npmjs.com/package/@google/genai)
 [![Gemini Models](https://img.shields.io/badge/Models-gemini--3.8--flash%20%7C%20gemini--4--argon%20%7C%20gemini--3.5--flash--lite-8E75B2)](https://ai.google.dev/)
 [![AI Builder Cup 2026](https://img.shields.io/badge/AI_Builder_Cup-2026_Submission-FBBC04)](https://cloud.google.com/)
 [![Project Lead](https://img.shields.io/badge/Project_Lead_%2C_Principal_AI_Architect-Robina_Mirbahar_(%40RobinaMirbahar)-FF90E8?logo=github&logoColor=black)](https://github.com/RobinaMirbahar)
 [![Original Idea & Co-Builder](https://img.shields.io/badge/Original_Idea_%2C_Co--Builder_%26_Collaborator-Muhammad_Hasnain_(%40hasnain--kk)-FFC900?logo=github&logoColor=black)](https://github.com/hasnain-kk)
 
-> 🌐 **Live Interactive Web App**: [**https://robinamirbahar.github.io/CoThread/**](https://robinamirbahar.github.io/CoThread/)
+> 🌐 **Live Google Cloud Run Web App**: [**https://cothread-139462646886.us-central1.run.app/**](https://cothread-139462646886.us-central1.run.app/) *(GitHub Pages Mirror: [https://robinamirbahar.github.io/CoThread/](https://robinamirbahar.github.io/CoThread/))*
 >
 > **Stop pasting screenshots of AI chats into Slack.**
 > **CoThread** is an enterprise SaaS collaborative AI platform (built like **Claude (`claude.ai`)**, **ChatGPT (`chatgpt.com`)**, and **Gemini (`gemini.google.com`)**, but natively multiplayer) powered by **Google Cloud Run**, **Cloud Firestore**, **Google ADK**, **Model Context Protocol (MCP)**, **Firebase Studio**, and the official **`@google/genai`** SDK.

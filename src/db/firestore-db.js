@@ -536,7 +536,7 @@ class CoThreadFirestoreDB {
   // LEGACY & UNIFIED SNAPSHOT HELPERS
   // =========================================================================
 
-  loadSnapshot() {
+  loadSnapshot(fallbackFn = null) {
     try {
       if (fs.existsSync(SNAPSHOT_FILE)) {
         const raw = fs.readFileSync(SNAPSHOT_FILE, 'utf8');
@@ -546,7 +546,15 @@ class CoThreadFirestoreDB {
         }
       }
     } catch (_) {}
-    return null;
+    return typeof fallbackFn === 'function' ? fallbackFn() : null;
+  }
+
+  saveSnapshot(state) {
+    return this.syncState(state);
+  }
+
+  getDatabaseStatus() {
+    return this.getStatus();
   }
 
   async syncState(state) {
