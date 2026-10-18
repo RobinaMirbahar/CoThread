@@ -908,10 +908,21 @@
       }
     }
 
-    // 3. Wire Share Button & Gemini Agent Button in Top Right
+    // 3. Wire Share Button, Inspector Button & Gemini Agent Button in Top Right
     const shareBtn = document.getElementById('headerShareBtn');
     if (shareBtn) {
       shareBtn.onclick = () => openShareModal(activeSession.id);
+    }
+
+    const inspectorBtn = document.getElementById('headerInspectorBtn');
+    if (inspectorBtn) {
+      const isInspOpen = pane.inspectorOpen !== false;
+      inspectorBtn.style.background = isInspOpen ? 'var(--ct-yellow)' : 'var(--surface-card)';
+      inspectorBtn.style.color = isInspOpen ? '#000000' : 'var(--ink-primary)';
+      inspectorBtn.onclick = () => {
+        pane.inspectorOpen = pane.inspectorOpen === false ? true : false;
+        renderApp();
+      };
     }
 
     const geminiBtn = document.getElementById('headerGeminiKeyBtn');
@@ -1133,10 +1144,94 @@
                   </div>
                 </div>
               </div>
+
+              ${renderChatInspectorPanelHTML(activeSession, userId, pane)}
             </div>
           </div>
         </div>
       </section>
+    `;
+  }
+
+  function renderChatInspectorPanelHTML(activeSession, userId, pane) {
+    if (pane.inspectorOpen === false) return '';
+    const msgs = Array.isArray(activeSession.messages) ? activeSession.messages : [];
+    const aiMsgs = msgs.filter((m) => m.kind === 'ai' || m.senderId === 'gemini');
+    const artifacts = aiMsgs.filter((m) => m.codeSnippet || (m.text && m.text.includes('```')));
+    const totalTokensEst = Math.max(240, msgs.length * 185);
+    const savedTokensEst = Math.max(80, Math.round(msgs.length * 65));
+    const activeModelLabel =
+      state.primaryModel === 'gemini-4-argon' ? 'Gemini 4 Argon' : 'Gemini 3.8 Flash';
+    const hasCustomKey = Boolean(getSavedGeminiApiKey());
+    const participants = (activeSession.participants || []).map(
+      (pid) => state.accounts[pid] || { name: pid, initials: 'CT', colorClass: 'custom' }
+    );
+
+    return `
+      <aside class="chat-eigent-inspector" aria-label="Agent & Context Inspector">
+        <div class="cei-header">
+          <div class="cei-title-row">
+            <span>\u26A1 Agent &amp; Context</span>
+            <button type="button" class="cei-close-btn" data-action="toggle-inspector" data-user="${userId}" title="Hide Inspector">\u2715</button>
+          </div>
+          <div class="cei-token-summary">
+            <span>Total: <strong>${(totalTokensEst / 1000).toFixed(1)}K tokens</strong></span>
+            <span class="cei-saved-tag">Saved ${savedTokensEst} via Flash-Lite</span>
+          </div>
+        </div>
+
+        <div class="cei-section">
+          <div class="cei-label">ACTIVE WORKFORCE</div>
+          <div class="cei-agent-card">
+            <span class="cei-agent-icon">\u2726</span>
+            <div>
+              <strong>${escapeHtml(activeModelLabel)}</strong>
+              <small>${hasCustomKey ? 'Live BYOK Key Active' : 'CoThread ADK Coordinator'}</small>
+            </div>
+          </div>
+          <div class="cei-agent-card sub">
+            <span class="cei-agent-icon teal">\u21BB</span>
+            <div>
+              <strong>Gemini 3.5 Flash-Lite</strong>
+              <small>Multi-User Banter Compressor</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="cei-section">
+          <div class="cei-label">LIVE TRAJECTORY &amp; PROGRESS</div>
+          <ul class="cei-progress-list">
+            <li class="done"><span>\u2713</span> Sync ${participants.length} participant context(${participants.map((p) => escapeHtml(p.shortName || p.name.split(' ')[0])).join(', ')})</li>
+            <li class="done"><span>\u2713</span> Compress prior turns (${savedTokensEst} tokens saved)</li>
+            <li class="${state.typingStatus ? 'running' : 'done'}">
+              <span>${state.typingStatus ? '\u25CF' : '\u2713'}</span>
+              ${state.typingStatus ? 'Synthesizing multi-turn response...' : `Completed ${aiMsgs.length} AI synthesis turn${aiMsgs.length === 1 ? '' : 's'}`}
+            </li>
+          </ul>
+        </div>
+
+        <div class="cei-section">
+          <div class="cei-label">EXECUTION CONTEXT &amp; MCP</div>
+          <div class="cei-tags">
+            <span class="cei-tag">Space: Shared Thread</span>
+            <span class="cei-tag">Interactions API</span>
+            <span class="cei-tag">BroadcastChannel</span>
+            <span class="cei-tag">Host Quota Ledger</span>
+          </div>
+        </div>
+
+        <div class="cei-section">
+          <div class="cei-label">SESSION ARTIFACTS (${artifacts.length})</div>
+          ${artifacts.length === 0 ? `
+            <div class="cei-empty-note">Code modules &amp; architecture diagrams generated in this session appear here.</div>
+          ` : artifacts.slice(-3).reverse().map((m, idx) => `
+            <button type="button" class="cei-artifact-btn" data-action="copy-response" data-msg-id="${m.id}" title="Click to copy artifact">
+              <span>\uD83D\uDCC4</span>
+              <span class="cei-art-name">${m.text && m.text.toLowerCase().includes('architecture') ? 'cothread_architecture_diagram.md' : `collaborative_module_${artifacts.length - idx}.ts`}</span>
+            </button>
+          `).join('')}
+        </div>
+      </aside>
     `;
   }
 
@@ -1157,6 +1252,10 @@
       ? 'msg-row own-message'
       : 'msg-row colleague-message';
 
+    const modelBadge =
+      msg.modelUsed === 'gemini-4-argon' ? 'Gemini 4 Argon' : 'Gemini 3.8 Flash';
+    const participantCount = (session && session.participants && session.participants.length) || 1;
+
     return `
       <div class="${rowClass}">
         <div class="avatar-circle ${senderAcct.colorClass}">
@@ -1166,9 +1265,20 @@
           <div class="msg-meta-header">
             <div class="msg-author-cluster">
               <span class="msg-author-name">${escapeHtml(isAI ? 'CoThread AI' : (msg.senderName || senderAcct.name))}</span>
+              ${isAI ? `<span class="msg-eigent-badge">\u2726 ${escapeHtml(modelBadge)}</span>` : ''}
             </div>
             <span class="msg-timestamp">${escapeHtml(msg.timestamp || '')}</span>
           </div>
+
+          ${isAI && msg.id !== 'm_welcome' ? `
+            <div class="msg-trajectory-strip">
+              <span class="mts-step">\u2713 Synced ${participantCount} teammate${participantCount === 1 ? '' : 's'}</span>
+              <span class="mts-dot">\u2022</span>
+              <span class="mts-step">\u2713 Flash-Lite compressed</span>
+              <span class="mts-dot">\u2022</span>
+              <span class="mts-step">${escapeHtml(modelBadge)}</span>
+            </div>
+          ` : ''}
 
           <div class="msg-content-body">${formatMessageText(msg.text)}</div>
 
@@ -1308,10 +1418,14 @@
         }
       } else if (action === 'new-chat-from-prompt') {
         createNewChat(targetUser);
+      } else if (action === 'toggle-inspector') {
+        const p = ensurePaneStateForUser(targetUser);
+        p.inspectorOpen = p.inspectorOpen === false ? true : false;
+        renderApp();
       } else if (action === 'retry-response') {
         const p = ensurePaneStateForUser(targetUser);
         const session = getSessionById(p.activeSessionId);
-        const lastHumanMsg = [...(session?.messages || [])].reverse().find((m) => m.kind === 'prompt');
+        const lastHumanMsg = [...(session?.messages || [])].reverse().find((m) => m.kind === 'prompt' || m.kind === 'human');
         if (lastHumanMsg) {
           handleSendMessage(targetUser, session.id, lastHumanMsg.text);
         }
@@ -1342,6 +1456,37 @@
 
     document.querySelectorAll('[data-action="go-to-chat"]').forEach((btn) => {
       btn.addEventListener('click', () => navigateTo('chat'));
+    });
+
+    // Interactive Eigent-Style Architecture Capability Tabs (01 / 02 / 03)
+    const archTitles = {
+      workforce: 'Multi-Agent Workforce & Context Engine',
+      spaces: 'Shared Spaces & Live Agent Trajectory',
+      governance: 'Host Quota, BYOK & 1-Click Independent Fork'
+    };
+    document.querySelectorAll('[data-arch-tab]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const tabKey = btn.getAttribute('data-arch-tab');
+        if (!tabKey) return;
+        document.querySelectorAll('[data-arch-tab]').forEach((el) => {
+          const isMatch = el.getAttribute('data-arch-tab') === tabKey;
+          el.classList.toggle('active', isMatch);
+          if (el.getAttribute('role') === 'tab') {
+            el.setAttribute('aria-selected', isMatch ? 'true' : 'false');
+          }
+        });
+        ['workforce', 'spaces', 'governance'].forEach((k) => {
+          const paneEl = document.getElementById(`archPane_${k}`);
+          if (paneEl) {
+            paneEl.classList.toggle('active', k === tabKey);
+            paneEl.classList.toggle('hidden', k !== tabKey);
+          }
+        });
+        const titleEl = document.getElementById('edwActiveTitle');
+        if (titleEl && archTitles[tabKey]) {
+          titleEl.textContent = archTitles[tabKey];
+        }
+      });
     });
 
     // Chat Header Return to Website

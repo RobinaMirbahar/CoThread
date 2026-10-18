@@ -4,11 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>CoThread &#x2014; Collaborative AI Platform</title>
-  <link rel="icon" type="image/svg+xml" href="./logo.svg?v=ct28" />
+  <link rel="icon" type="image/svg+xml" href="./public/logo.svg?v=ct29" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="./public/styles.css?v=ct28" />
+  <link rel="stylesheet" href="./public/styles.css?v=ct29" />
 </head>
 <body>
 
@@ -20,13 +20,14 @@
     <header class="cothread-navbar">
       <div class="cothread-nav-left">
         <a href="#" class="cothread-brand-link" id="navBrandLogo" aria-label="CoThread Home">
-          <img src="./logo.svg?v=ct28" class="cothread-logo-coin" width="44" height="44" alt="CoThread Logo" />
+          <img src="./public/logo.svg?v=ct29" class="cothread-logo-coin" width="44" height="44" alt="CoThread Logo" />
           <span class="cothread-wordmark">CoThread</span>
         </a>
       </div>
 
       <nav class="cothread-nav-links" aria-label="Primary Navigation">
         <a href="#capabilitiesSection" class="cothread-nav-pill active">Platform</a>
+        <a href="#architectureSection" class="cothread-nav-pill">Architecture</a>
         <a href="#cothreadWaySection" class="cothread-nav-pill">How It Works</a>
         <a href="#pricingSection" class="cothread-nav-pill">Plans</a>
         <a href="#teamSection" class="cothread-nav-pill">Team</a>
@@ -49,7 +50,7 @@
     <section class="cothread-hero-section" id="heroSection">
       <div class="cothread-hero-center">
         <div class="hero-brand-emblem-wrap">
-          <img src="./logo.svg?v=ct28" width="86" height="86" alt="CoThread Coin Logo" class="hero-center-logo-img" />
+          <img src="./public/logo.svg?v=ct29" width="86" height="86" alt="CoThread Coin Logo" class="hero-center-logo-img" />
           <div class="hero-brand-pill">
             <span class="hero-brand-name">CoThread</span>
           </div>
@@ -119,6 +120,286 @@
               </button>
             </div>
           </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Interactive Cowork Architecture & Multi-Agent Workforce Diagram (Inspired by Eigent.ai) -->
+    <section class="eigent-arch-section" id="architectureSection">
+      <div class="section-container">
+        <div class="section-header-editorial center">
+          <span class="cothread-section-kicker">MULTI-AGENT COWORK ARCHITECTURE</span>
+          <h2 class="cothread-center-heading">Build an agent workspace around your team</h2>
+          <p class="section-lead">
+            Cowork with Gemini agents that share multi-user context, compress team banter automatically, and deliver synchronized code &amp; architecture artifacts.
+          </p>
+        </div>
+
+        <!-- Interactive 01 / 02 / 03 Capability Tabs -->
+        <div class="eigent-cap-tabs" role="tablist" aria-label="CoThread Architecture Capabilities">
+          <button type="button" class="eigent-cap-tab active" data-arch-tab="workforce" role="tab" aria-selected="true">
+            <span class="ect-num pink">01</span>
+            <span class="ect-label">Multi-Agent Workforce Diagram</span>
+          </button>
+          <button type="button" class="eigent-cap-tab" data-arch-tab="spaces" role="tab" aria-selected="false">
+            <span class="ect-num yellow">02</span>
+            <span class="ect-label">Shared Spaces &amp; Trajectory</span>
+          </button>
+          <button type="button" class="eigent-cap-tab" data-arch-tab="governance" role="tab" aria-selected="false">
+            <span class="ect-num teal">03</span>
+            <span class="ect-label">Host Quota, BYOK &amp; 1-Click Fork</span>
+          </button>
+        </div>
+
+        <!-- 3-Column Interactive Desktop Display & Diagram -->
+        <div class="eigent-desktop-window">
+          <!-- Top Window Bar -->
+          <div class="edw-topbar">
+            <div class="edw-topbar-left">
+              <span class="edw-dots"><i></i><i></i><i></i></span>
+              <span class="edw-space-pill">&#x2726; Space: Product Architecture</span>
+              <span class="edw-divider">/</span>
+              <span class="edw-session-title" id="edwActiveTitle">Multi-Agent Workforce &amp; Context Engine</span>
+            </div>
+            <div class="edw-topbar-right">
+              <span class="edw-token-pill" title="Host-Sponsored Session Quota">
+                &#x26A1; Total: <strong>1.8K tokens</strong> (Saved 640 via Flash-Lite)
+              </span>
+              <div class="edw-avatar-stack">
+                <span class="edw-mini-avatar pink" title="Robina Mirbahar (Host)">RM</span>
+                <span class="edw-mini-avatar yellow" title="Muhammad Hasnain (Co-Builder)">MH</span>
+                <span class="edw-mini-avatar teal" title="Sarah Chen (Collaborator)">SC</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3-Column Body -->
+          <div class="edw-grid">
+            <!-- Left Column: Space -> Session -> Task Hierarchy -->
+            <aside class="edw-sidebar">
+              <div class="edw-side-group">
+                <div class="edw-side-heading">SPACE HIERARCHY</div>
+                <div class="edw-hierarchy- pill-chain">
+                  <span class="edw-h-chip">Space</span>
+                  <span>&#x2192;</span>
+                  <span class="edw-h-chip">Session</span>
+                  <span>&#x2192;</span>
+                  <span class="edw-h-chip active">Task</span>
+                </div>
+              </div>
+
+              <div class="edw-side-group">
+                <div class="edw-side-heading">ACTIVE TEAM SESSIONS</div>
+                <button type="button" class="edw-session-item active" data-arch-tab="workforce">
+                  <span class="edw-s-dot green"></span>
+                  <div class="edw-s-meta">
+                    <strong>System Architecture Flow</strong>
+                    <small>3 collaborators &bull; 2m ago</small>
+                  </div>
+                </button>
+                <button type="button" class="edw-session-item" data-arch-tab="spaces">
+                  <span class="edw-s-dot yellow"></span>
+                  <div class="edw-s-meta">
+                    <strong>Shared Context &amp; Trajectory</strong>
+                    <small>Flash-Lite active &bull; 8m ago</small>
+                  </div>
+                </button>
+                <button type="button" class="edw-session-item" data-arch-tab="governance">
+                  <span class="edw-s-dot pink"></span>
+                  <div class="edw-s-meta">
+                    <strong>Host Quota &amp; BYOK Routing</strong>
+                    <small>Public Fork ready &bull; 14m ago</small>
+                  </div>
+                </button>
+              </div>
+
+              <div class="edw-side-group">
+                <div class="edw-side-heading">MODEL &amp; ENVIRONMENT</div>
+                <div class="edw-env-card">
+                  <div class="edw-env-row"><span>Lead Model</span><strong>Gemini 4 Argon</strong></div>
+                  <div class="edw-env-row"><span>Fast Worker</span><strong>Gemini 3.8 Flash</strong></div>
+                  <div class="edw-env-row"><span>Compressor</span><strong>3.5 Flash-Lite</strong></div>
+                  <div class="edw-env-row"><span>Key Mode</span><strong>Host / BYOK</strong></div>
+                </div>
+              </div>
+            </aside>
+
+            <!-- Center Column: Interactive Visual Diagram Canvas -->
+            <div class="edw-center-canvas">
+              <!-- TAB 01: Multi-Agent Workforce Architecture Diagram -->
+              <div class="edw-tab-pane active" id="archPane_workforce">
+                <div class="arch-flow-diagram">
+                  <!-- Row 1: Multi-User Input -->
+                  <div class="arch-node-row">
+                    <div class="arch-node user-node">
+                      <span class="arch-badge pink">HOST</span>
+                      <strong>Robina / Alex</strong>
+                      <small>Sponsors Session Quota</small>
+                    </div>
+                    <div class="arch-node user-node">
+                      <span class="arch-badge yellow">CO-BUILDER</span>
+                      <strong>Muhammad Hasnain</strong>
+                      <small>Prompts in Same Thread</small>
+                    </div>
+                    <div class="arch-node user-node">
+                      <span class="arch-badge teal">COLLABORATOR</span>
+                      <strong>Sarah Chen</strong>
+                      <small>Live Presence &amp; Review</small>
+                    </div>
+                  </div>
+
+                  <div class="arch-connector-down">&#x2193; Real-Time BroadcastChannel + Cloud Firestore Sync &#x2193;</div>
+
+                  <!-- Row 2: Space -> Session -> Task & Flash-Lite Compressor -->
+                  <div class="arch-node wide-node compressor-node">
+                    <div class="arch-node-top">
+                      <span class="arch-badge black">STEP 1 &bull; CONTEXT &amp; COMPRESSION LAYER</span>
+                      <span class="arch-model-tag">gemini-3.5-flash-lite</span>
+                    </div>
+                    <h4>Multi-Participant Context Engine &amp; Banter Compressor</h4>
+                    <p>Tags every turn with <code>[Host]</code> vs <code>[Collaborator]</code>, condenses human-to-human chat banter, and saves 35-55% of Host token quota.</p>
+                  </div>
+
+                  <div class="arch-connector-down">&#x2193; Stateful <code>previous_interaction_id</code> Turn Routing &#x2193;</div>
+
+                  <!-- Row 3: Coordinator Agent -->
+                  <div class="arch-node wide-node coordinator-node">
+                    <div class="arch-node-top">
+                      <span class="arch-badge pink">STEP 2 &bull; TASK PLANNER &amp; COORDINATOR AGENT</span>
+                      <span class="arch-model-tag">gemini-4-argon / gemini-3.8-flash</span>
+                    </div>
+                    <h4>CoThread ADK Coordinator (`interactions.create`)</h4>
+                    <p>Deconstructs team prompts into parallel sub-tasks and routes to specialized worker nodes with 4.5s timeout protection.</p>
+                  </div>
+
+                  <div class="arch-connector-down">&#x2193; Parallel Worker Execution &#x2193;</div>
+
+                  <!-- Row 4: Worker Nodes -->
+                  <div class="arch-node-row">
+                    <div class="arch-node worker-node">
+                      <span class="arch-badge yellow">WORKER 01</span>
+                      <strong>Architecture Worker</strong>
+                      <small>System Topology &amp; Decks</small>
+                    </div>
+                    <div class="arch-node worker-node">
+                      <span class="arch-badge teal">WORKER 02</span>
+                      <strong>Code &amp; Canvas Worker</strong>
+                      <small>TypeScript / Cloud Run Modules</small>
+                    </div>
+                    <div class="arch-node worker-node">
+                      <span class="arch-badge pink">WORKER 03</span>
+                      <strong>Quota &amp; Fork Worker</strong>
+                      <small>Host Ledger &amp; Public Copy</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- TAB 02: Shared Spaces & Live Action Trajectory -->
+              <div class="edw-tab-pane hidden" id="archPane_spaces">
+                <div class="edw-trajectory-demo">
+                  <div class="etd-prompt-bubble">
+                    <span class="edw-mini-avatar yellow">MH</span>
+                    <div>
+                      <strong>Muhammad Hasnain</strong> <small>Collaborator &bull; Shared Session</small>
+                      <p>&ldquo;Map our Cloud Run + Firestore multiplayer architecture and generate the deployment spec.&rdquo;</p>
+                    </div>
+                  </div>
+
+                  <div class="etd-steps-box">
+                    <div class="etd-steps-title">&#x2726; Live Agent Trajectory (Worked for 1.4s)</div>
+                    <div class="etd-step-item">
+                      <span class="etd-tag">Sync Context</span>
+                      <span>Merged 3 participant turns (`Robina`, `Hasnain`, `Sarah`) into unified prompt window</span>
+                    </div>
+                    <div class="etd-step-item">
+                      <span class="etd-tag">Compress</span>
+                      <span><code>gemini-3.5-flash-lite</code> condensed prior banter &mdash; saved <strong>640 tokens</strong></span>
+                    </div>
+                    <div class="etd-step-item">
+                      <span class="etd-tag">Synthesize</span>
+                      <span><code>gemini-4-argon</code> generated architecture diagram &amp; TypeScript synchronization module</span>
+                    </div>
+                  </div>
+
+                  <div class="etd-artifacts-row">
+                    <span class="etd-artifact-chip">&#x1F4C4; cothread_architecture_deck.md</span>
+                    <span class="etd-artifact-chip">&#x1F4BB; firestore_multiplayer_sync.ts</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- TAB 03: Host Quota, BYOK & 1-Click Forking -->
+              <div class="edw-tab-pane hidden" id="archPane_governance">
+                <div class="arch-flow-diagram">
+                  <div class="arch-node-row" style="grid-template-columns: 1fr 1fr;">
+                    <div class="arch-node wide-node" style="background: var(--ct-yellow); color: #000;">
+                      <span class="arch-badge black">MODE A &bull; PRIVATE COLLABORATION</span>
+                      <h4 style="margin-top:6px;">Host-Sponsored Shared Session</h4>
+                      <p>Teammates join via invite link and prompt Gemini together. All tokens charge to the Host&rsquo;s session cap or BYOK API key.</p>
+                    </div>
+                    <div class="arch-node wide-node" style="background: var(--ct-teal); color: #FFF;">
+                      <span class="arch-badge yellow">MODE B &bull; PUBLIC COPY-TO-CHAT</span>
+                      <h4 style="margin-top:6px;">1-Click Independent Personal Fork</h4>
+                      <p>Any viewer can deep-copy the conversation history into their own private chat without modifying the team&rsquo;s shared thread.</p>
+                    </div>
+                  </div>
+
+                  <div class="arch-node wide-node" style="margin-top: 14px;">
+                    <div class="arch-node-top">
+                      <span class="arch-badge pink">4-STAGE RESILIENT EXECUTION</span>
+                      <span class="arch-model-tag">Cloud + BYOK + Vertex AI + ADK</span>
+                    </div>
+                    <h4>Zero-Downtime Model Flexibility</h4>
+                    <p>
+                      <strong>01.</strong> Node SDK (<code>@google/genai</code>) &rarr;
+                      <strong>02.</strong> Browser Direct REST (<code>/v1beta/interactions</code>) &rarr;
+                      <strong>03.</strong> Vertex AI Express (GCP Credits) &rarr;
+                      <strong>04.</strong> CoThread ADK Architect Synthesis.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Column: Eigent-Style Inspector (Agents, Progress, Context & Artifacts) -->
+            <aside class="edw-inspector">
+              <div class="edw-side-group">
+                <div class="edw-side-heading">ACTIVE WORKFORCE</div>
+                <div class="edw-agent-pill">
+                  <span class="edw-agent-badge">&#x2726;</span>
+                  <div>
+                    <strong>CoThread ADK Lead</strong>
+                    <small>Gemini 4 Argon &bull; Active</small>
+                  </div>
+                </div>
+              </div>
+
+              <div class="edw-side-group">
+                <div class="edw-side-heading">TASK PROGRESS</div>
+                <ul class="edw-progress-list">
+                  <li class="done"><span>&#x2713;</span> Sync multi-user identities</li>
+                  <li class="done"><span>&#x2713;</span> Compress thread via Flash-Lite</li>
+                  <li class="done"><span>&#x2713;</span> Enforce Host / BYOK quota</li>
+                  <li class="done"><span>&#x2713;</span> Emit live code &amp; diagram</li>
+                </ul>
+              </div>
+
+              <div class="edw-side-group">
+                <div class="edw-side-heading">MCP &amp; EXECUTION TOOLS</div>
+                <div class="edw-tool-tags">
+                  <span class="edw-tool-tag">Interactions API</span>
+                  <span class="edw-tool-tag">Cloud Firestore</span>
+                  <span class="edw-tool-tag">BroadcastChannel</span>
+                  <span class="edw-tool-tag">BYOK Key Vault</span>
+                </div>
+              </div>
+
+              <button type="button" class="pricing-cta-btn primary" data-action="go-to-chat" style="width: 100%; margin-top: auto;">
+                Try Live Workspace &#x2192;
+              </button>
+            </aside>
+          </div>
         </div>
       </div>
     </section>
@@ -362,7 +643,7 @@
       <div class="footer-inner">
         <div class="footer-brand-col">
           <div class="brand-wordmark-link" style="display:flex;align-items:center;gap:10px;">
-            <img src="./logo.svg?v=ct28" width="36" height="36" alt="CoThread Logo" />
+            <img src="./public/logo.svg?v=ct29" width="36" height="36" alt="CoThread Logo" />
             <span class="wordmark-serif">CoThread</span>
           </div>
           <div class="footer-copy footer-credit-text">
@@ -388,7 +669,7 @@
     <div class="auth-portal-card">
       <div class="auth-portal-header">
         <button type="button" class="auth-back-home-btn" id="authBackHomeBtn" title="Back to Homepage">&larr; Back to Home</button>
-        <img src="./logo.svg?v=ct28" width="56" height="56" alt="CoThread Logo" class="auth-logo" />
+        <img src="./public/logo.svg?v=ct29" width="56" height="56" alt="CoThread Logo" class="auth-logo" />
         <h1 class="auth-title">CoThread</h1>
         <p class="auth-subtitle">Real-time collaborative AI chat</p>
       </div>
@@ -478,7 +759,7 @@
         </button>
 
         <button type="button" class="back-to-site-brand" id="backToWebsiteBtn" title="Return to Company Website">
-          <img src="./logo.svg?v=ct28" width="30" height="30" alt="CoThread Logo" />
+          <img src="./public/logo.svg?v=ct29" width="30" height="30" alt="CoThread Logo" />
           <span class="wordmark-serif sm">CoThread</span>
         </button>
 
@@ -492,6 +773,11 @@
         <!-- Gemini Chat Agent & API Key Button -->
         <button type="button" class="share-chat-action-btn" id="headerGeminiKeyBtn" title="Configure Gemini Chat Agent &amp; API Key" style="background: var(--surface-card); color: var(--ink-primary); border: 1px solid var(--border-subtle);">
           <span id="headerGeminiKeyStatus">&#x2726; Gemini Agent</span>
+        </button>
+
+        <!-- Eigent-Style Agent & Context Inspector Toggle Button -->
+        <button type="button" class="share-chat-action-btn" id="headerInspectorBtn" title="Toggle Agent Trajectory &amp; Context Inspector" style="background: var(--surface-card); color: var(--ink-primary); border: 1px solid var(--border-subtle);">
+          <span>&#x26A1; Inspector</span>
         </button>
 
         <!-- Share Button in Top Right on Desktop & Mobile -->
@@ -617,8 +903,8 @@
 
   <div class="toast-container" id="toastContainer" aria-live="polite"></div>
 
-  <script src="./src/core/quota-engine.js?v=ct28"></script>
-  <script src="./src/ai/gemini-service.js?v=ct28"></script>
-  <script src="./public/app.js?v=ct28"></script>
+  <script src="./src/core/quota-engine.js?v=ct29"></script>
+  <script src="./src/ai/gemini-service.js?v=ct29"></script>
+  <script src="./public/app.js?v=ct29"></script>
 </body>
 </html>
