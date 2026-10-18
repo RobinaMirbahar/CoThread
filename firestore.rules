@@ -6,52 +6,52 @@ rules_version = '2';
 //
 // This security rules file assumes the following data structures:
 //
-// Collection: users (Private User Profile & Quota State - Contains PII)
+// 1. Collection: users/{userId} (Users Table - Contains PII)
 // Document ID: {userId} (matches Firebase Auth UID)
 // Fields:
-//   - name: string (required, 1..100 chars) - User display name
+//   - id: string (required, matches userId, immutable) - User UID
+//   - name: string (required, 1..100 chars) - Full display name
+//   - shortName: string (optional, 1..50 chars) - Abbreviated display name
+//   - username: string (required, 1..60 chars, immutable) - Unique handle
 //   - email: string (required, valid email format, <= 254 chars, immutable) - User PII email address
-//   - planTier: string (required, enum: ['starter', 'pro', 'enterprise'], immutable for non-admin) - Subscription tier
-//   - quotaTotal: int (required, 0..100000000, immutable for non-admin) - Total software-assigned token quota
+//   - initials: string (optional, 1..4 chars) - Avatar badge initials
+//   - role: string (required, 1..100 chars, immutable for non-admin) - Workspace role or job title
+//   - colorClass: string (optional, 1..50 chars) - Avatar UI color class or hex code
+//   - planTier: string (required, enum: ['Starter', 'Pro', 'Enterprise', 'starter', 'pro', 'enterprise'], immutable for non-admin) - Subscription tier
+//   - quotaTotal: int (required, 0..100000000, immutable for non-admin) - Software-assigned token quota
 //   - quotaUsed: int (required, 0 <= quotaUsed <= quotaTotal, monotonic non-decreasing for non-admin) - Consumed tokens
-//   - createdAt: timestamp (required, recent on create, immutable on update) - Account creation timestamp
+//   - createdAt: timestamp or ISO string (required, immutable on update) - Account creation timestamp
+//   - updatedAt: timestamp or ISO string (optional) - Profile last update timestamp
 //
-// Collection: users_public (Public Collaborator Profile - Zero PII)
-// Document ID: {userId} (matches Firebase Auth UID)
-// Fields:
-//   - name: string (required, 1..100 chars) - Collaborator display name
-//   - role: string (optional, 1..100 chars) - Job title or workspace role label
-//   - avatarColor: string (optional, 1..20 chars) - Hex color badge
-//   - initials: string (optional, 1..4 chars) - Avatar initials
-//   - createdAt: timestamp (required, recent on create, immutable on update) - Creation timestamp
-//
-// Collection: sessions
+// 2. Collections: chat_history/{sessionId} AND sessions/{sessionId} (Chat History Table)
 // Document ID: {sessionId}
 // Fields:
-//   - type: string (required, enum: ['shared', 'personal'], immutable) - Workspace session mode
-//   - ownerId: string (required, 1..128 chars, matches creator UID, immutable) - Host/Owner user ID
+//   - id: string (required, 1..128 chars, immutable) - Session identifier
+//   - type: string (required, enum: ['personal', 'shared']) - Session mode
 //   - title: string (required, 1..200 chars) - Session title
-//   - shareCode: string (optional, 1..100 chars, owner-controlled) - Capability sublink identifier
-//   - linkActive: bool (required, owner-controlled) - Whether the share sublink is active or revoked
-//   - permission: string (required, enum: ['collaborator', 'viewer'], owner-controlled) - Guest access role
-//   - tokenCap: int (required, 0..10000000, owner-controlled) - Host-sponsored token ceiling for the session
-//   - tokensUsed: int (required, 0 <= tokensUsed <= tokenCap, non-decreasing) - Tokens consumed in session
-//   - participantIds: list of strings (required, max 50 items, owner-controlled) - Authorized participant UIDs
-//   - canvasContent: string (optional, 0..100000 chars) - Shared live architecture markdown specification
-//   - forkedFromSessionId: string (optional, 1..128 chars, immutable) - Source session ID if forked to personal
-//   - createdAt: timestamp (required, recent on create, immutable on update) - Session creation timestamp
-//   - updatedAt: timestamp (optional, recent on create/update) - Last modification timestamp
+//   - hostId: string (optional, 1..128 chars, immutable) - Host UID
+//   - ownerId: string (required, 1..128 chars, immutable) - Owner UID
+//   - shareCode: string (optional, 1..100 chars) - Capability share code
+//   - participants: list of strings (required, max 50 items) - Participant UIDs
+//   - participantIds: list of strings (optional, max 50 items) - Participant UIDs
+//   - invitedEmails: list of strings (optional, max 50 items) - Invited collaborator emails
+//   - messages: list of maps (required, max 500 items) - Conversation turn history
+//   - canvasDocument: map (optional, keys: ['title', 'content', 'lastEditedBy', 'updatedAt']) - Collaborative specification document
+//   - lastInteractionId: string (optional, 0..256 chars) - Gemini Interactions API state ID
+//   - createdAt: timestamp or ISO string (required, immutable on update) - Creation timestamp
+//   - updatedAt: timestamp or ISO string (optional) - Last modification timestamp
 //
-// Subcollection: sessions/{sessionId}/messages
-// Document ID: {messageId}
+// 3. Collection: user_settings/{userId} (Settings of Each User Table - Strictly Private)
+// Document ID: {userId} (matches Firebase Auth UID)
 // Fields:
-//   - senderId: string (required, matches request.auth.uid, immutable) - Author UID
-//   - senderName: string (required, 1..100 chars, immutable) - Author display name
-//   - role: string (required, enum: ['user', 'assistant'], immutable) - Message role
-//   - content: string (required, 1..20000 chars, immutable) - Prompt or response markdown body
-//   - tokenCost: int (required, 0..1000000, immutable) - Tokens billed for this turn
-//   - chargedToUserId: string (required, 1..128 chars, immutable) - UID of the quota pool billed (Host or Personal)
-//   - createdAt: timestamp (required, recent on create, immutable) - Message creation timestamp
+//   - userId: string (required, matches userId, immutable) - Owner User UID
+//   - theme: string (required, enum: ['light', 'dark']) - UI color theme preference
+//   - primaryModel: string (required, 1..100 chars) - Preferred Gemini model identifier
+//   - geminiApiKey: string (optional, 0..256 chars) - Optional user-configured Gemini API key (Sensitive)
+//   - scannedModels: list of strings (optional, max 50 items) - Verified available Gemini models
+//   - sidebarOpen: bool (optional) - Whether workspace sidebar is expanded
+//   - activeSessionId: string (optional, 0..128 chars) - Last active session ID
+//   - updatedAt: timestamp or ISO string (required) - Settings last update timestamp
 //
 // ===============================================================
 
@@ -102,6 +102,7 @@ service cloud.firestore {
     // Validate optional string (if present, must be a string and within length bounds)
     function isValidOptionalString(field, minLen, maxLen) {
       return !(field in request.resource.data) ||
+             request.resource.data[field] == null ||
              (request.resource.data[field] is string &&
               request.resource.data[field].size() >= minLen &&
               request.resource.data[field].size() <= maxLen);
@@ -115,208 +116,250 @@ service cloud.firestore {
              email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
     }
 
+    // Validate ISO 8601 date string format or native Firestore timestamp
+    function isValidTimestampOrDateString(val) {
+      return val is timestamp ||
+             (val is string &&
+              val.size() >= 10 &&
+              val.size() <= 40 &&
+              val.matches("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.*Z?$"));
+    }
+
+    // Validate optional timestamp or ISO date string
+    function isValidOptionalTimestampOrDate(field) {
+      return !(field in request.resource.data) ||
+             request.resource.data[field] == null ||
+             isValidTimestampOrDateString(request.resource.data[field]);
+    }
+
     // Validate that a list is a list and enforces maximum size limits
     function isValidList(listData, maxSize) {
       return listData is list && listData.size() <= maxSize;
     }
 
-    // Validate participantIds list structure and element constraints
-    function isValidParticipantList(participants) {
-      return isValidList(participants, 50) &&
-             (participants.size() == 0 ||
-              (participants[0] is string &&
-               participants[0].size() >= 1 &&
-               participants[0].size() <= 128));
+    // Validate a list of strings (checks list size and bounds on initial elements)
+    function isValidStringList(listData, maxSize, maxItemLen) {
+      return isValidList(listData, maxSize) &&
+             (listData.size() == 0 ||
+              (listData[0] is string &&
+               listData[0].size() >= 1 &&
+               listData[0].size() <= maxItemLen));
     }
 
-    // Validate that a timestamp is recent (within the last 5 minutes up to request.time)
-    function isRecent(time) {
-      return time is timestamp &&
-             time > request.time - duration.value(5, 'm') &&
-             time <= request.time;
-    }
-
-    // Validate optional recent timestamp
-    function isValidOptionalRecentTimestamp(field) {
+    // Validate optional list of strings
+    function isValidOptionalStringList(field, maxSize, maxItemLen) {
       return !(field in request.resource.data) ||
-             isRecent(request.resource.data[field]);
+             isValidStringList(request.resource.data[field], maxSize, maxItemLen);
+    }
+
+    // Validate canvasDocument map structure and size bounds
+    function isValidCanvasDocument(data) {
+      return !('canvasDocument' in data) ||
+             data.canvasDocument == null ||
+             (data.canvasDocument is map &&
+              data.canvasDocument.keys().hasOnly(['title', 'content', 'lastEditedBy', 'updatedAt']) &&
+              (!('title' in data.canvasDocument) || (data.canvasDocument.title is string && data.canvasDocument.title.size() <= 300)) &&
+              (!('content' in data.canvasDocument) || (data.canvasDocument.content is string && data.canvasDocument.content.size() <= 100000)) &&
+              (!('lastEditedBy' in data.canvasDocument) || (data.canvasDocument.lastEditedBy is string && data.canvasDocument.lastEditedBy.size() <= 100)) &&
+              (!('updatedAt' in data.canvasDocument) || isValidTimestampOrDateString(data.canvasDocument.updatedAt)));
     }
 
     // ===============================================================
     // Domain Validators (Called on BOTH create and update)
     // ===============================================================
 
-    function isValidUser(data) {
-      let allowedFields = ['name', 'email', 'planTier', 'quotaTotal', 'quotaUsed', 'createdAt'];
-      let requiredFields = ['name', 'email', 'planTier', 'quotaTotal', 'quotaUsed', 'createdAt'];
+    // 1. Validator for users/{userId}
+    function isValidUser(data, userId) {
+      let allowedFields = [
+        'id',
+        'name',
+        'shortName',
+        'username',
+        'email',
+        'initials',
+        'role',
+        'colorClass',
+        'planTier',
+        'quotaTotal',
+        'quotaUsed',
+        'createdAt',
+        'updatedAt'
+      ];
+      let requiredFields = [
+        'id',
+        'name',
+        'username',
+        'email',
+        'role',
+        'planTier',
+        'quotaTotal',
+        'quotaUsed',
+        'createdAt'
+      ];
 
       return hasOnlyAllowedFields(allowedFields) &&
              hasRequiredFields(requiredFields) &&
+             data.id == userId &&
+             validStringLength('id', 1, 128) &&
              validStringLength('name', 1, 100) &&
+             isValidOptionalString('shortName', 1, 50) &&
+             validStringLength('username', 1, 60) &&
              isValidEmail(data.email) &&
+             isValidOptionalString('initials', 1, 4) &&
+             validStringLength('role', 1, 100) &&
+             isValidOptionalString('colorClass', 1, 50) &&
              data.planTier is string &&
-             data.planTier in ['starter', 'pro', 'enterprise'] &&
+             data.planTier in ['Starter', 'Pro', 'Enterprise', 'starter', 'pro', 'enterprise'] &&
              data.quotaTotal is int &&
              data.quotaTotal >= 0 &&
              data.quotaTotal <= 100000000 &&
              data.quotaUsed is int &&
              data.quotaUsed >= 0 &&
              data.quotaUsed <= data.quotaTotal &&
-             data.createdAt is timestamp;
+             isValidTimestampOrDateString(data.createdAt) &&
+             isValidOptionalTimestampOrDate('updatedAt');
     }
 
-    function isValidPublicUser(data) {
-      let allowedFields = ['name', 'role', 'avatarColor', 'initials', 'createdAt'];
-      let requiredFields = ['name', 'createdAt'];
-
-      return hasOnlyAllowedFields(allowedFields) &&
-             hasRequiredFields(requiredFields) &&
-             validStringLength('name', 1, 100) &&
-             isValidOptionalString('role', 1, 100) &&
-             isValidOptionalString('avatarColor', 1, 20) &&
-             isValidOptionalString('initials', 1, 4) &&
-             data.createdAt is timestamp;
-    }
-
-    function isValidSession(data) {
+    // 2. Validator for chat_history/{sessionId} and sessions/{sessionId}
+    function isValidChatSession(data, sessionId) {
       let allowedFields = [
+        'id',
         'type',
-        'ownerId',
         'title',
+        'hostId',
+        'ownerId',
         'shareCode',
-        'linkActive',
-        'permission',
-        'tokenCap',
-        'tokensUsed',
+        'participants',
         'participantIds',
-        'canvasContent',
-        'forkedFromSessionId',
+        'invitedEmails',
+        'messages',
+        'canvasDocument',
+        'lastInteractionId',
         'createdAt',
         'updatedAt'
       ];
       let requiredFields = [
+        'id',
         'type',
-        'ownerId',
         'title',
-        'linkActive',
-        'permission',
-        'tokenCap',
-        'tokensUsed',
-        'participantIds',
+        'ownerId',
+        'participants',
+        'messages',
         'createdAt'
       ];
 
       return hasOnlyAllowedFields(allowedFields) &&
              hasRequiredFields(requiredFields) &&
+             data.id == sessionId &&
+             validStringLength('id', 1, 128) &&
              data.type is string &&
-             data.type in ['shared', 'personal'] &&
-             validStringLength('ownerId', 1, 128) &&
+             data.type in ['personal', 'shared'] &&
              validStringLength('title', 1, 200) &&
+             validStringLength('ownerId', 1, 128) &&
+             isValidOptionalString('hostId', 1, 128) &&
+             (!('hostId' in data) || data.hostId == null || data.hostId == data.ownerId) &&
              isValidOptionalString('shareCode', 1, 100) &&
-             data.linkActive is bool &&
-             data.permission is string &&
-             data.permission in ['collaborator', 'viewer'] &&
-             data.tokenCap is int &&
-             data.tokenCap >= 0 &&
-             data.tokenCap <= 10000000 &&
-             data.tokensUsed is int &&
-             data.tokensUsed >= 0 &&
-             data.tokensUsed <= data.tokenCap &&
-             isValidParticipantList(data.participantIds) &&
-             isValidOptionalString('canvasContent', 0, 100000) &&
-             isValidOptionalString('forkedFromSessionId', 1, 128) &&
-             data.createdAt is timestamp &&
-             (!('updatedAt' in data) || data.updatedAt is timestamp);
+             isValidStringList(data.participants, 50, 128) &&
+             isValidOptionalStringList('participantIds', 50, 128) &&
+             isValidOptionalStringList('invitedEmails', 50, 254) &&
+             isValidList(data.messages, 500) &&
+             isValidCanvasDocument(data) &&
+             isValidOptionalString('lastInteractionId', 0, 256) &&
+             isValidTimestampOrDateString(data.createdAt) &&
+             isValidOptionalTimestampOrDate('updatedAt');
     }
 
-    function isValidMessage(data) {
+    // 3. Validator for user_settings/{userId}
+    function isValidUserSettings(data, userId) {
       let allowedFields = [
-        'senderId',
-        'senderName',
-        'role',
-        'content',
-        'tokenCost',
-        'chargedToUserId',
-        'createdAt'
+        'userId',
+        'theme',
+        'primaryModel',
+        'geminiApiKey',
+        'scannedModels',
+        'sidebarOpen',
+        'activeSessionId',
+        'updatedAt'
       ];
       let requiredFields = [
-        'senderId',
-        'senderName',
-        'role',
-        'content',
-        'tokenCost',
-        'chargedToUserId',
-        'createdAt'
+        'userId',
+        'theme',
+        'primaryModel',
+        'updatedAt'
       ];
 
       return hasOnlyAllowedFields(allowedFields) &&
              hasRequiredFields(requiredFields) &&
-             validStringLength('senderId', 1, 128) &&
-             validStringLength('senderName', 1, 100) &&
-             data.role is string &&
-             data.role in ['user', 'assistant'] &&
-             validStringLength('content', 1, 20000) &&
-             data.tokenCost is int &&
-             data.tokenCost >= 0 &&
-             data.tokenCost <= 1000000 &&
-             validStringLength('chargedToUserId', 1, 128) &&
-             data.createdAt is timestamp;
+             data.userId == userId &&
+             validStringLength('userId', 1, 128) &&
+             data.theme is string &&
+             data.theme in ['light', 'dark'] &&
+             validStringLength('primaryModel', 1, 100) &&
+             isValidOptionalString('geminiApiKey', 0, 256) &&
+             isValidOptionalStringList('scannedModels', 50, 100) &&
+             (!('sidebarOpen' in data) || data.sidebarOpen is bool) &&
+             isValidOptionalString('activeSessionId', 0, 128) &&
+             isValidTimestampOrDateString(data.updatedAt);
     }
 
     // ===============================================================
-    // Session Authorization Helpers
+    // Chat Session Authorization Helpers
     // ===============================================================
 
-    function canReadSessionData(sessionData) {
+    function isSessionHostData(sessionData) {
       return isAuthenticated() &&
              (
-               (sessionData.type == 'personal' && sessionData.ownerId == request.auth.uid) ||
-               (sessionData.type == 'shared' && (
-                 sessionData.ownerId == request.auth.uid ||
-                 request.auth.uid in sessionData.participantIds ||
-                 sessionData.linkActive == true
-               ))
+               sessionData.ownerId == request.auth.uid ||
+               ('hostId' in sessionData && sessionData.hostId == request.auth.uid)
              );
     }
 
-    function isCollaboratorOnSessionData(sessionData) {
+    function isSessionParticipantData(sessionData) {
       return isAuthenticated() &&
-             sessionData.type == 'shared' &&
-             sessionData.permission == 'collaborator' &&
              (
-               request.auth.uid in sessionData.participantIds ||
-               sessionData.linkActive == true
+               ('participants' in sessionData && request.auth.uid in sessionData.participants) ||
+               ('participantIds' in sessionData && request.auth.uid in sessionData.participantIds) ||
+               (sessionData.type == 'shared' &&
+                'invitedEmails' in sessionData &&
+                'email' in request.auth.token &&
+                request.auth.token.email in sessionData.invitedEmails)
              );
     }
 
+    function canAccessSession(sessionData) {
+      return isAdmin() ||
+             isSessionHostData(sessionData) ||
+             (sessionData.type == 'shared' && isSessionParticipantData(sessionData));
+    }
+
     // ===============================================================
-    // Collection Rules: users (Private Profile & Quota Ledger - PII Protected)
+    // 1. Collection Rules: users/{userId} (Users Table - PII Protected)
     // ===============================================================
 
     match /users/{userId} {
-      // Strictly restrict read access to the profile owner or admin to prevent PII (email) exposure
+      // Strictly limit read access to the document owner or admin to protect PII (email)
       allow read: if isOwner(userId) || isAdmin();
 
-      // Users can create their own starter profile with initial 0 quotaUsed; admins can provision any valid tier
+      // Users can create their own starter profile; prevent self-assigning admin roles or high quotas
       allow create: if isAuthenticated() &&
-                       isValidUser(request.resource.data) &&
-                       isRecent(request.resource.data.createdAt) &&
+                       isValidUser(request.resource.data, userId) &&
                        (
                          (isOwner(userId) &&
-                          request.resource.data.planTier == 'starter' &&
-                          request.resource.data.quotaTotal == 25000 &&
+                          request.resource.data.role != 'admin' &&
+                          request.resource.data.planTier in ['Starter', 'starter'] &&
+                          request.resource.data.quotaTotal <= 25000 &&
                           request.resource.data.quotaUsed == 0) ||
                          isAdmin()
                        );
 
-      // Users can update their own profile name and increment quotaUsed within quotaTotal,
-      // but cannot self-escalate planTier or quotaTotal, nor reduce quotaUsed
+      // Users can update their own profile details and increment quotaUsed,
+      // but cannot modify immutable identity/billing fields or escalate privileges
       allow update: if isAuthenticated() &&
-                       isValidUser(request.resource.data) &&
-                       areImmutableFieldsUnchanged(['createdAt', 'email']) &&
+                       isValidUser(request.resource.data, userId) &&
+                       areImmutableFieldsUnchanged(['id', 'username', 'email', 'createdAt']) &&
                        (
                          (isOwner(userId) &&
-                          areImmutableFieldsUnchanged(['planTier', 'quotaTotal']) &&
+                          areImmutableFieldsUnchanged(['role', 'planTier', 'quotaTotal']) &&
                           request.resource.data.quotaUsed >= resource.data.quotaUsed) ||
                          isAdmin()
                        );
@@ -325,88 +368,81 @@ service cloud.firestore {
     }
 
     // ===============================================================
-    // Collection Rules: users_public (Non-PII Collaborator Profiles)
+    // 2A. Collection Rules: chat_history/{sessionId} (Chat History Table)
     // ===============================================================
 
-    match /users_public/{userId} {
-      // Authenticated collaborators can read non-sensitive public profile badges
-      allow read: if isAuthenticated();
+    match /chat_history/{sessionId} {
+      allow read: if canAccessSession(resource.data);
 
-      allow create: if isOwner(userId) &&
-                       isValidPublicUser(request.resource.data) &&
-                       isRecent(request.resource.data.createdAt);
+      // Authenticated user can create a session where they are the owner/host
+      allow create: if isAuthenticated() &&
+                       isValidChatSession(request.resource.data, sessionId) &&
+                       (
+                         isSessionHostData(request.resource.data) ||
+                         isAdmin()
+                       );
 
-      allow update: if isOwner(userId) &&
-                       isValidPublicUser(request.resource.data) &&
-                       areImmutableFieldsUnchanged(['createdAt']);
+      // Host/Owner can update session settings, participants, and content;
+      // Invited participants on shared sessions can collaborate on messages, canvasDocument, lastInteractionId, and updatedAt
+      // while permission/ownership fields remain strictly locked down.
+      allow update: if isAuthenticated() &&
+                       isValidChatSession(request.resource.data, sessionId) &&
+                       areImmutableFieldsUnchanged(['id', 'ownerId', 'hostId', 'createdAt']) &&
+                       (
+                         isSessionHostData(resource.data) ||
+                         isAdmin() ||
+                         (resource.data.type == 'shared' &&
+                          isSessionParticipantData(resource.data) &&
+                          areImmutableFieldsUnchanged(['type', 'shareCode', 'participants', 'participantIds', 'invitedEmails']))
+                       );
 
-      allow delete: if isOwner(userId) || isAdmin();
+      allow delete: if isSessionHostData(resource.data) || isAdmin();
     }
 
     // ===============================================================
-    // Collection Rules: sessions (Personal & Shared Multiplayer Workspaces)
+    // 2B. Collection Rules: sessions/{sessionId} (Chat History Alias Table)
     // ===============================================================
 
     match /sessions/{sessionId} {
-      allow read: if canReadSessionData(resource.data);
+      allow read: if canAccessSession(resource.data);
 
-      // Authenticated user can create a session they own starting with 0 tokensUsed
       allow create: if isAuthenticated() &&
-                       isValidSession(request.resource.data) &&
-                       request.resource.data.ownerId == request.auth.uid &&
-                       request.resource.data.tokensUsed == 0 &&
-                       isRecent(request.resource.data.createdAt) &&
-                       isValidOptionalRecentTimestamp('updatedAt');
-
-      // Session Owner can update session configuration and content;
-      // Collaborators on shared sessions can ONLY update tokensUsed, canvasContent, and updatedAt
-      // while tokensUsed is non-decreasing and <= tokenCap.
-      allow update: if isAuthenticated() &&
-                       isValidSession(request.resource.data) &&
-                       areImmutableFieldsUnchanged(['ownerId', 'createdAt', 'type', 'forkedFromSessionId']) &&
-                       isValidOptionalRecentTimestamp('updatedAt') &&
+                       isValidChatSession(request.resource.data, sessionId) &&
                        (
-                         // Owner update path
-                         (resource.data.ownerId == request.auth.uid) ||
-                         // Collaborator update path (strictly locked down to tokensUsed, canvasContent, updatedAt)
-                         (isCollaboratorOnSessionData(resource.data) &&
-                          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['tokensUsed', 'canvasContent', 'updatedAt']) &&
-                          request.resource.data.tokensUsed >= resource.data.tokensUsed &&
-                          request.resource.data.tokensUsed <= resource.data.tokenCap)
+                         isSessionHostData(request.resource.data) ||
+                         isAdmin()
                        );
 
-      // Only the session owner can delete their session
-      allow delete: if isAuthenticated() && resource.data.ownerId == request.auth.uid;
+      allow update: if isAuthenticated() &&
+                       isValidChatSession(request.resource.data, sessionId) &&
+                       areImmutableFieldsUnchanged(['id', 'ownerId', 'hostId', 'createdAt']) &&
+                       (
+                         isSessionHostData(resource.data) ||
+                         isAdmin() ||
+                         (resource.data.type == 'shared' &&
+                          isSessionParticipantData(resource.data) &&
+                          areImmutableFieldsUnchanged(['type', 'shareCode', 'participants', 'participantIds', 'invitedEmails']))
+                       );
 
-      // ===============================================================
-      // Subcollection Rules: sessions/{sessionId}/messages
-      // ===============================================================
+      allow delete: if isSessionHostData(resource.data) || isAdmin();
+    }
 
-      match /messages/{messageId} {
-        // Verify parent session exists and caller is authorized to read the session
-        allow read: if isAuthenticated() &&
-                       exists(/databases/$(database)/documents/sessions/$(sessionId)) &&
-                       canReadSessionData(get(/databases/$(database)/documents/sessions/$(sessionId)).data);
+    // ===============================================================
+    // 3. Collection Rules: user_settings/{userId} (Settings of Each User Table)
+    // ===============================================================
 
-        // Authorized session owner or collaborator can append messages with their own senderId
-        allow create: if isAuthenticated() &&
-                         exists(/databases/$(database)/documents/sessions/$(sessionId)) &&
-                         isValidMessage(request.resource.data) &&
-                         request.resource.data.senderId == request.auth.uid &&
-                         isRecent(request.resource.data.createdAt) &&
-                         (
-                           get(/databases/$(database)/documents/sessions/$(sessionId)).data.ownerId == request.auth.uid ||
-                           isCollaboratorOnSessionData(get(/databases/$(database)/documents/sessions/$(sessionId)).data)
-                         );
+    match /user_settings/{userId} {
+      // Strictly private to the user (protects optional geminiApiKey and personal preferences)
+      allow read: if isOwner(userId) || isAdmin();
 
-        // Messages are an immutable audit and conversation log once created
-        allow update: if false;
+      allow create: if (isOwner(userId) || isAdmin()) &&
+                       isValidUserSettings(request.resource.data, userId);
 
-        // Only the parent session owner can delete messages
-        allow delete: if isAuthenticated() &&
-                         exists(/databases/$(database)/documents/sessions/$(sessionId)) &&
-                         get(/databases/$(database)/documents/sessions/$(sessionId)).data.ownerId == request.auth.uid;
-      }
+      allow update: if (isOwner(userId) || isAdmin()) &&
+                       isValidUserSettings(request.resource.data, userId) &&
+                       areImmutableFieldsUnchanged(['userId']);
+
+      allow delete: if isOwner(userId) || isAdmin();
     }
 
     // ===============================================================

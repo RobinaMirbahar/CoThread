@@ -1,27 +1,19 @@
 {
   "indexes": [
     {
-      "collectionGroup": "sessions",
+      "collectionGroup": "chat_history",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "type", "order": "ASCENDING" },
+        { "fieldPath": "hostId", "order": "ASCENDING" },
         { "fieldPath": "updatedAt", "order": "DESCENDING" }
       ]
     },
     {
-      "collectionGroup": "sessions",
+      "collectionGroup": "chat_history",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "ownerId", "order": "ASCENDING" },
-        { "fieldPath": "type", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "sessions",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "shareCode", "order": "ASCENDING" },
-        { "fieldPath": "linkActive", "order": "ASCENDING" }
+        { "fieldPath": "participants", "arrayConfig": "CONTAINS" },
+        { "fieldPath": "updatedAt", "order": "DESCENDING" }
       ]
     }
   ],

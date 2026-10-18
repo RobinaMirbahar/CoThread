@@ -60,10 +60,96 @@
     return { ...SEED_MINI_DB };
   }
 
-  function saveMiniDbUsers(usersObj) {
+  const USER_SETTINGS_KEY = 'cothread_user_settings_v25';
+
+  function getLocalUserSettingsMap() {
+    try {
+      const raw = localStorage.getItem(USER_SETTINGS_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') return parsed;
+      }
+    } catch (_) {}
+    return {};
+  }
+
+  function saveUserSettings(userId, patch = {}, syncRemote = true) {
+    if (!userId) return null;
+    const map = getLocalUserSettingsMap();
+    const existing = map[userId] || {
+      userId,
+      theme: localStorage.getItem(THEME_KEY) || 'light',
+      primaryModel: 'gemini-2.5-flash',
+      geminiApiKey: '',
+      scannedModels: [],
+      sidebarOpen: false,
+      activeSessionId: null
+    };
+    const updated = {
+      ...existing,
+      ...patch,
+      userId,
+      updatedAt: new Date().toISOString()
+    };
+    map[userId] = updated;
+    try {
+      localStorage.setItem(USER_SETTINGS_KEY, JSON.stringify(map));
+    } catch (_) {}
+
+    if (syncRemote && window.location.protocol !== 'file:' && !window.location.hostname.endsWith('github.io')) {
+      try {
+        fetch(`/api/db/settings/${encodeURIComponent(userId)}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(patch)
+        }).catch(() => {});
+      } catch (_) {}
+    }
+    return updated;
+  }
+
+  function applySettingsForUser(userId) {
+    if (!userId) return;
+    const map = getLocalUserSettingsMap();
+    const userSettings = map[userId];
+    const users = getMiniDbUsers();
+    const userRecord = users[userId];
+
+    if (userSettings) {
+      if (userSettings.theme) {
+        applyTheme(userSettings.theme, false);
+      }
+      if (userSettings.primaryModel && state) {
+        state.primaryModel = userSettings.primaryModel;
+      }
+      if (Array.isArray(userSettings.scannedModels) && userSettings.scannedModels.length > 0) {
+        try {
+          localStorage.setItem('cothread_scanned_models', JSON.stringify(userSettings.scannedModels));
+        } catch (_) {}
+      }
+    }
+
+    const userKey = (userSettings && userSettings.geminiApiKey) || (userRecord && userRecord.geminiApiKey) || '';
+    try {
+      if (userKey) {
+        localStorage.setItem('cothread_gemini_api_key', userKey);
+      }
+    } catch (_) {}
+  }
+
+  function saveMiniDbUsers(usersObj, syncRemote = true) {
     try {
       localStorage.setItem(MINI_DB_KEY, JSON.stringify(usersObj));
     } catch (_) {}
+    if (syncRemote && window.location.protocol !== 'file:' && !window.location.hostname.endsWith('github.io')) {
+      try {
+        fetch('/api/db/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ users: usersObj })
+        }).catch(() => {});
+      } catch (_) {}
+    }
   }
 
   function getMiniDbPublicAccounts() {
@@ -410,7 +496,7 @@
     applyTheme(savedTheme);
   }
 
-  function applyTheme(theme) {
+  function applyTheme(theme, persistSetting = true) {
     const clean = theme === 'dark' ? 'dark' : 'light';
     document.documentElement.setAttribute('data-theme', clean);
     try {
@@ -420,11 +506,14 @@
     const appIcon = document.getElementById('appThemeIcon');
     if (webIcon) webIcon.textContent = clean === 'light' ? '\u2600\uFE0F' : '\uD83C\uDF19';
     if (appIcon) appIcon.textContent = clean === 'light' ? '\u2600\uFE0F' : '\uD83C\uDF19';
+    if (persistSetting && typeof currentUserId !== 'undefined' && currentUserId) {
+      saveUserSettings(currentUserId, { theme: clean });
+    }
   }
 
   function toggleTheme() {
     const cur = document.documentElement.getAttribute('data-theme') || 'light';
-    applyTheme(cur === 'light' ? 'dark' : 'light');
+    applyTheme(cur === 'light' ? 'dark' : 'light', true);
   }
 
   // Cross-Tab BroadcastChannel
@@ -530,16 +619,18 @@
     try {
       if (userId) {
         sessionStorage.setItem(TAB_AUTH_KEY, userId);
+        applySettingsForUser(userId);
       } else {
         sessionStorage.removeItem(TAB_AUTH_KEY);
       }
     } catch (e) {}
   }
 
-  function saveAndBroadcastState(toastMsg, toastVariant) {
+  function saveAndBroadcastState(toastMsg, toastVariant, syncRemote = true) {
+    let persistedSessions = [];
     try {
       if (state && Array.isArray(state.sessions)) {
-        const persistedSessions = state.sessions.filter((s) => {
+        persistedSessions = state.sessions.filter((s) => {
           if (s.id === 'chat_hasnain_personal' || s.id === 'chat_robina_personal') return true;
           if (s.title === 'New Chat' || !s.messages || s.messages.length === 0) {
             const hasPrompt = Array.isArray(s.messages) && s.messages.some((m) => m && (m.kind === 'human' || m.kind === 'prompt'));
@@ -551,6 +642,22 @@
         localStorage.setItem(STORAGE_KEY, JSON.stringify(persistedState));
       }
     } catch (e) {}
+
+    if (syncRemote && window.location.protocol !== 'file:' && !window.location.hostname.endsWith('github.io')) {
+      try {
+        const activePane = currentUserId && state.paneState ? state.paneState[currentUserId] : null;
+        fetch('/api/db/sessions/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sessions: persistedSessions,
+            userId: currentUserId || null,
+            paneState: activePane || null
+          })
+        }).catch(() => {});
+      } catch (_) {}
+    }
+
     if (bc) {
       try {
         bc.postMessage({ type: 'STATE_SYNC', state });
@@ -1006,6 +1113,11 @@
     }
     pane.openMenuSessionId = null;
     saveAndBroadcastState();
+    if (window.location.protocol !== 'file:' && !window.location.hostname.endsWith('github.io')) {
+      try {
+        fetch(`/api/db/sessions/${encodeURIComponent(sessionId)}`, { method: 'DELETE' }).catch(() => {});
+      } catch (_) {}
+    }
     renderApp();
     showToast('Chat deleted.', 'personal');
   }
@@ -1940,6 +2052,9 @@
     if (modelSel) {
       modelSel.addEventListener('change', (e) => {
         state.primaryModel = e.target.value;
+        if (userId) {
+          saveUserSettings(userId, { primaryModel: state.primaryModel });
+        }
         saveAndBroadcastState();
         showToast(`Switched model to ${state.primaryModel}`, 'shared');
       });
@@ -2283,10 +2398,18 @@
           if (currentUserId && users[currentUserId]) {
             users[currentUserId].geminiApiKey = val;
             saveMiniDbUsers(users);
+            saveUserSettings(currentUserId, { geminiApiKey: val });
           }
           showToast('Scanning available Gemini models...', 'personal');
           scanAvailableGeminiModels(val, true)
             .then((models) => {
+              if (currentUserId) {
+                saveUserSettings(currentUserId, {
+                  geminiApiKey: val,
+                  scannedModels: models,
+                  primaryModel: state.primaryModel
+                });
+              }
               showToast(`Gemini Key saved! ${models.length} models ready.`, 'shared');
               renderApp();
             })
@@ -2301,6 +2424,7 @@
           if (currentUserId && users[currentUserId]) {
             delete users[currentUserId].geminiApiKey;
             saveMiniDbUsers(users);
+            saveUserSettings(currentUserId, { geminiApiKey: '', scannedModels: [], primaryModel: 'gemini-2.5-flash' });
           }
           state.primaryModel = 'gemini-2.5-flash';
           showToast('Cleared Gemini API key.', 'personal');
@@ -2319,6 +2443,7 @@
         if (currentUserId && users[currentUserId]) {
           delete users[currentUserId].geminiApiKey;
           saveMiniDbUsers(users);
+          saveUserSettings(currentUserId, { geminiApiKey: '', scannedModels: [], primaryModel: 'gemini-2.5-flash' });
         }
         state.primaryModel = 'gemini-2.5-flash';
       } catch (err) {}
@@ -2386,6 +2511,92 @@
   }
 
   // =========================================================
+  // CLOUD FIRESTORE HYDRATION & SSE STREAM (Cloud Run + Firestore)
+  // =========================================================
+
+  function applyFirestoreBootstrapPayload(data) {
+    if (!data || typeof data !== 'object') return;
+    let didChange = false;
+
+    // 1. Hydrate `users` table
+    if (data.users && typeof data.users === 'object') {
+      const mergedUsers = { ...getMiniDbUsers(), ...data.users };
+      saveMiniDbUsers(mergedUsers, false);
+      state.accounts = { ...getMiniDbPublicAccounts(), ...(data.accounts || {}) };
+      didChange = true;
+    }
+
+    // 2. Hydrate `chat_history` (sessions) table
+    if (Array.isArray(data.sessions) && data.sessions.length > 0) {
+      const byId = new Map();
+      for (const remoteSess of data.sessions) {
+        if (remoteSess && remoteSess.id) {
+          byId.set(remoteSess.id, remoteSess);
+        }
+      }
+      for (const localSess of state.sessions || []) {
+        if (localSess && localSess.id) {
+          const remote = byId.get(localSess.id);
+          if (!remote || (Array.isArray(localSess.messages) && localSess.messages.length > (remote.messages || []).length)) {
+            byId.set(localSess.id, localSess);
+          }
+        }
+      }
+      state.sessions = Array.from(byId.values());
+      didChange = true;
+    }
+
+    // 3. Hydrate `user_settings` table
+    if (data.userSettings && typeof data.userSettings === 'object') {
+      const localMap = getLocalUserSettingsMap();
+      const mergedSettings = { ...localMap, ...data.userSettings };
+      try {
+        localStorage.setItem(USER_SETTINGS_KEY, JSON.stringify(mergedSettings));
+      } catch (_) {}
+      if (currentUserId && mergedSettings[currentUserId]) {
+        applySettingsForUser(currentUserId);
+      }
+      didChange = true;
+    }
+
+    if (didChange) {
+      saveAndBroadcastState(null, null, false);
+      renderApp();
+    }
+  }
+
+  function initCloudFirestoreRealtimeSync() {
+    if (window.location.protocol === 'file:' || window.location.hostname.endsWith('github.io')) {
+      return;
+    }
+
+    // Initial bootstrap fetch from Cloud Run + Cloud Firestore
+    fetch('/api/db/bootstrap')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data && data.ok) {
+          applyFirestoreBootstrapPayload(data);
+        }
+      })
+      .catch(() => {});
+
+    // Real-time Server-Sent Events (SSE) stream from Cloud Run
+    if (typeof EventSource !== 'undefined') {
+      try {
+        const es = new EventSource('/api/events');
+        es.onmessage = (ev) => {
+          try {
+            const packet = JSON.parse(ev.data);
+            if (packet && packet.firestoreTables) {
+              applyFirestoreBootstrapPayload(packet.firestoreTables);
+            }
+          } catch (_) {}
+        };
+      } catch (_) {}
+    }
+  }
+
+  // =========================================================
   // BOOT APPLICATION
   // =========================================================
 
@@ -2424,9 +2635,13 @@
 
   function bootCoThreadApp() {
     initTheme();
+    if (currentUserId) {
+      applySettingsForUser(currentUserId);
+    }
     initGlobalEvents();
     initHeroTypewriterAnimation();
     recoverUnansweredMessagesOnBoot();
+    initCloudFirestoreRealtimeSync();
 
     const savedKey = getSavedGeminiApiKey();
     if (savedKey && !localStorage.getItem('cothread_scanned_models')) {

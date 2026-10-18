@@ -1,5 +1,7 @@
 {
   "firestore": {
+    "database": "(default)",
+    "location": "nam5",
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
   },
@@ -14,17 +16,9 @@
       {
         "source": "/api/**",
         "run": {
-          "serviceId": "cothread-service",
+          "serviceId": "cothread",
           "region": "us-central1"
         }
-      },
-      {
-        "source": "/s/**",
-        "destination": "/index.html"
-      },
-      {
-        "source": "/app",
-        "destination": "/index.html"
       },
       {
         "source": "**",

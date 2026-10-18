@@ -36,7 +36,7 @@ steps:
       - '--timeout'
       - '3600'
       - '--set-env-vars'
-      - 'NODE_ENV=production'
+      - 'NODE_ENV=production,GOOGLE_CLOUD_PROJECT=$PROJECT_ID,ENABLE_CLOUD_FIRESTORE=true'
 
 substitutions:
   _REGION: us-central1
