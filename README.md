@@ -123,6 +123,41 @@ sequenceDiagram
     Server->>GenAI: generateContentStream (Deducts from Collaborator's 25k Quota)
 ```
 
+### Multi-Agent Workforce & Cowork Execution Flow
+
+```mermaid
+flowchart TD
+    User["👤 User / Team Prompt\n(Robina, Hasnain & Collaborators)"] --> Space["📁 Space → Session → Task\n(Shared Context, Memory & Multi-User History)"]
+    Space --> Compress["⚡ Context Compression Sub-Agent\n(gemini-3.5-flash-lite Condenses Team Banter)"]
+    Compress --> Mode{"Cowork Mode"}
+
+    Mode -->|Single Agent| Single["🤖 Single Agent\n(gemini-3.8-flash Fast Direct Execution)"]
+    Mode -->|Multi-Agent Workforce| Planner["🧠 Task Planner Agent\n(Deconstructs Prompt into Parallel Sub-Tasks)"]
+
+    Planner --> Coordinator["🎯 CoThread ADK Coordinator Agent\n(gemini-4-argon Routes Sub-Tasks, Roles & Host Quota)"]
+
+    Coordinator --> W1["💻 Developer & Code Worker\n(TypeScript / Cloud Run / APIs)"]
+    Coordinator --> W2["🏗️ Architecture Worker\n(System Topology & Mermaid Decks)"]
+    Coordinator --> W3["📄 Document & Spec Worker\n(Markdown / PRDs / Data Tables)"]
+
+    Single --> Tools["🔌 Execution & MCP Layer\n(Gemini Interactions API, Cloud Firestore, BroadcastChannel, BYOK)"]
+    W1 & W2 & W3 --> Tools
+
+    Tools --> HITL["🛡️ Quota & Governance Gate\n(Host-Sponsored Quota Ledger • Public 1-Click Personal Fork)"]
+    HITL --> Output["✅ Finished Artifacts & Synchronized Shared Session History"]
+```
+
+---
+
+## 3.5. Real-World Team Use Cases
+
+| Use Case | Category | How Teams Run It on CoThread | Output Artifacts |
+| :--- | :--- | :--- | :--- |
+| **1. Multiplayer System Architecture & Cloud Run Design** | `Developer` | Lead Architect (`Robina`) starts a shared thread on `gemini-4-argon` and shares the invite link with Co-Builder (`Hasnain`). Both prompt in the same context to design microservices, Firestore rules, and deployment pipelines. | `system_architecture.mmd`, `cloudbuild.yaml`, `firestore.rules` |
+| **2. Live Incident Triage & Root-Cause Debugging** | `Developer` | On-call SREs join one shared `/s/cothread-...` room, paste stack traces and latency logs together, and watch the Coordinator + Developer Worker isolate the bug in real time without Slack screenshot spam. | `incident_rca_report.md`, `hotfix_patch.ts` |
+| **3. Product Launch PRD & Competitive Market Brief** | `Product & Strategy` | Product Manager, Designer, and Engineering Lead co-prompt in one room to synthesize Q4 competitor positioning, pricing tables, and launch messaging while `gemini-3.5-flash-lite` compresses side banter. | `q4_positioning_memo.md`, `pricing_teardown.csv` |
+| **4. Open-Source / Workshop Template Sharing (1-Click Fork)** | `Education & Community` | Host publishes a **Public Copy-to-Chat** link for a workshop or starter template. Attendees inspect the full multi-turn prompt history and click **Copy to Chat** to continue independently on their own quota. | Forkable multi-turn session + starter code bundle |
+
 ---
 
 ## 4. Full Google Cloud Tech Stack

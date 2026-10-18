@@ -1489,6 +1489,41 @@
       });
     });
 
+    // Use Case Category Filter Tabs (All / Developer / Product / Enterprise)
+    document.querySelectorAll('[data-uc-filter]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const filter = btn.getAttribute('data-uc-filter') || 'all';
+        document.querySelectorAll('[data-uc-filter]').forEach((b) => {
+          b.classList.toggle('active', b.getAttribute('data-uc-filter') === filter);
+        });
+        document.querySelectorAll('.usecase-card').forEach((card) => {
+          const cat = card.getAttribute('data-uc-category');
+          const show = filter === 'all' || cat === filter;
+          card.classList.toggle('hidden', !show);
+        });
+      });
+    });
+
+    // 1-Click "Run in Shared Chat" on Use Case Cards
+    document.querySelectorAll('[data-usecase-prompt]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const promptText = btn.getAttribute('data-usecase-prompt') || '';
+        if (!currentUserId || !state.accounts[currentUserId]) {
+          setTabUser('hasnain');
+        }
+        const uid = currentUserId || 'hasnain';
+        const pane = ensurePaneStateForUser(uid);
+        pane.draftText = promptText;
+        navigateTo('chat');
+        if (promptText) {
+          setTimeout(() => {
+            const activeSid = ensurePaneStateForUser(uid).activeSessionId;
+            handleSendMessage(uid, activeSid, promptText);
+          }, 120);
+        }
+      });
+    });
+
     // Chat Header Return to Website
     document.getElementById('backToWebsiteBtn')?.addEventListener('click', () => navigateTo('home'));
 

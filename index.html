@@ -4,11 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>CoThread &#x2014; Collaborative AI Platform</title>
-  <link rel="icon" type="image/svg+xml" href="./public/logo.svg?v=ct29" />
+  <link rel="icon" type="image/svg+xml" href="./public/logo.svg?v=ct30" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="./public/styles.css?v=ct29" />
+  <link rel="stylesheet" href="./public/styles.css?v=ct30" />
 </head>
 <body>
 
@@ -20,7 +20,7 @@
     <header class="cothread-navbar">
       <div class="cothread-nav-left">
         <a href="#" class="cothread-brand-link" id="navBrandLogo" aria-label="CoThread Home">
-          <img src="./public/logo.svg?v=ct29" class="cothread-logo-coin" width="44" height="44" alt="CoThread Logo" />
+          <img src="./public/logo.svg?v=ct30" class="cothread-logo-coin" width="44" height="44" alt="CoThread Logo" />
           <span class="cothread-wordmark">CoThread</span>
         </a>
       </div>
@@ -28,6 +28,7 @@
       <nav class="cothread-nav-links" aria-label="Primary Navigation">
         <a href="#capabilitiesSection" class="cothread-nav-pill active">Platform</a>
         <a href="#architectureSection" class="cothread-nav-pill">Architecture</a>
+        <a href="#useCasesSection" class="cothread-nav-pill">Use Cases</a>
         <a href="#cothreadWaySection" class="cothread-nav-pill">How It Works</a>
         <a href="#pricingSection" class="cothread-nav-pill">Plans</a>
         <a href="#teamSection" class="cothread-nav-pill">Team</a>
@@ -50,7 +51,7 @@
     <section class="cothread-hero-section" id="heroSection">
       <div class="cothread-hero-center">
         <div class="hero-brand-emblem-wrap">
-          <img src="./public/logo.svg?v=ct29" width="86" height="86" alt="CoThread Coin Logo" class="hero-center-logo-img" />
+          <img src="./public/logo.svg?v=ct30" width="86" height="86" alt="CoThread Coin Logo" class="hero-center-logo-img" />
           <div class="hero-brand-pill">
             <span class="hero-brand-name">CoThread</span>
           </div>
@@ -226,70 +227,101 @@
 
             <!-- Center Column: Interactive Visual Diagram Canvas -->
             <div class="edw-center-canvas">
-              <!-- TAB 01: Multi-Agent Workforce Architecture Diagram -->
+              <!-- TAB 01: Multi-Agent Workforce Architecture Diagram (Mermaid Flowchart Visual) -->
               <div class="edw-tab-pane active" id="archPane_workforce">
-                <div class="arch-flow-diagram">
-                  <!-- Row 1: Multi-User Input -->
-                  <div class="arch-node-row">
-                    <div class="arch-node user-node">
-                      <span class="arch-badge pink">HOST</span>
-                      <strong>Robina / Alex</strong>
-                      <small>Sponsors Session Quota</small>
+                <div class="mermaid-visual-tree">
+                  <!-- Node 1: User / Team Prompt -->
+                  <div class="mvt-node mvt-top-node">
+                    <span class="arch-badge pink">INPUT</span>
+                    <strong>&#x1F464; User / Team Prompt (Robina, Hasnain &amp; Collaborators)</strong>
+                  </div>
+
+                  <div class="mvt-arrow">&#x2193;</div>
+
+                  <!-- Node 2: Space -> Session -> Task -->
+                  <div class="mvt-node mvt-space-node">
+                    <span class="arch-badge yellow">WORKSPACE</span>
+                    <strong>&#x1F4C1; Space &rarr; Session &rarr; Task</strong>
+                    <small>(Shared Context, Memory, Flash-Lite Compression &amp; Live Presence)</small>
+                  </div>
+
+                  <div class="mvt-arrow">&#x2193;</div>
+
+                  <!-- Node 3: Cowork Mode Decision Diamond + Branches -->
+                  <div class="mvt-decision-pill">
+                    <span>&#x2726; Cowork Mode Router</span>
+                  </div>
+
+                  <div class="mvt-branch-grid">
+                    <!-- Left Branch: Single Agent -->
+                    <div class="mvt-branch-col">
+                      <span class="mvt-branch-label">Single Agent</span>
+                      <div class="mvt-node mvt-single-node">
+                        <span class="arch-badge teal">FAST DIRECT</span>
+                        <strong>&#x1F916; Single Agent</strong>
+                        <small>(<code>gemini-3.8-flash</code> Direct Execution)</small>
+                      </div>
                     </div>
-                    <div class="arch-node user-node">
-                      <span class="arch-badge yellow">CO-BUILDER</span>
-                      <strong>Muhammad Hasnain</strong>
-                      <small>Prompts in Same Thread</small>
-                    </div>
-                    <div class="arch-node user-node">
-                      <span class="arch-badge teal">COLLABORATOR</span>
-                      <strong>Sarah Chen</strong>
-                      <small>Live Presence &amp; Review</small>
+
+                    <!-- Right Branch: Multi-Agent Workforce -->
+                    <div class="mvt-branch-col">
+                      <span class="mvt-branch-label">Multi-Agent Workforce</span>
+                      <div class="mvt-node mvt-planner-node">
+                        <span class="arch-badge pink">STRATEGY LEAD</span>
+                        <strong>&#x1F9E0; Task Planner Agent</strong>
+                        <small>(Deconstructs Prompt into Sub-Tasks)</small>
+                      </div>
+                      <div class="mvt-arrow sm">&#x2193;</div>
+                      <div class="mvt-node mvt-coord-node">
+                        <span class="arch-badge black">COORDINATOR</span>
+                        <strong>&#x1F3AF; Coordinator Agent (<code>gemini-4-argon</code>)</strong>
+                        <small>(Routes Sub-Tasks, Manages Roles &amp; Token Budget)</small>
+                      </div>
                     </div>
                   </div>
 
-                  <div class="arch-connector-down">&#x2193; Real-Time BroadcastChannel + Cloud Firestore Sync &#x2193;</div>
+                  <div class="mvt-arrow">&#x2193; Parallel Worker Nodes &#x2193;</div>
 
-                  <!-- Row 2: Space -> Session -> Task & Flash-Lite Compressor -->
-                  <div class="arch-node wide-node compressor-node">
-                    <div class="arch-node-top">
-                      <span class="arch-badge black">STEP 1 &bull; CONTEXT &amp; COMPRESSION LAYER</span>
-                      <span class="arch-model-tag">gemini-3.5-flash-lite</span>
-                    </div>
-                    <h4>Multi-Participant Context Engine &amp; Banter Compressor</h4>
-                    <p>Tags every turn with <code>[Host]</code> vs <code>[Collaborator]</code>, condenses human-to-human chat banter, and saves 35-55% of Host token quota.</p>
-                  </div>
-
-                  <div class="arch-connector-down">&#x2193; Stateful <code>previous_interaction_id</code> Turn Routing &#x2193;</div>
-
-                  <!-- Row 3: Coordinator Agent -->
-                  <div class="arch-node wide-node coordinator-node">
-                    <div class="arch-node-top">
-                      <span class="arch-badge pink">STEP 2 &bull; TASK PLANNER &amp; COORDINATOR AGENT</span>
-                      <span class="arch-model-tag">gemini-4-argon / gemini-3.8-flash</span>
-                    </div>
-                    <h4>CoThread ADK Coordinator (`interactions.create`)</h4>
-                    <p>Deconstructs team prompts into parallel sub-tasks and routes to specialized worker nodes with 4.5s timeout protection.</p>
-                  </div>
-
-                  <div class="arch-connector-down">&#x2193; Parallel Worker Execution &#x2193;</div>
-
-                  <!-- Row 4: Worker Nodes -->
+                  <!-- Row 4: 3 Worker Nodes -->
                   <div class="arch-node-row">
                     <div class="arch-node worker-node">
                       <span class="arch-badge yellow">WORKER 01</span>
-                      <strong>Architecture Worker</strong>
-                      <small>System Topology &amp; Decks</small>
+                      <strong>&#x1F4BB; Developer Worker</strong>
+                      <small>(Code, TypeScript &amp; Cloud Run)</small>
                     </div>
                     <div class="arch-node worker-node">
                       <span class="arch-badge teal">WORKER 02</span>
-                      <strong>Code &amp; Canvas Worker</strong>
-                      <small>TypeScript / Cloud Run Modules</small>
+                      <strong>&#x1F310; Architecture Worker</strong>
+                      <small>(System Topology &amp; Mermaid Decks)</small>
                     </div>
                     <div class="arch-node worker-node">
                       <span class="arch-badge pink">WORKER 03</span>
-                      <strong>Quota &amp; Fork Worker</strong>
-                      <small>Host Ledger &amp; Public Copy</small>
+                      <strong>&#x1F4C4; Document Worker</strong>
+                      <small>(Markdown / CSV / PRDs)</small>
+                    </div>
+                  </div>
+
+                  <div class="mvt-arrow">&#x2193;</div>
+
+                  <!-- Row 5: Execution & MCP Layer -->
+                  <div class="mvt-node mvt-mcp-node">
+                    <span class="arch-badge black">EXECUTION &amp; MCP LAYER</span>
+                    <strong>&#x1F50C; Gemini Interactions API &bull; Cloud Firestore &bull; BroadcastChannel &bull; BYOK / Cloud Models</strong>
+                  </div>
+
+                  <div class="mvt-arrow">&#x2193;</div>
+
+                  <!-- Row 6: HITL & Output -->
+                  <div class="mvt-bottom-duo">
+                    <div class="mvt-node mvt-hitl-node">
+                      <span class="arch-badge yellow">GOVERNANCE &amp; HITL</span>
+                      <strong>&#x1F6E1;&#xFE0F; Human-in-the-Loop &amp; Quota Gate</strong>
+                      <small>(Trajectory Inspection, Host Quota Cap &amp; 1-Click Fork)</small>
+                    </div>
+                    <div class="mvt-node mvt-out-node">
+                      <span class="arch-badge teal">DELIVERABLE</span>
+                      <strong>&#x2705; Finished Artifacts &amp; Shared History</strong>
+                      <small>(Synchronized across all teammates in real time)</small>
                     </div>
                   </div>
                 </div>
@@ -400,6 +432,167 @@
               </button>
             </aside>
           </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Use Cases Section (Modeled on Eigent.ai "Automations that drive real outcomes") -->
+    <section class="use-cases-section" id="useCasesSection">
+      <div class="section-container">
+        <div class="section-header-editorial center">
+          <span class="cothread-section-kicker">USE CASES</span>
+          <h2 class="cothread-center-heading">Collaborative workflows that drive real outcomes</h2>
+          <p class="section-lead">
+            Real multi-person tasks handled start to finish by your Gemini workforce &mdash; click any use case to launch it live in CoThread Chat.
+          </p>
+        </div>
+
+        <!-- Category Filter Tabs -->
+        <div class="usecase-filter-bar" role="tablist" aria-label="Use Case Categories">
+          <button type="button" class="uc-filter-btn active" data-uc-filter="all">All</button>
+          <button type="button" class="uc-filter-btn" data-uc-filter="developer">Developer</button>
+          <button type="button" class="uc-filter-btn" data-uc-filter="product">Product &amp; Strategy</button>
+          <button type="button" class="uc-filter-btn" data-uc-filter="enterprise">Enterprise &amp; Ops</button>
+        </div>
+
+        <div class="usecases-grid" id="useCasesGrid">
+          <!-- Use Case 1 -->
+          <article class="usecase-card" data-uc-category="developer">
+            <div class="ucc-top">
+              <span class="ucc-cat-pill pink">Developer</span>
+              <span class="ucc-model-tag">Gemini 4 Argon</span>
+            </div>
+            <h3>Multiplayer Cloud Run &amp; Firestore Architecture Design</h3>
+            <p>
+              Architect &amp; Co-Builder co-prompt in one shared room to generate system topology diagrams, Cloud Firestore security rules, and production TypeScript handlers.
+            </p>
+            <div class="ucc-artifacts">
+              <span>&#x1F4C4; system_architecture.mmd</span>
+              <span>&#x1F4BB; cloud_run_handler.ts</span>
+            </div>
+            <button
+              type="button"
+              class="ucc-launch-btn"
+              data-usecase-prompt="Could you please add the system architecture diagram for our presentation and Cloud Run deployment spec?"
+            >
+              Run in Shared Chat &#x2192;
+            </button>
+          </article>
+
+          <!-- Use Case 2 -->
+          <article class="usecase-card" data-uc-category="developer">
+            <div class="ucc-top">
+              <span class="ucc-cat-pill yellow">Developer</span>
+              <span class="ucc-model-tag">Gemini 4 Argon</span>
+            </div>
+            <h3>Live SRE Incident Triage &amp; Root-Cause Patch</h3>
+            <p>
+              Two engineers paste stack traces and latency logs into one shared thread. The Coordinator &amp; Developer Worker isolate the bug and emit a verified patch without Slack screenshot spam.
+            </p>
+            <div class="ucc-artifacts">
+              <span>&#x1F4C4; incident_rca_brief.md</span>
+              <span>&#x1F4BB; hotfix_patch.ts</span>
+            </div>
+            <button
+              type="button"
+              class="ucc-launch-btn"
+              data-usecase-prompt="Triage our multi-tab state sync latency and generate a deterministic TypeScript patch with error recovery."
+            >
+              Run in Shared Chat &#x2192;
+            </button>
+          </article>
+
+          <!-- Use Case 3 -->
+          <article class="usecase-card" data-uc-category="product">
+            <div class="ucc-top">
+              <span class="ucc-cat-pill teal">Product &amp; Strategy</span>
+              <span class="ucc-model-tag">Gemini 3.8 Flash</span>
+            </div>
+            <h3>Map the Q4 AI Agent Market &amp; Competitor Teardown</h3>
+            <p>
+              Product Lead and Designer co-author a positioning memo comparing multi-agent workforce platforms, pricing tiers, and feature matrices in real time.
+            </p>
+            <div class="ucc-artifacts">
+              <span>&#x1F4C4; ai_agent_market_q4.md</span>
+              <span>&#x1F4CA; pricing_teardown.csv</span>
+            </div>
+            <button
+              type="button"
+              class="ucc-launch-btn"
+              data-usecase-prompt="Map the Q4 collaborative AI agent market and write a positioning brief with architecture comparison."
+            >
+              Run in Shared Chat &#x2192;
+            </button>
+          </article>
+
+          <!-- Use Case 4 -->
+          <article class="usecase-card" data-uc-category="product">
+            <div class="ucc-top">
+              <span class="ucc-cat-pill pink">Product &amp; Strategy</span>
+              <span class="ucc-model-tag">3.5 Flash-Lite + 3.8 Flash</span>
+            </div>
+            <h3>Sprint Retro &amp; PRD Synthesis with Banter Compression</h3>
+            <p>
+              Teammates brainstorm freely in the shared thread while <code>gemini-3.5-flash-lite</code> condenses human banter and turns action items into a clean PRD.
+            </p>
+            <div class="ucc-artifacts">
+              <span>&#x1F4C4; sprint_prd_spec.md</span>
+              <span>&#x26A1; 52% Tokens Saved</span>
+            </div>
+            <button
+              type="button"
+              class="ucc-launch-btn"
+              data-usecase-prompt="Summarize our team sprint priorities and generate a structured PRD with technical milestones."
+            >
+              Run in Shared Chat &#x2192;
+            </button>
+          </article>
+
+          <!-- Use Case 5 -->
+          <article class="usecase-card" data-uc-category="enterprise">
+            <div class="ucc-top">
+              <span class="ucc-cat-pill yellow">Enterprise &amp; Ops</span>
+              <span class="ucc-model-tag">Host Quota / BYOK</span>
+            </div>
+            <h3>Host-Sponsored Cross-Team Architecture Review</h3>
+            <p>
+              An Enterprise/Pro Host invites Starter-tier teammates via a private invite link so everyone can co-prompt <code>Gemini 4 Argon</code> on the Host&rsquo;s sponsored token budget.
+            </p>
+            <div class="ucc-artifacts">
+              <span>&#x1F512; Private Invite Link</span>
+              <span>&#x1F6E1;&#xFE0F; Host Token Ledger</span>
+            </div>
+            <button
+              type="button"
+              class="ucc-launch-btn"
+              data-usecase-prompt="Design an enterprise multi-participant governance and Host-sponsored token quota architecture."
+            >
+              Run in Shared Chat &#x2192;
+            </button>
+          </article>
+
+          <!-- Use Case 6 -->
+          <article class="usecase-card" data-uc-category="enterprise">
+            <div class="ucc-top">
+              <span class="ucc-cat-pill teal">Enterprise &amp; Ops</span>
+              <span class="ucc-model-tag">1-Click Public Fork</span>
+            </div>
+            <h3>Publish Interactive AI Playbooks (`Copy to My Chat`)</h3>
+            <p>
+              Share a public CoThread link for onboarding or hackathons. Viewers inspect the full agent trajectory and fork an independent copy into their own workspace in 1 click.
+            </p>
+            <div class="ucc-artifacts">
+              <span>&#x1F310; Public Copy Link</span>
+              <span>&#x1F4C4; starter_playbook.ts</span>
+            </div>
+            <button
+              type="button"
+              class="ucc-launch-btn"
+              data-usecase-prompt="Create a reusable onboarding playbook and starter TypeScript template for our engineering team."
+            >
+              Run in Shared Chat &#x2192;
+            </button>
+          </article>
         </div>
       </div>
     </section>
@@ -643,7 +836,7 @@
       <div class="footer-inner">
         <div class="footer-brand-col">
           <div class="brand-wordmark-link" style="display:flex;align-items:center;gap:10px;">
-            <img src="./public/logo.svg?v=ct29" width="36" height="36" alt="CoThread Logo" />
+            <img src="./public/logo.svg?v=ct30" width="36" height="36" alt="CoThread Logo" />
             <span class="wordmark-serif">CoThread</span>
           </div>
           <div class="footer-copy footer-credit-text">
@@ -669,7 +862,7 @@
     <div class="auth-portal-card">
       <div class="auth-portal-header">
         <button type="button" class="auth-back-home-btn" id="authBackHomeBtn" title="Back to Homepage">&larr; Back to Home</button>
-        <img src="./public/logo.svg?v=ct29" width="56" height="56" alt="CoThread Logo" class="auth-logo" />
+        <img src="./public/logo.svg?v=ct30" width="56" height="56" alt="CoThread Logo" class="auth-logo" />
         <h1 class="auth-title">CoThread</h1>
         <p class="auth-subtitle">Real-time collaborative AI chat</p>
       </div>
@@ -759,7 +952,7 @@
         </button>
 
         <button type="button" class="back-to-site-brand" id="backToWebsiteBtn" title="Return to Company Website">
-          <img src="./public/logo.svg?v=ct29" width="30" height="30" alt="CoThread Logo" />
+          <img src="./public/logo.svg?v=ct30" width="30" height="30" alt="CoThread Logo" />
           <span class="wordmark-serif sm">CoThread</span>
         </button>
 
@@ -903,8 +1096,8 @@
 
   <div class="toast-container" id="toastContainer" aria-live="polite"></div>
 
-  <script src="./src/core/quota-engine.js?v=ct29"></script>
-  <script src="./src/ai/gemini-service.js?v=ct29"></script>
-  <script src="./public/app.js?v=ct29"></script>
+  <script src="./src/core/quota-engine.js?v=ct30"></script>
+  <script src="./src/ai/gemini-service.js?v=ct30"></script>
+  <script src="./public/app.js?v=ct30"></script>
 </body>
 </html>
