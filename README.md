@@ -165,13 +165,13 @@ flowchart TD
 
 | Layer | Technology | Files & Purpose |
 | :--- | :--- | :--- |
-| **Database & Rules** | **Cloud Firestore** (`@google-cloud/firestore`) | [`src/db/firestore-db.js`](./src/db/firestore-db.js), [`firestore.rules`](./firestore.rules), [`firestore.indexes.json`](./firestore.indexes.json) — Transactional Host & Personal Token Quota ledger (`users`, `sessions`, `quota_ledger`) |
+| **Database & Rules** | **Cloud Firestore** (`@google-cloud/firestore`) | [`src/db/firestore-db.js`](./src/db/firestore-db.js), [`firestore.rules`](./firestore.rules), [`firestore.indexes.json`](./firestore.indexes.json) — Persists 3 Cloud Firestore collections (`users`, `chat_history`, `user_settings`) with real-time `/api/db/bootstrap` + SSE `/api/events` cross-device synchronization |
 | **Multi-Agent Orchestration** | **Google Agent Development Kit (ADK)** | [`src/adk/cothread-adk-agent.js`](./src/adk/cothread-adk-agent.js) — `CoThreadADKOrchestrator` with `ContextCompressionSubAgent` (`gemini-3.5-flash-lite`), `QuotaGuardTool`, and `CollaborativeArchitectSubAgent` (`gemini-3.8-flash` / `gemini-4-argon`) |
 | **Model Context Protocol** | **CoThread MCP Server (JSON-RPC 2.0)** | [`src/mcp/cothread-mcp-server.js`](./src/mcp/cothread-mcp-server.js) — Exposes 5 MCP tools (`cothread_list_sessions`, `cothread_check_quota`, `cothread_create_shared_session`, `cothread_prompt_adk_agent`, `cothread_fork_to_personal`) over `POST /api/mcp` and `--stdio` |
-| **Cloud IDE & Hosting** | **Firebase Studio (`.idx`) + Firebase Hosting** | [`.idx/dev.nix`](./.idx/dev.nix), [`.idx/mcp.json`](./.idx/mcp.json), [`firebase.json`](./firebase.json) — Zero-config Firebase Studio workspace with automatic MCP server registration and Cloud Run rewrites |
-| **AI SDK & Models** | **Official `@google/genai` SDK** | [`src/ai/gemini-service.js`](./src/ai/gemini-service.js) — Server-managed `gemini-3.8-flash`, `gemini-4-argon`, and `gemini-3.5-flash-lite` |
+| **Cloud IDE & Hosting** | **Firebase Studio (`.idx`) + Firebase Hosting** | [`.idx/dev.nix`](./.idx/dev.nix), [`.idx/mcp.json`](./.idx/mcp.json), [`firebase.json`](./firebase.json), [`.firebaserc`](./.firebaserc) — Zero-config Firebase Studio workspace with automatic MCP server registration and Cloud Run rewrites |
+| **AI SDK & Models** | **Vertex AI + Official `@google/genai` SDK** | [`src/ai/gemini-service.js`](./src/ai/gemini-service.js), [`server.js`](./server.js) (`/api/ai/generate`) — Supports Vertex AI (`aiplatform.googleapis.com`), Cloud Run Service Account ADC, and `@google/genai` (`gemini-3.8-flash`, `gemini-4-argon`, `gemini-3.5-flash-lite`) |
 | **All-Device UI/UX** | **Responsive Neo-Brutalist Web App** | [`public/index.html`](./public/index.html), [`public/styles.css`](./public/styles.css), [`public/app.js`](./public/app.js), [`public/logo.svg`](./public/logo.svg) — Compatible across phones (`320px+` slide-over drawers, `100dvh`, `viewport-fit=cover`), tablets, laptops, and 4K displays |
-| **Cloud Compute** | **Google Cloud Run** + **Cloud Build** | [`Dockerfile`](./Dockerfile), [`cloudbuild.yaml`](./cloudbuild.yaml), [`server.js`](./server.js) — Serverless container deployment on port `8080` |
+| **Cloud Compute** | **Google Cloud Run** + **Cloud Build** | [`Dockerfile`](./Dockerfile), [`cloudbuild.yaml`](./cloudbuild.yaml), [`server.js`](./server.js) — Serverless container deployment on port `8080` (`https://cothread-139462646886.us-central1.run.app/`) |
 
 ---
 
@@ -179,7 +179,7 @@ flowchart TD
 
 ### Prerequisites
 - **Node.js 22+** and `npm` (or open directly in **Firebase Studio** via [`.idx/dev.nix`](./.idx/dev.nix))
-- A **Google Gemini API Key** (`GEMINI_API_KEY`) configured once on the backend server (end users never touch API keys)
+- A **Google Gemini / Vertex AI API Key** (`GEMINI_API_KEY`) or Google Cloud Application Default Credentials
 
 ### Step 1: Install Dependencies
 ```bash
@@ -190,7 +190,7 @@ npm install
 Create a `.env` file in the root directory (or export variables in your shell):
 ```env
 GEMINI_API_KEY=your_master_platform_gemini_api_key_here
-GOOGLE_CLOUD_PROJECT=your_gcp_project_id
+GOOGLE_CLOUD_PROJECT=gen-lang-client-0234999945
 PORT=8080
 ```
 
@@ -198,24 +198,23 @@ PORT=8080
 ```bash
 npm start
 ```
-Open **`http://localhost:8080`**. Sign in with **Continue with Google** or **Work Email** to provision your Firestore user profile (`users/{uid}`) and launch a live **Shared Session (`/s/cothread-...`)** or **Personal Thread (`/app`)**. Click the **`☁️ Google Stack (Firestore • ADK • MCP)`** badge in the top bar at any time to inspect live Firestore documents, ADK agent traces, and run JSON-RPC 2.0 MCP tools.
+Open **`http://localhost:8080`**. Sign in with **Continue with Google** or **Work Email** to provision your Firestore user profile (`users/{uid}`), per-user preferences (`user_settings/{uid}`), and launch a live **Shared Session (`/s/cothread-...`)** or **Personal Thread (`chat_history/{sessionId}`)**.
 
 ---
 
-## 6. Deploying to Google Cloud Run & Firebase Hosting
+## 6. Deploying to Google Cloud Run & Cloud Firestore
 
-CoThread includes production-ready [`Dockerfile`](./Dockerfile), [`cloudbuild.yaml`](./cloudbuild.yaml), [`firebase.json`](./firebase.json), and [`firestore.rules`](./firestore.rules) manifests.
+CoThread includes production-ready [`Dockerfile`](./Dockerfile), [`cloudbuild.yaml`](./cloudbuild.yaml), [`firebase.json`](./firebase.json), [`.firebaserc`](./.firebaserc), and [`firestore.rules`](./firestore.rules) manifests.
 
-### Option A: One-Command Direct Deployment via `gcloud`
+### Option A: One-Command Direct Deployment via Google Cloud Shell (`gcloud`)
 ```bash
+cd ~/CoThread && git pull origin main && \
+gcloud services enable run.googleapis.com firestore.googleapis.com aiplatform.googleapis.com --project=gen-lang-client-0234999945 && \
 gcloud run deploy cothread \
   --source . \
+  --project gen-lang-client-0234999945 \
   --region us-central1 \
-  --platform managed \
-  --allow-unauthenticated \
-  --session-affinity \
-  --port 8080 \
-  --set-env-vars="GEMINI_API_KEY=YOUR_MASTER_GEMINI_API_KEY,NODE_ENV=production"
+  --allow-unauthenticated
 ```
 
 ### Option B: Automated CI/CD via Google Cloud Build
