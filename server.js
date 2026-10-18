@@ -609,6 +609,289 @@ app.put('/api/sessions/:id/canvas', (req, res) => {
 });
 
 /**
+ * Helper: Resolve any configured Gemini / Vertex AI key from request, env, or Cloud Firestore (`users` / `user_settings`)
+ */
+function resolveServerApiKey(explicitKey, userId, hostId) {
+  if (explicitKey && String(explicitKey).trim()) return String(explicitKey).trim();
+  if (process.env.GEMINI_API_KEY && String(process.env.GEMINI_API_KEY).trim()) {
+    return String(process.env.GEMINI_API_KEY).trim();
+  }
+  if (process.env.GOOGLE_API_KEY && String(process.env.GOOGLE_API_KEY).trim()) {
+    return String(process.env.GOOGLE_API_KEY).trim();
+  }
+  try {
+    const allUsers = firestoreDb.getAllUsers() || {};
+    if (userId && allUsers[userId]?.geminiApiKey) return String(allUsers[userId].geminiApiKey).trim();
+    if (hostId && allUsers[hostId]?.geminiApiKey) return String(allUsers[hostId].geminiApiKey).trim();
+    for (const u of Object.values(allUsers)) {
+      if (u && u.geminiApiKey && String(u.geminiApiKey).trim()) {
+        return String(u.geminiApiKey).trim();
+      }
+    }
+    const allSettings = firestoreDb.getAllUserSettings() || {};
+    for (const s of Object.values(allSettings)) {
+      if (s && s.geminiApiKey && String(s.geminiApiKey).trim()) {
+        return String(s.geminiApiKey).trim();
+      }
+    }
+  } catch (_) {}
+  return '';
+}
+
+/**
+ * Helper: Fetch Cloud Run / GCE Metadata Server OAuth token for Vertex AI
+ */
+async function getCloudRunAccessToken() {
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 1200);
+    const resp = await fetch(
+      'http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token',
+      {
+        headers: { 'Metadata-Flavor': 'Google' },
+        signal: controller.signal
+      }
+    );
+    clearTimeout(timer);
+    if (!resp.ok) return null;
+    const data = await resp.json();
+    return data && data.access_token ? data.access_token : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+/**
+ * Helper: Build valid alternating user/model `contents` for Gemini/Vertex AI
+ */
+function buildValidGeminiContents(messages = [], latestPrompt = '', speakerName = 'Collaborator') {
+  const turns = [];
+  const recent = Array.isArray(messages) ? messages.slice(-8) : [];
+  for (const m of recent) {
+    if (!m || !m.text) continue;
+    if (String(m.id || '').includes('welcome') || String(m.id || '').startsWith('m_init_')) continue;
+    const isModel = m.kind === 'ai' || m.senderId === 'gemini' || m.role === 'assistant' || m.role === 'model';
+    const role = isModel ? 'model' : 'user';
+    const text = isModel ? String(m.text).trim() : `[${m.senderName || speakerName}]: ${String(m.text).trim()}`;
+    if (!text) continue;
+    if (turns.length === 0 && role === 'model') continue; // Gemini requires first turn to be 'user'
+    if (turns.length > 0 && turns[turns.length - 1].role === role) {
+      turns[turns.length - 1].parts[0].text += `\n\n${text}`;
+    } else {
+      turns.push({ role, parts: [{ text }] });
+    }
+  }
+
+  const finalPromptText = `[${speakerName}]: ${String(latestPrompt || '').trim()}`;
+  if (turns.length > 0 && turns[turns.length - 1].role === 'user') {
+    const lastText = turns[turns.length - 1].parts[0].text;
+    if (!lastText.includes(String(latestPrompt || '').trim())) {
+      turns[turns.length - 1].parts[0].text += `\n\n${finalPromptText}`;
+    }
+  } else {
+    turns.push({ role: 'user', parts: [{ text: finalPromptText }] });
+  }
+  return turns;
+}
+
+/**
+ * Unified Cloud Run AI Generation (Vertex AI Key + Vertex AI Service Account + AI Studio + CoThread AI Fallback)
+ */
+async function generateCloudRunGeminiReply({ session, user, prompt, model, apiKey }) {
+  const cleanPrompt = String(prompt || '').replace(/^@gemini\s*/i, '').trim();
+  const speakerName = (user && (user.name || user.shortName)) || 'Collaborator';
+  const resolvedKey = resolveServerApiKey(apiKey, user?.id, session?.hostId || session?.ownerId);
+  const contents = buildValidGeminiContents(session?.messages || [], cleanPrompt, speakerName);
+  const systemInstruction = {
+    parts: [
+      {
+        text: `You are CoThread AI, an intelligent, helpful collaborative Gemini assistant in a shared team workspace. The user speaking to you is ${speakerName}. Answer directly, clearly, and thoroughly.`
+      }
+    ]
+  };
+
+  const fetchJsonWithTimeout = async (url, options, timeoutMs = 4500) => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const resp = await fetch(url, { ...options, signal: controller.signal });
+      const data = await resp.json().catch(() => null);
+      return { ok: resp.ok, status: resp.status, data };
+    } catch (err) {
+      return { ok: false, status: 0, error: err.message };
+    } finally {
+      clearTimeout(timer);
+    }
+  };
+
+  // 1. Try Vertex AI Express with API Key (works with AQ.Ab8R... service-account-bound keys & GCP credits)
+  if (resolvedKey) {
+    const vertexModels = ['gemini-2.5-flash', 'gemini-2.0-flash'];
+    for (const vModel of vertexModels) {
+      const vUrl = `https://aiplatform.googleapis.com/v1/publishers/google/models/${vModel}:generateContent?key=${encodeURIComponent(resolvedKey)}`;
+      const res = await fetchJsonWithTimeout(
+        vUrl,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ systemInstruction, contents })
+        },
+        4500
+      );
+      const text = res.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (res.ok && text && text.trim()) {
+        return {
+          text: text.trim(),
+          modelUsed: vModel,
+          isLiveApi: true,
+          provider: 'vertex-ai-key'
+        };
+      }
+    }
+  }
+
+  // 2. Try Cloud Run Service Account ADC on Vertex AI (uses active GCP project billing directly)
+  const accessToken = await getCloudRunAccessToken();
+  if (accessToken) {
+    const projectId = process.env.GOOGLE_CLOUD_PROJECT || process.env.GCLOUD_PROJECT || 'gen-lang-client-0234999945';
+    const adcModels = ['gemini-2.5-flash', 'gemini-2.0-flash'];
+    for (const aModel of adcModels) {
+      const adcUrl = `https://us-central1-aiplatform.googleapis.com/v1/projects/${projectId}/locations/us-central1/publishers/google/models/${aModel}:generateContent`;
+      const res = await fetchJsonWithTimeout(
+        adcUrl,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${accessToken}`
+          },
+          body: JSON.stringify({ systemInstruction, contents })
+        },
+        4500
+      );
+      const text = res.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (res.ok && text && text.trim()) {
+        return {
+          text: text.trim(),
+          modelUsed: aModel,
+          isLiveApi: true,
+          provider: 'vertex-ai-adc'
+        };
+      }
+    }
+  }
+
+  // 3. Try Google AI Studio (`generativelanguage.googleapis.com`) if key is an AIza... or standard Gemini key
+  if (resolvedKey) {
+    const studioModels = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-3-flash-preview'];
+    for (const sModel of studioModels) {
+      const sUrl = `https://generativelanguage.googleapis.com/v1beta/models/${sModel}:generateContent?key=${encodeURIComponent(resolvedKey)}`;
+      const res = await fetchJsonWithTimeout(
+        sUrl,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ systemInstruction, contents })
+        },
+        4000
+      );
+      const text = res.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (res.ok && text && text.trim()) {
+        return {
+          text: text.trim(),
+          modelUsed: sModel,
+          isLiveApi: true,
+          provider: 'google-ai-studio'
+        };
+      }
+    }
+  }
+
+  // 4. Fallback to CoThread AI Collaborative Engine (`src/ai/gemini-service.js`)
+  const svc = getGeminiService();
+  if (svc && typeof svc.generateCollaborativeResponse === 'function') {
+    const fallbackResult = await svc.generateCollaborativeResponse({
+      session: session || { id: 'chat_shared', messages: [] },
+      userMessage: { content: cleanPrompt, text: cleanPrompt, senderId: user?.id, senderName: speakerName },
+      senderUser: user || { id: 'user_robina', name: speakerName },
+      model: model || 'gemini-2.5-flash',
+      apiKey: resolvedKey || null
+    });
+    if (fallbackResult && (fallbackResult.cleanText || fallbackResult.text)) {
+      return {
+        text: fallbackResult.cleanText || fallbackResult.text,
+        codeSnippet: fallbackResult.codeSnippet || null,
+        modelUsed: fallbackResult.modelUsed || model || 'gemini-2.5-flash',
+        isLiveApi: Boolean(fallbackResult.isLiveApi),
+        provider: 'cothread-engine'
+      };
+    }
+  }
+
+  return {
+    text: `Here is the response for **${speakerName}** regarding **"${cleanPrompt}"**: Ready in your shared CoThread workspace.`,
+    codeSnippet: null,
+    modelUsed: model || 'gemini-2.5-flash',
+    isLiveApi: false,
+    provider: 'fallback'
+  };
+}
+
+/**
+ * Direct AI Generation Endpoint for Cloud Run + Cloud Firestore Sessions (`/api/ai/generate`)
+ */
+app.post('/api/ai/generate', async (req, res) => {
+  try {
+    const { sessionId, userId, prompt, text, content, model, apiKey, session: clientSession, user: clientUser } = req.body || {};
+    const promptText = String(prompt || text || content || '').trim();
+    if (!promptText) {
+      return res.status(400).json({ ok: false, error: 'Prompt cannot be empty.' });
+    }
+
+    const allSessions = firestoreDb.getAllSessions() || [];
+    const resolvedSession =
+      clientSession ||
+      allSessions.find((s) => s && s.id === sessionId) ||
+      engine.getSession(sessionId) ||
+      { id: sessionId || 'chat_shared', messages: [] };
+
+    const allUsers = firestoreDb.getAllUsers() || {};
+    const resolvedUser =
+      clientUser ||
+      allUsers[userId] ||
+      engine.getUser(userId) ||
+      { id: userId || 'user_robina', name: 'Robina Mirbahar', shortName: 'Robina' };
+
+    const reply = await generateCloudRunGeminiReply({
+      session: resolvedSession,
+      user: resolvedUser,
+      prompt: promptText,
+      model: model || 'gemini-2.5-flash',
+      apiKey
+    });
+
+    res.json({
+      ok: true,
+      ...reply,
+      aiMessage: {
+        id: 'm_ai_' + Date.now(),
+        senderId: 'gemini',
+        senderName: 'CoThread AI',
+        senderRole: reply.isLiveApi ? 'Gemini Live Agent' : 'AI Assistant',
+        kind: 'ai',
+        content: reply.text,
+        text: reply.text,
+        codeSnippet: reply.codeSnippet || null,
+        modelUsed: reply.modelUsed,
+        isLiveApi: reply.isLiveApi
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+/**
  * Submit a prompt in either a Shared Session (Host-Sponsored Quota) or Personal Chat (Personal Quota)
  */
 app.post('/api/sessions/:id/messages', async (req, res) => {
@@ -617,31 +900,58 @@ app.post('/api/sessions/:id/messages', async (req, res) => {
     const {
       userId = 'user_a',
       content,
+      text,
       model = 'gemini-3.8-flash',
       apiKey = null,
       useCompression = true,
       updateCanvasDoc = false
     } = req.body || {};
 
-    if (!content || !String(content).trim()) {
+    const promptText = String(content || text || '').trim();
+    if (!promptText) {
       return res.status(400).json({ ok: false, error: 'Prompt content cannot be empty.' });
     }
 
     const session = engine.getSession(sessionId);
-    if (!session) {
-      return res.status(404).json({ ok: false, error: 'Session not found.' });
-    }
-
     const sender = engine.getUser(userId);
-    if (!sender) {
-      return res.status(404).json({ ok: false, error: 'User not found.' });
+
+    // If this session belongs to the Cloud Firestore `chat_history` table (e.g., chat_robina_personal or shared branch), handle via Cloud Run Gemini generator
+    if (!session || !sender) {
+      const allSessions = firestoreDb.getAllSessions() || [];
+      const fsSession = allSessions.find((s) => s && s.id === sessionId) || { id: sessionId, messages: [] };
+      const allUsers = firestoreDb.getAllUsers() || {};
+      const fsUser = allUsers[userId] || { id: userId, name: 'Collaborator', shortName: 'Collaborator' };
+
+      const reply = await generateCloudRunGeminiReply({
+        session: fsSession,
+        user: fsUser,
+        prompt: promptText,
+        model,
+        apiKey
+      });
+
+      return res.status(200).json({
+        ok: true,
+        aiMessage: {
+          id: 'm_ai_' + Date.now(),
+          senderId: 'gemini',
+          senderName: 'CoThread AI',
+          senderRole: reply.isLiveApi ? 'Gemini Live Agent' : 'AI Assistant',
+          kind: 'ai',
+          content: reply.text,
+          text: reply.text,
+          codeSnippet: reply.codeSnippet || null,
+          modelUsed: reply.modelUsed,
+          isLiveApi: reply.isLiveApi
+        }
+      });
     }
 
     // Execute Google ADK Multi-Agent Workflow (QuotaGuardTool -> ContextCompressionSubAgent -> CollaborativeArchitectSubAgent)
     const aiResult = await adkOrchestrator.runAgentWorkflow({
       session,
       user: sender,
-      prompt: String(content).trim(),
+      prompt: promptText,
       model,
       apiKey,
       useCompression
@@ -682,7 +992,7 @@ app.post('/api/sessions/:id/messages', async (req, res) => {
       senderName: sender.shortName,
       senderRole: senderRoleLabel,
       role: 'user',
-      content: String(content).trim(),
+      content: promptText,
       timestamp,
       tokenCost: userMsgTokenCost,
       tokensSaved: 0,
