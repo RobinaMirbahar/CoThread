@@ -240,3 +240,16 @@ gcloud builds submit --config cloudbuild.yaml \
 ## License
 Built for the **Google Cloud AI Builder Cup 2026**. MIT License.
 
+---
+
+## Star, Fork & Sponsor This Project
+
+[![Star on GitHub](https://img.shields.io/github/stars/RobinaMirbahar/CoThread?style=for-the-badge&logo=github&label=Star)](https://github.com/RobinaMirbahar/CoThread)
+[![Fork on GitHub](https://img.shields.io/github/forks/RobinaMirbahar/CoThread?style=for-the-badge&logo=github&label=Fork)](https://github.com/RobinaMirbahar/CoThread/fork)
+[![Sponsor RobinaMirbahar](https://img.shields.io/badge/Sponsor-%40RobinaMirbahar-ea4aaa?style=for-the-badge&logo=githubsponsors)](https://github.com/sponsors/RobinaMirbahar)
+
+If this project is helpful to your work:
+* **Star this Repository:** [**Star `RobinaMirbahar/CoThread` on GitHub**](https://github.com/RobinaMirbahar/CoThread) to bookmark it and help others discover it.
+* **Fork & Customize:** [**Fork `RobinaMirbahar/CoThread`**](https://github.com/RobinaMirbahar/CoThread/fork) to build and experiment with your own workflows.
+* **Sponsor on GitHub:** [**Sponsor `@RobinaMirbahar` on GitHub Sponsors (`github.com/sponsors/RobinaMirbahar`)**](https://github.com/sponsors/RobinaMirbahar) to support open-source AI, Google Cloud, and Gemini engineering projects!
+
