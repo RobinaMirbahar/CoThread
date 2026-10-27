@@ -10,6 +10,24 @@
 [![Project Lead](https://img.shields.io/badge/Project_Lead_%2C_Principal_AI_Architect-Robina_Mirbahar_(%40RobinaMirbahar)-FF90E8?logo=github&logoColor=black)](https://github.com/RobinaMirbahar)
 [![Original Idea & Co-Builder](https://img.shields.io/badge/Original_Idea_%2C_Co--Builder_%26_Collaborator-Muhammad_Hasnain_(%40hasnain--kk)-FFC900?logo=github&logoColor=black)](https://github.com/hasnain-kk)
 
+> **Project Lead & Principal AI Architect:** [Robina Mirbahar](https://github.com/RobinaMirbahar) | **Original Idea, Co-Builder & Collaborator:** [Muhammad Hasnain](https://github.com/hasnain-kk)  
+> **Focus:** Multi-User Collaborative AI Rooms (`/s/`) on Google Cloud Run, Firestore, Google ADK & MCP with Host-Sponsored Token Quotas
+
+---
+
+## 🎯 Why I Built CoThread — Enterprise Collaborative AI Platform (Engineering Purpose & Real-World Value)
+
+### 1. 🤝 Turning Single-Player AI into Real-Time Multiplayer Engineering Rooms
+Standard LLM chat interfaces isolate every engineer in a private tab. I architected CoThread (with co-builder Muhammad Hasnain) so entire engineering teams can join live `/s/` rooms to co-prompt, branch, and debug alongside Gemini, Claude, and GPT models simultaneously.
+
+### 2. 💳 Host-Sponsored Token Quotas & Enterprise Governance
+Instead of requiring every participant to configure personal API keys, I designed a host-sponsored token quota ledger backed by Cloud Firestore with strict per-room budget caps and RBAC.
+
+### 3. 🔌 Unified Google ADK & Model Context Protocol (MCP) Tool Bus
+Every collaborative room shares a synchronized MCP tool context so team members can inspect live tool invocations and shared artifacts together.
+
+---
+
 > 🌐 **Live Google Cloud Run Web App**: [**https://cothread-139462646886.us-central1.run.app/**](https://cothread-139462646886.us-central1.run.app/) *(GitHub Pages Mirror: [https://robinamirbahar.github.io/CoThread/](https://robinamirbahar.github.io/CoThread/))*
 >
 > **Stop pasting screenshots of AI chats into Slack.**
@@ -239,3 +257,22 @@ gcloud builds submit --config cloudbuild.yaml \
 
 ## License
 Built for the **Google Cloud AI Builder Cup 2026**. MIT License.
+
+<!-- AUTHOR_SIGNATURE_START -->
+---
+
+## 👩‍💻 About the Author
+
+**Robina Mirbahar — Google Cloud & AI Architect**  
+*Google Developer Expert (GDE) in Cloud & AI • Published Author • Multi-Agent Systems & Serverless GPU Builder*
+
+[![GitHub](https://img.shields.io/badge/GitHub-RobinaMirbahar-181717?style=for-the-badge&logo=github)](https://github.com/RobinaMirbahar)
+[![Medium](https://img.shields.io/badge/Medium-@robinamirbahar-000000?style=for-the-badge&logo=medium)](https://medium.com/@robinamirbahar)
+[![DEV.to](https://img.shields.io/badge/DEV.to-robinamirbahar-0A0A0A?style=for-the-badge&logo=devdotto)](https://dev.to/robinamirbahar)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Robina_Mirbahar-0A66C2?style=for-the-badge&logo=linkedin)](https://www.linkedin.com/in/robina-mirbahar)
+[![GDE Profile](https://img.shields.io/badge/Google_Developer_Expert-Profile-4285F4?style=for-the-badge&logo=google)](https://g.dev/RobinaMirbahar)
+[![YouTube](https://img.shields.io/badge/YouTube-@RobinaMirbahar-FF0000?style=for-the-badge&logo=youtube)](https://www.youtube.com/@RobinaMirbahar)
+[![X](https://img.shields.io/badge/X-@RobinaMirbahar-000000?style=for-the-badge&logo=x)](https://x.com/RobinaMirbahar)
+[![Amazon Author](https://img.shields.io/badge/Amazon_Book-Cloud_Computing_Voyage-FF9900?style=for-the-badge&logo=amazon)](https://www.amazon.com/dp/B0D146249R)
+
+<!-- AUTHOR_SIGNATURE_END -->
