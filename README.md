@@ -5,8 +5,8 @@
 
 [![Google Cloud Run](https://img.shields.io/badge/Google_Cloud_Run-Deployed-4285F4?logo=googlecloud&logoColor=white)](https://cothread-139462646886.us-central1.run.app/)
 [![Google GenAI SDK](https://img.shields.io/badge/%40google%2Fgenai-v1.x-34A853?logo=google&logoColor=white)](https://www.npmjs.com/package/@google/genai)
-[![Gemini Models](https://img.shields.io/badge/Models-gemini--3.8--flash%20%7C%20gemini--4--argon%20%7C%20gemini--3.5--flash--lite-8E75B2)](https://ai.google.dev/)
-[![AI Builder Cup 2026](https://img.shields.io/badge/AI_Builder_Cup-2026_Submission-FBBC04)](https://cloud.google.com/)
+[![Gemini Models](https://img.shields.io/badge/Models-gemini--3.8--flash%20%7C%20gemini--4--argon%20%7C%20gemini--3.5--flash--lite-8E75B2)](https://ai.google.dev/?utm_campaign=deveco_gdemembers&utm_source=deveco)
+[![AI Builder Cup 2026](https://img.shields.io/badge/AI_Builder_Cup-2026_Submission-FBBC04)](https://cloud.google.com/?utm_campaign=deveco_gdemembers&utm_source=deveco)
 [![Project Lead](https://img.shields.io/badge/Project_Lead_%2C_Principal_AI_Architect-Robina_Mirbahar_(%40RobinaMirbahar)-FF90E8?logo=github&logoColor=black)](https://github.com/RobinaMirbahar)
 [![Original Idea & Co-Builder](https://img.shields.io/badge/Original_Idea_%2C_Co--Builder_%26_Collaborator-Muhammad_Hasnain_(%40hasnain--kk)-FFC900?logo=github&logoColor=black)](https://github.com/hasnain-kk)
 
