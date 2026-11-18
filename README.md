@@ -107,6 +107,23 @@ flowchart LR
     Ledger -->|"Master GEMINI_API_KEY (Cloud Run Env)"| Flash
     Ledger -->|"Master GEMINI_API_KEY (Cloud Run Env)"| Argon
     Clone -->|"Switches Billing to Guest's 25k Quota"| Lite
+    style Clients fill:#fce7f3,stroke:#db2777,stroke-width:2px,color:#831843
+    style Host fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
+    style Mirbahar fill:#dcfce7,stroke:#16a34a,stroke-width:2px,color:#14532d
+    style n fill:#f3e8ff,stroke:#9333ea,stroke-width:2px,color:#581c87
+    style Guest fill:#fce7f3,stroke:#db2777,stroke-width:2px,color:#831843
+    style Hasnain fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
+    style CloudRun fill:#dcfce7,stroke:#16a34a,stroke-width:2px,color:#14532d
+    style Run fill:#f3e8ff,stroke:#9333ea,stroke-width:2px,color:#581c87
+    style Auth fill:#fce7f3,stroke:#db2777,stroke-width:2px,color:#831843
+    style Sublink fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
+    style Ledger fill:#dcfce7,stroke:#16a34a,stroke-width:2px,color:#14532d
+    style Clone fill:#f3e8ff,stroke:#9333ea,stroke-width:2px,color:#581c87
+    style Gemini fill:#fce7f3,stroke:#db2777,stroke-width:2px,color:#831843
+    style Flash fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
+    style Argon fill:#dcfce7,stroke:#16a34a,stroke-width:2px,color:#14532d
+    style Lite fill:#f3e8ff,stroke:#9333ea,stroke-width:2px,color:#581c87
+    style GEMINI_API_KEY fill:#fce7f3,stroke:#db2777,stroke-width:2px,color:#831843
 ```
 
 ### Shared Sublink, Host Quota Sponsorship & Independent Copy Sequence
@@ -140,6 +157,20 @@ sequenceDiagram
     Server-->>Guest: Open Private Thread (Billed to Collaborator's Starter 25k Quota)
     Guest->>Server: Prompt in Private Copy (gemini-3.8-flash)
     Server->>GenAI: generateContentStream (Deducts from Collaborator's 25k Quota)
+    style Mirbahar fill:#fce7f3,stroke:#db2777,stroke-width:2px,color:#831843
+    style Backend fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
+    style GenAI fill:#dcfce7,stroke:#16a34a,stroke-width:2px,color:#14532d
+    style Hasnain fill:#f3e8ff,stroke:#9333ea,stroke-width:2px,color:#581c87
+    style thread fill:#fce7f3,stroke:#db2777,stroke-width:2px,color:#831843
+    style Sublink fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
+    style in fill:#dcfce7,stroke:#16a34a,stroke-width:2px,color:#14532d
+    style Presence fill:#f3e8ff,stroke:#9333ea,stroke-width:2px,color:#581c87
+    style Host fill:#fce7f3,stroke:#db2777,stroke-width:2px,color:#831843
+    style generateContentStream fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
+    style Live fill:#dcfce7,stroke:#16a34a,stroke-width:2px,color:#14532d
+    style Update fill:#f3e8ff,stroke:#9333ea,stroke-width:2px,color:#581c87
+    style Independently fill:#fce7f3,stroke:#db2777,stroke-width:2px,color:#831843
+    style Copy fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
 ```
 
 ### Multi-Agent Workforce & Cowork Execution Flow
@@ -164,6 +195,20 @@ flowchart TD
 
     Tools --> HITL["🛡️ Quota & Governance Gate\n(Host-Sponsored Quota Ledger • Public 1-Click Personal Fork)"]
     HITL --> Output["✅ Finished Artifacts & Synchronized Shared Session History"]
+    style User fill:#fce7f3,stroke:#db2777,stroke-width:2px,color:#831843
+    style n fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
+    style Space fill:#dcfce7,stroke:#16a34a,stroke-width:2px,color:#14532d
+    style Compress fill:#f3e8ff,stroke:#9333ea,stroke-width:2px,color:#581c87
+    style Mode fill:#fce7f3,stroke:#db2777,stroke-width:2px,color:#831843
+    style Single fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
+    style Planner fill:#dcfce7,stroke:#16a34a,stroke-width:2px,color:#14532d
+    style Coordinator fill:#f3e8ff,stroke:#9333ea,stroke-width:2px,color:#581c87
+    style W1 fill:#fce7f3,stroke:#db2777,stroke-width:2px,color:#831843
+    style W2 fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
+    style W3 fill:#dcfce7,stroke:#16a34a,stroke-width:2px,color:#14532d
+    style Tools fill:#f3e8ff,stroke:#9333ea,stroke-width:2px,color:#581c87
+    style HITL fill:#fce7f3,stroke:#db2777,stroke-width:2px,color:#831843
+    style Output fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
 ```
 
 ---
@@ -257,22 +302,3 @@ gcloud builds submit --config cloudbuild.yaml \
 
 ## License
 Built for the **Google Cloud AI Builder Cup 2026**. MIT License.
-
-<!-- AUTHOR_SIGNATURE_START -->
----
-
-## 👩‍💻 About the Author
-
-**Robina Mirbahar — Google Cloud & AI Architect**  
-*Google Developer Expert (GDE) in Cloud & AI • Published Author • Multi-Agent Systems & Serverless GPU Builder*
-
-[![GitHub](https://img.shields.io/badge/GitHub-RobinaMirbahar-181717?style=for-the-badge&logo=github)](https://github.com/RobinaMirbahar)
-[![Medium](https://img.shields.io/badge/Medium-@robinamirbahar-000000?style=for-the-badge&logo=medium)](https://medium.com/@robinamirbahar)
-[![DEV.to](https://img.shields.io/badge/DEV.to-robinamirbahar-0A0A0A?style=for-the-badge&logo=devdotto)](https://dev.to/robinamirbahar)
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Robina_Mirbahar-0A66C2?style=for-the-badge&logo=linkedin)](https://www.linkedin.com/in/robinamirbahar)
-[![GDE Profile](https://img.shields.io/badge/Google_Developer_Expert-Profile-4285F4?style=for-the-badge&logo=google)](https://g.dev/RobinaMirbahar?utm_campaign=deveco_gdemembers&utm_source=deveco)
-[![YouTube](https://img.shields.io/badge/YouTube-@RobinaCodesAI-FF0000?style=for-the-badge&logo=youtube)](https://www.youtube.com/@RobinaCodesAI)
-[![X](https://img.shields.io/badge/X-@RobinaMirbahar-000000?style=for-the-badge&logo=x)](https://x.com/RobinaMirbahar)
-[![Amazon Author](https://img.shields.io/badge/Amazon_Book-Cloud_Computing_Voyage-FF9900?style=for-the-badge&logo=amazon)](https://www.amazon.com/dp/B0D146249R)
-
-<!-- AUTHOR_SIGNATURE_END -->
