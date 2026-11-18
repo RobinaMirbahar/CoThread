@@ -10,8 +10,9 @@
 [![Project Lead](https://img.shields.io/badge/Project_Lead_%2C_Principal_AI_Architect-Robina_Mirbahar_(%40RobinaMirbahar)-FF90E8?logo=github&logoColor=black)](https://github.com/RobinaMirbahar)
 [![Original Idea & Co-Builder](https://img.shields.io/badge/Original_Idea_%2C_Co--Builder_%26_Collaborator-Muhammad_Hasnain_(%40hasnain--kk)-FFC900?logo=github&logoColor=black)](https://github.com/hasnain-kk)
 
-> **Project Lead & Principal AI Architect:** [Robina Mirbahar](https://github.com/RobinaMirbahar) | **Original Idea, Co-Builder & Collaborator:** [Muhammad Hasnain](https://github.com/hasnain-kk)  
-> **Focus:** Multi-User Collaborative AI Rooms (`/s/`) on Google Cloud Run, Firestore, Google ADK & MCP with Host-Sponsored Token Quotas
+> **Project Lead & Principal AI Architect:** [Robina Mirbahar](https://github.com/RobinaMirbahar) ([Google Developer Expert in Cloud & AI](https://developers.google.com/profile/u/106918534005910641104?utm_campaign=deveco_gdemembers&utm_source=deveco) · Google Cloud Champion Innovator · Co-Author of [*AI Engineering*](https://www.amazon.com/dp/B0GWCZWCF4)) | **Original Idea & Co-Builder:** [Muhammad Hasnain](https://github.com/hasnain-kk)  
+> 📚 **Live Deployment & Docs:** [Live Cloud Run App (cothread)](https://cothread-139462646886.us-central1.run.app/) · [GitHub Pages Mirror](https://robinamirbahar.github.io/CoThread/) · [Architecture & Implementation Docs](./DOCUMENTATION.md)  
+> **Core Stack:** [Google Cloud Run](https://cloud.google.com/run/docs?utm_campaign=deveco_gdemembers&utm_source=deveco), Cloud Firestore, [Google Agent Development Kit (ADK)](https://google.github.io/adk-docs/?utm_campaign=deveco_gdemembers&utm_source=deveco), Model Context Protocol (MCP), Firebase Studio, and @google/genai SDK.
 
 ---
 
